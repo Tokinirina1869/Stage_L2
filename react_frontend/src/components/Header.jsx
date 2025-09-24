@@ -28,83 +28,60 @@ class Headers extends Component {
     }
 
     render() {
-        const { menuState, activeMenu, theme, langue } = this.state;
+        const { menuState, activeMenu, theme } = this.state;
         
         return (
-            <div className="container" style={{ color: theme === "dark" ? "white" : "black" }} >
-                
-                <div className="col-lg-3">
-                    <h5 className="navbar-brand d-flex align-items-center fw-bold mb-0 me-5">
-                        <img src={fma} alt="Logo" width={80} height={80} className="me-2"/>
-                        <h2 className="text-primary fw-bold">FMA Anjarasoa Ankofafa</h2>
-                    </h5>
+            <div className="container-fluid">
+                <img src={fma} alt="FMA"  width={80} className='me-3'/>
+                <h2 className="fw-bold text-primary mb-0">FMA Anjarasoa Ankofafa</h2>
+
+                <button className="navbar-toggler" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#navbarNav" aria-controls="navbarNav" aria-label="Toggle navigation"
+                    aria-expanded={menuState ? "true" : "false"}  onClick={this.toggleMenu}>
+                    {menuState ? (
+                        <span style={{ fontSize: "1.5rem", color: "red" }}>&#x2715;</span>
+                    ) : (
+                        <span className="navbar-toggler-icon"></span>
+                    )}
+                </button>
+
+                <div className={`collapse navbar-collapse ${menuState ? "show" : ""}`} style={{marginLeft: "20%"}} id="navbarNav">
+                    <ul className="navbar-nav mx-5 mb-2">
+                        <li className="nav-item mx-5 text-center fw-bold">
+                            <a href="#" className={'nav-link ' + (activeMenu ? 'active fw-bold text-info border-bottom border-3 border-info' : '')}>
+                                <FaHome size={24} className='mx-1' /> Apropos
+                            </a>
+                        </li>
+                        <li className="nav-item mx-5 fw-bold">
+                            <a href="#" className="nav-link">Services</a>
+                        </li>
+                        <li className="nav-item mx-5 fw-bold">
+                            <a href="#" className="nav-link">Contact</a>
+                            {/* <a href={this.props.contact} className="nav-link">Contact</a> */}
+                        </li>
+                        <li className="nav-item dropdown mx-5">
+                            <a className="nav-link dropdown-toggle fw-bold" style={{ cursor: "pointer" }}
+                                href="#" id="themeDropdown" onClick={ this.toggleDropdown }
+                                role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <FaAdjust size={24} className='mx-1'/>Thème
+                            </a>
+                            <ul className="dropdown-menu" aria-labelledby="themeDropdown">
+                                <li>
+                                    <button className={`dropdown-item ${theme === 'light' ? 'active' : ''}`}
+                                        onClick={() => this.handleThemeChange('light') + this.setState(() => ({ menuState : false }))}>
+                                        <FaSun size={25} className='mx-1' /> Mode Claire
+                                    </button>
+                                </li>
+                                <li>
+                                    <button className={`dropdown-item ${theme === 'dark' ? 'active' : ''}`}
+                                        onClick={() => this.handleThemeChange('dark') + this.setState(() => ({ menuState : false }))}>
+                                        <FaMoon size={25} className='mx-1' /> Mode Sombre
+                                    </button>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
                 </div>
-                  
-                   
-                    <button className="navbar-toggler" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#navbarNav" aria-controls="navbarNav" aria-label="Toggle navigation"
-                        aria-expanded={menuState ? "true" : "false"}  onClick={this.toggleMenu}>
-                        {menuState ? (
-                            <span style={{ fontSize: "1.5rem", color: "red" }}>&#x2715;</span>
-                        ) : (
-                            <span className="navbar-toggler-icon"></span>
-                        )}
-                    </button>
-
-                    <div className={`collapse navbar-collapse ${menuState ? "show" : ""}`} id="navbarNav">
-                        <ul className="navbar-nav ms-auto mb-2 mb-lg-0">
-                            <li className="nav-item mx-2 text-center fw-bold">
-                                <a href="#" className={'nav-link ' + (activeMenu ? 'active fw-bold text-info border-bottom border-3 border-info' : '')}>
-                                    <FaHome size={24} className='mx-1' /> Accueil
-                                </a>
-                            </li>
-                            <li className="nav-item dropdown mx-2">
-                                <a className="nav-link dropdown-toggle fw-bold" style={{ cursor: "pointer" }}
-                                    href="#" id="themeDropdown" onClick={ this.toggleDropdown }
-                                    role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <FaAdjust size={24} className='mx-1'/>Thème
-                                </a>
-                                <ul className="dropdown-menu" aria-labelledby="themeDropdown">
-                                    <li>
-                                        <button className={`dropdown-item ${theme === 'light' ? 'active' : ''}`}
-                                            onClick={() => this.handleThemeChange('light') + this.setState(() => ({ menuState : false }))}>
-                                            <FaSun size={25} className='mx-1' /> Mode Claire
-                                        </button>
-                                    </li>
-                                    <li>
-                                        <button className={`dropdown-item ${theme === 'dark' ? 'active' : ''}`}
-                                            onClick={() => this.handleThemeChange('dark') + this.setState(() => ({ menuState : false }))}>
-                                            <FaMoon size={25} className='mx-1' /> Mode Sombre
-                                        </button>
-                                    </li>
-                                </ul>
-                            </li>
-
-                            <li className="nav-item dropdown mx-3">
-                                <a href="#" className="nav-link dropdown-toggle fw-bold" style={{ cursor: "pointer"}}
-                                    role='button' data-bs-toggle="dropdown" aria-expanded="false">
-                                    <FaLanguage size={25} className='mx-1' /> Langues
-                                </a>
-                                <ul className="dropdown-menu">
-                                    <li>
-                                        <button className={`dropdown-item ${ langue === 'fr' ? 'active' :''}`}>
-                                            Français 🇫🇷
-                                        </button>
-                                    </li>
-                                    <li>
-                                        <button className={`dropdown-item ${ langue === 'en' ? 'active' :''}`}>
-                                            English 🇬🇧
-                                        </button>
-                                    </li>
-                                    <li>
-                                        <button className={`dropdown-item ${ langue === 'mg' ? 'active' :''}`}>
-                                            Malagasy 🇲🇬
-                                        </button>
-                                    </li>
-                                </ul>
-                            </li>
-                        </ul>
-                    </div>
             </div>
         );
     }

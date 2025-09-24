@@ -4,7 +4,6 @@ import FormulaireInscription from './Formation/FormulaireInscription';
 import Affichage from './Formation/Affichage';
 import DashboardPage from './DashboadPage';
 import AffichageEleve from './Académique/AffichageEleve';
-
 import App from './Accueil';
 
 import { FaHome, FaMoneyCheckAlt, FaPlus, FaSignOutAlt, FaTimes, FaUserPlus } from 'react-icons/fa';

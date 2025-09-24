@@ -1,17 +1,13 @@
 import React, { Component } from 'react';
 import App from './Accueil';
-import Headers from './Header';
+import Accueil from './Accueil';
 
 class Inscription extends Component {
-    constructor(props) {
-        super(props);
-
-    }
-
     render() {
+        
         return (
             <div>
-                < App />
+                < Accueil />
             </div>
         );
     }

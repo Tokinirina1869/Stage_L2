@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { Link } from 'react-router-dom';
 import cfp from '../FMA/cfp.jpg';
 import lycee from '../FMA/lycee.jpg';
 import coupe from "../FMA/Form/Coupe.jpg";
@@ -6,26 +7,32 @@ import langue from "../FMA/Form/couture.jpg"
 import info from "../FMA/Form/infor.jpg";
 import music from "../FMA/Music.jpg";
 import patisserie from "../FMA/Form/Patisserie.jpg";
-import { FaEye, FaStar, FaTruck } from 'react-icons/fa';
-import Login from './Register'
+import { FaCheck, FaPen } from 'react-icons/fa';
+// import Login from './Register'
 import Headers from './Header';
+
+// function number() {
+//     let n =5 ;
+//     return n;
+// }
 
 class Accueil extends Component {
   render() {
     return (
         <div>
-            <nav className="navbar card navbar-expand-lg fw-bold bg-default fixed-top shadow">
+            <header className="navbar navbar-expand-lg bg-default shadow py-3 px-4">
                 < Headers />
-            </nav>
-            <div className='container-fluid p-5 shadow mt-5 mb-3 mt-5'>
+                {/* < Headers propos="#propos" service="#service" contact="#contact" /> */}
+            </header>
+            <div className='container-fluid p-5 shadow mt-2 mb-3'>
                 <h2 className="text-center text-primary fw-bold position-relative mt-5">
                     Centre de Formation Professionnelle (CFP) Laura Vicuna Anjarasoa Ankofafa Fianarantosa
                     <span style={{ display: 'block', width: '220px',      
                         borderBottom: '4px solid #0d6efd', margin: '0 auto', marginTop: '5px'}}
                     ></span>
                 </h2>
-                <div className="row mt-5">
-                    <div className="col-12 col-lg-8 mb-3 p-3 rounded-3">
+                <div className="row mt-5 container-fluid shadow p-4">
+                    <div className="col-lg-8 mb-3 p-3 rounded-3">
                         <h3 className="text-center text-primary fw-bold border-primary border-3 mt-1">
                             A propos
                         </h3>
@@ -39,15 +46,17 @@ class Accueil extends Component {
                             Centre de Formation Professionnelle (CFP) Laura Vicuna Madagascar, Profince de Fianarantsoa, District de Fianarantsoa,
                             Arrondissement Manolafaka ANJARASOA ANKOFAFA. 
                         </p>
-                        <button onClick={this.props.onNavigateToLogin} className="btn btn-primary btn-lg rounded-pull" style={{marginLeft: "40%"}}>
-                            Se Connecter
-                        </button>
+                        <Link to="/login">
+                            <button className="btn text-white btn-primary btn-lg rounded-pull" style={{marginLeft: "40%"}}>
+                                Se Connecter
+                            </button>
+                        </Link>
                     </div>
-                    <div className="col-12 col-lg-4">
+                    <div className="col-lg-4">
                         <img src={cfp} alt="FMA" className="img-fluid rounded" />
                     </div>
-                
-                <div className="row container shadow g-4">
+                </div>
+                <div className="row container-fluid shadow g-4">
                     <h2 className="text-primary fw-bold text-center mt-5 card-text">Formation trois mois (ou Formation à court terme) pour tout le monde</h2>
                     <div className="col-lg-4 mb-4 p-4">
                         <div className="card">
@@ -212,8 +221,6 @@ class Accueil extends Component {
                     </div>
                 </div>
 
-                </div>
-                
                 <div className="container-fluid shadow mt-5 p-5 ">
                     <div className="row">
                         <h2 className="text-primary text-center position-relative fw-bold mb-5">
@@ -234,46 +241,63 @@ class Accueil extends Component {
                         </div>
 
                         <div className="col-lg-4 mt-5 p-2">
-                            <h2 className="text-primary text-center fw-bold"> <FaStar size={24} className='mx-1' />Classe de Seconde(2<sup>nde</sup>)</h2>
-                            
-                        </div>
-                        <div className="col-lg-4 mt-5 p-2">
-                            <h2 className="text-primary text-center fw-bold"> <FaStar size={24} className='mx-1' /> Classe de Première(1<sup>ère</sup>)</h2>
-                            <div className="card-body">
+                            <div className="card card-body">
+                                <h2 className="text-primary text-center fw-bold"> <FaPen size={24} className='mx-1 text-danger' />Classe de Seconde(2<sup>nde</sup>)</h2>
                                 <div className="mb-3 text-center">
                                     <ul className='list-unstyled mt-3' style={{ marginLeft: "25%" }}>
                                         <li className='fw-bold d-flex align-items-center mb-3'>
-                                            <h4 className='fw-bold '>Droit d'Inscription:</h4> <span style={{ marginLeft: '10%'}}>15 000Ar</span>
+                                            <FaCheck size={24} className='mx-1 btn btn-warning' /> Droit d'Inscription:<h2 className='fw-bold text-success' style={{ marginLeft: '10%'}}>15 000Ar</h2>
                                         </li>
                                         <li className='fw-bold d-flex align-items-center mb-3'>
-                                            <h4 className='fw-bold '>Frais Scolaires: </h4> <span style={{ marginLeft: '22%'}}>74 000Ar</span>
+                                            <FaCheck size={24} className='mx-1 btn btn-warning' /> Frais Scolaires: <h2 className='fw-bold text-success' style={{ marginLeft: '20%'}}>74 000Ar</h2>
                                         </li>
                                         <li className='fw-bold d-flex align-items-center mb-3'>
-                                            <h4 className='fw-bold '>VRM: </h4><span style={{ marginLeft: '51%'}}> 6 000Ar</span>
+                                            <FaCheck size={24} className='mx-1 btn btn-warning' /> VRM: <h2 className='fw-bold text-success' style={{ marginLeft: '40%'}}> 6 000Ar</h2>
                                         </li>
                                         <li className='fw-bold d-flex align-items-center mb-3'>
-                                            <h4 className='fw-bold '>Ecolage par mois: </h4> <span style={{ marginLeft: '13%'}}>29 000Ar </span>
+                                            <FaCheck size={24} className='mx-1 btn btn-warning' /> Ecolage par mois: <h2 className='fw-bold text-success' style={{ marginLeft: '13%'}}>28 500Ar </h2>
                                         </li>
                                     </ul>
                                 </div>
                             </div>
                         </div>
-                        <div className="col-lg-4 card mt-5 p-2">
-                            <h2 className="text-primary text-center fw-bold"> <FaStar size={24} className='mx-1' /> Classe de Terminale(T<sup>le</sup>)</h2>
-                            <div className="card-body">
+                        <div className="col-lg-4 mt-5 p-2">
+                            <div className="card card-body">
+                                <h2 className="text-primary text-center fw-bold"> <FaPen size={24} className='mx-1 text-danger' /> Classe de Première(1<sup>ère</sup>)</h2>
                                 <div className="mb-3 text-center">
                                     <ul className='list-unstyled mt-3' style={{ marginLeft: "25%" }}>
-                                        <li className='fw-bold d-flex align-items-center mb-3'>
-                                            <h4 className='fw-bold '>Droit d'Inscription:</h4> <span style={{ marginLeft: '10%'}}>15 000Ar</span>
+                                       <li className='fw-bold d-flex align-items-center mb-3'>
+                                            <FaCheck size={24} className='mx-1 btn btn-warning' /> Droit d'Inscription:<h2 className='fw-bold text-success' style={{ marginLeft: '10%'}}>15 000Ar</h2>
                                         </li>
                                         <li className='fw-bold d-flex align-items-center mb-3'>
-                                            <h4 className='fw-bold '>Frais Scolaires: </h4> <span style={{ marginLeft: '22%'}}>74 000Ar</span>
+                                            <FaCheck size={24} className='mx-1 btn btn-warning' /> Frais Scolaires: <h2 className='fw-bold text-success' style={{ marginLeft: '20%'}}>74 000Ar</h2>
                                         </li>
                                         <li className='fw-bold d-flex align-items-center mb-3'>
-                                            <h4 className='fw-bold '>VRM: </h4><span style={{ marginLeft: '51%'}}> 6 000Ar</span>
+                                            <FaCheck size={24} className='mx-1 btn btn-warning' /> VRM: <h2 className='fw-bold text-success' style={{ marginLeft: '40%'}}> 6 000Ar</h2>
                                         </li>
                                         <li className='fw-bold d-flex align-items-center mb-3'>
-                                            <h4 className='fw-bold '>Ecolage par mois: </h4> <span style={{ marginLeft: '13%'}}>30 000Ar </span>
+                                            <FaCheck size={24} className='mx-1 btn btn-warning' /> Ecolage par mois: <h2 className='fw-bold text-success' style={{ marginLeft: '13%'}}>29 000Ar </h2>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="col-lg-4 mt-5 p-2">
+                            <div className="card card-body">
+                                <h2 className="text-primary text-center fw-bold"> <FaPen size={24} className='mx-1 text-danger' /> Classe de Terminale(T<sup>le</sup>)</h2>
+                                <div className="mb-3 text-center">
+                                    <ul className='list-unstyled mt-3' style={{ marginLeft: "25%" }}>
+                                       <li className='fw-bold d-flex align-items-center mb-3'>
+                                            <FaCheck size={24} className='mx-1 btn btn-warning' /> Droit d'Inscription:<h2 className='fw-bold text-success' style={{ marginLeft: '10%'}}>15 000Ar</h2>
+                                        </li>
+                                        <li className='fw-bold d-flex align-items-center mb-3'>
+                                            <FaCheck size={24} className='mx-1 btn btn-warning' /> Frais Scolaires: <h2 className='fw-bold text-success' style={{ marginLeft: '20%'}}>74 000Ar</h2>
+                                        </li>
+                                        <li className='fw-bold d-flex align-items-center mb-3'>
+                                            <FaCheck size={24} className='mx-1 btn btn-warning' /> VRM: <h2 className='fw-bold text-success' style={{ marginLeft: '40%'}}> 6 000Ar</h2>
+                                        </li>
+                                        <li className='fw-bold d-flex align-items-center mb-3'>
+                                            <FaCheck size={24} className='mx-1 btn btn-warning' /> Ecolage par mois: <h2 className='fw-bold text-success' style={{ marginLeft: '13%'}}>30 000Ar </h2>
                                         </li>
                                     </ul>
                                 </div>
@@ -288,34 +312,36 @@ class Accueil extends Component {
   }
 }
 
-class App extends Component {
+// class App extends Component {
 
-    constructor(props) {
-        super(props);
-        this.state = {
-            currentPage: 'accueil',
-        };
-    }
-    renderPage = () => {
-        switch (this.state.currentPage) {
-            case 'accueil': 
-                return <Accueil onNavigateToLogin={() =>this.setState({ currentPage : 'login'})} />;
-            case 'login' :
-                return <Login onLoginSuccess={() =>this.setState({ currentPage: 'accueil'})} />;
-            default: 
-                return <Accueil onNavigateToHome={() =>this.setState({ currentPage: 'accueil'})} />
+//     constructor(props) {
+//         super(props);
+//         this.state = {
+//             currentPage: 'accueil',
+//         };
+//     }
+//     renderPage = () => {
+//         switch (this.state.currentPage) {
+//             case 'accueil': 
+//                 return <Accueil onNavigateToLogin={() =>this.setState({ currentPage : 'log'})} />;
+//             case 'log' :
+//                 return <Login onLoginSuccess={() =>this.setState({ currentPage: 'accueil'})} />;
+//             default: 
+//                 return <Accueil onNavigateToHome={() =>this.setState({ currentPage: 'accueil'})} />
 
-        }
-    };
+//         }
+//     };
 
-    render() {
-        return(
-            <>
+//     render() {
+//         return(
+//             <>
             
-                { this.renderPage() }
-            </>
-        )
-    }
-}
+//                 { this.renderPage() }
+//             </>
+//         )
+//     }
+// }
 
-export default App;
+// export { , App };
+
+export default Accueil;

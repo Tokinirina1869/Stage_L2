@@ -1,10 +1,11 @@
 import React, { Component } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import logo from '../assets/fma.png';
 import background from '../FMA/cfp.jpg';
-import Page from './Page';
-import Accueil from "./Accueil";
+// import Page from './Page';
+// import Accueil from "./Accueil";
 
-class Register extends Component {
+class Registers extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -27,7 +28,7 @@ class Register extends Component {
     } 
     else {
       setTimeout(() => {
-        this.props.onLoginSuccess();
+        this.props.navigate('/login');
       }, 1000);
 
     }
@@ -59,9 +60,7 @@ class Register extends Component {
               </div>
             )}
             <div className="d-flex flex-column gap-2">
-              <button type="button" className="btn btn-primary w-100 rounded-pill mt-3">
-                Retour
-              </button>
+              <Link to='/login'> Retour </Link>
               <button type="submit" className="btn btn-primary w-100 rounded-pill mt-3">
                 Créer Compte
               </button>
@@ -73,12 +72,13 @@ class Register extends Component {
   }
 }
 
-class Login extends Component {
+class Logins extends Component {
   constructor(props) {
     super(props);
     this.state = {
       email: '',
       password: '',
+      message: '',
     };
   }
 
@@ -88,10 +88,12 @@ class Login extends Component {
 
   handleSubmit = (e) => {
     e.preventDefault();
-    // e.preventDefault();
-    if (this.state.email === 'admin@gmail.com' && this.state.password === '1234') {
+    if (this.state.email === '' || this.state.password === '') {
+      this.setState({ message: "Veuillez remplir ce champ!" })
+    }
+    else if (this.state.email === 'admin@gmail.com' && this.state.password === '1234') {
       setTimeout(() => {
-        this.props.onLoginSuccess();
+        this.props.navigate('/page');
       }, 1000);
     } 
     else {
@@ -115,24 +117,33 @@ class Login extends Component {
           <form onSubmit={this.handleSubmit}>
             <div className="mb-3">
               <label className="form-label text-info fw-bold">Email</label>
-              <input type="email" className="form-control" name="email" value={this.state.email} onChange={this.handleChange} required />
+              <input type="email" className="form-control" name="email" value={this.state.email} onChange={this.handleChange} />
+              { this.state.message && (
+                <span className={`text-danger text-center mt-3`}> { this.state.message } </span>
+              )}
             </div>
             <div className="mb-3">
               <label className="form-label text-info fw-bold">Password</label>
-              <input type="password" className="form-control" name="password" value={this.state.password} onChange={this.handleChange} required />
+              <input type="password" className="form-control" name="password" value={this.state.password} onChange={this.handleChange} />
+              { this.state.message && (
+                <span className={`text-danger text-center mt-3`}> { this.state.message } </span>
+              )}
             </div>
             {this.state.message && (
               <div className={`alert ${this.state.message.includes('réussie') ? 'alert-success' : 'alert-danger'} text-center mt-3`}>
                 {this.state.message}
               </div>
             )}
+              <Link to='/register' className='text-center'>Mot de passe oublié ?</Link>
             <div className="d-flex flex-column gap-2">
               <button type="submit" className="btn btn-primary w-100 rounded-pill mt-3">
                 Connexion
               </button>
-              <button type="button" onClick={this.props.onNavigateToHome} className="btn btn-primary w-100 rounded-pill mt-3">
-                Créer Compte
-              </button>
+              <Link to="/register">
+                <button className="btn btn-primary w-100 rounded-pill mt-3">
+                  Créer Compte
+                </button>
+              </Link>
             </div>
           </form>
         </div>
@@ -141,36 +152,44 @@ class Login extends Component {
   }
 }
 
-class Account extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      currentPage: 'login',
-    };
-  }
 
-  renderPage = () => {
-    switch (this.state.currentPage) {
-      case 'accueil': 
-        return <Accueil OnHomePage={() => this.state.setState({ currentPage: 'accueil'})} />
-      case 'register':
-        return <Register onLoginSuccess={() => this.setState({ currentPage: 'dashboard' })} onNavigateToLogin={() => this.setState({ currentPage: 'login' })} />;
-      case 'login':
-        return <Login onLoginSuccess={() => this.setState({ currentPage: 'dashboard' })} onNavigateToHome={() => this.setState({ currentPage: 'register' })} />;
-      case 'dashboard':
-        return <Page onLogout={() => this.setState({ currentPage: 'accueil' })} />;
-      default:
-        return <DashboardPage onLogout={() => this.setState({ currentPage: 'accueil' })} />;
-    }
-  };
+// class Account extends Component {
+//   constructor(props) {
+//     super(props);
+//     this.state = {
+//       currentPage: 'login',
+//     };
+//   }
 
-  render() {
-    return (
-      <>
-        {this.renderPage()}
-      </>
-    );
-  }
+//   renderPage = () => {
+//     switch (this.state.currentPage) {
+//       case 'accueil': 
+//         return <Accueil OnHomePage={() => this.state.setState({ currentPage: 'accueil'})} />
+//       case 'register':
+//         return <Register onLoginSuccess={() => this.setState({ currentPage: 'dashboard' })} onNavigateToLogin={() => this.setState({ currentPage: 'login' })} />;
+//       case 'login':
+//         return <Login onLoginSuccess={() => this.setState({ currentPage: 'dashboard' })} onNavigateToHome={() => this.setState({ currentPage: 'register' })} />;
+//       case 'dashboard':
+//         return <Page onLogout={() => this.setState({ currentPage: 'accueil' })} />;
+//       default:
+//         return <DashboardPage onLogout={() => this.setState({ currentPage: 'accueil' })} />;
+//     }
+//   };
+
+//   renderrender() {
+//     return (
+//       <>
+//         {this.renderPage()}
+//       </>
+//     );
+//   }
+// }
+
+export function Login() {
+  const navigate = useNavigate();
+  return <Logins navigate={navigate} />
 }
-
-export default Account;
+export function Register() {
+  const navigate = useNavigate();
+  return <Registers navigate={navigate} />
+}
