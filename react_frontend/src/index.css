@@ -1,3 +1,11 @@
 /* @tailwind base;
 @tailwind components;
 @tailwind utilities; */
+
+.responsive-text {
+  font-size: clamp(0.9rem, 2vw, 1.2rem); /* min 0.9rem, max 1.2rem, suit 2vw */
+}
+
+.responsive-title {
+  font-size: clamp(1rem, 3vw, 2rem); /* min 1rem, max 2rem, suit 3vw */
+}

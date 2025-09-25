@@ -8,7 +8,6 @@ import info from "../FMA/Form/infor.jpg";
 import music from "../FMA/Music.jpg";
 import patisserie from "../FMA/Form/Patisserie.jpg";
 import { FaCheck, FaPen } from 'react-icons/fa';
-// import Login from './Register'
 import Headers from './Header';
 
 // function number() {
@@ -17,14 +16,40 @@ import Headers from './Header';
 // }
 
 class Accueil extends Component {
-  render() {
+
+    constructor(props) {
+        super(props);
+        this.state = {
+            isSticky: false,
+        }
+    };
+    componentDidMount() {
+        window.addEventListener('scroll', this.handleScroll);
+    }
+    componentWillUnmount() {
+        window.removeEventListener('scroll', this.handleScroll);
+    }
+
+    handleScroll = () => {
+        if(window.scrollY > 50) {
+            this.setState({ isSticky: true });
+        }
+        else {
+            this.setState({ isSticky: false });
+        }
+    }
+
+    render() {
     return (
         <div>
-            <header className="navbar navbar-expand-lg bg-default shadow py-3 px-4">
-                < Headers />
-                {/* < Headers propos="#propos" service="#service" contact="#contact" /> */}
+            <header className={`navbar navbar-expand-lg py-3 px-4 shadow ${
+                this.state.isSticky ? 'fixed-top bg-secondary shadow ' : 'bg-default'
+                }`}
+                style={{ transition: 'all 2s ease-in-out',}}>
+                <Headers propos="#propos" service="#service" contact="#contact" cfp="#cfp" lycee="#lycee" />
             </header>
-            <div className='container-fluid p-5 shadow mt-2 mb-3'>
+            
+            <div className='container-fluid p-5 shadow mt-1 pt-5' id='cfp'>
                 <h2 className="text-center text-primary fw-bold position-relative mt-5">
                     Centre de Formation Professionnelle (CFP) Laura Vicuna Anjarasoa Ankofafa Fianarantosa
                     <span style={{ display: 'block', width: '220px',      
@@ -32,7 +57,7 @@ class Accueil extends Component {
                     ></span>
                 </h2>
                 <div className="row mt-5 container-fluid shadow p-4">
-                    <div className="col-lg-8 mb-3 p-3 rounded-3">
+                    <div className="col-lg-8 mb-3 p-3 rounded-3" id='propos'>
                         <h3 className="text-center text-primary fw-bold border-primary border-3 mt-1">
                             A propos
                         </h3>
@@ -220,128 +245,94 @@ class Accueil extends Component {
                         </div>
                     </div>
                 </div>
+            </div>
+            <div className="container-fluid p-5 shadow mt-3 pt-5">
+                <div className="row container-fluid shadow p-4" id='lycee'>
+                    <h2 className="text-primary text-center position-relative fw-bold mb-5">
+                        Lycée Catholique Laura Vicuna Anjarasoa
+                        <span style={{ display: "block", borderBottom: '4px solid #0d6efd', 
+                            width: '220px', margin: '0 auto', marginTop: '5px' }}></span>
+                    </h2>
+                    <div className="col-12 col-lg-4">
+                        <img src={lycee} height={50} alt="FMA" className="img-fluid rounded" />
+                    </div>
+                    <div className="col-12 col-lg-8 mb-3">
+                        <p className='mt-5 ps-2 p-4' style={{ textAlign: "justify"}}>
+                        Au Lycee Laura Vicuna, le lycée se divise en trois niveaux. D'abord, il y a la classe de seconde <strong >2<sup>nde</sup></strong>,
+                        qui marque l'entrée au lycée après le collège. C'est une année de transition et de détermination du parcours. Ensuite, on passe en première <strong >1<sup>ère</sup> L et S</strong>. 
+                        C'est une année cruciale où les élèves choisissent des spécialités et commencent à préparer le baccalauréat. Finalement, la classe de terminale <strong >T<sup>le</sup> A, D et C </strong>
+                        est la dernière année du lycée, consacrée à l'obtention du diplôme du baccalauréat, qui ouvre les portes de l'enseignement supérieur
+                        </p>
+                    </div>
 
-                <div className="container-fluid shadow mt-5 p-5 ">
-                    <div className="row">
-                        <h2 className="text-primary text-center position-relative fw-bold mb-5">
-                            Lycée Catholique Laura Vicuna Anjarasoa
-                            <span style={{ display: "block", borderBottom: '4px solid #0d6efd', 
-                                width: '220px', margin: '0 auto', marginTop: '5px' }}></span>
-                        </h2>
-                        <div className="col-12 col-lg-4">
-                            <img src={lycee} height={50} alt="FMA" className="img-fluid rounded" />
-                        </div>
-                        <div className="col-12 col-lg-8 mb-3">
-                            <p className='mt-5 ps-2 p-4' style={{ textAlign: "justify"}}>
-                            Au Lycee Laura Vicuna, le lycée se divise en trois niveaux. D'abord, il y a la classe de seconde <strong >2<sup>nde</sup></strong>,
-                            qui marque l'entrée au lycée après le collège. C'est une année de transition et de détermination du parcours. Ensuite, on passe en première <strong >1<sup>ère</sup> L et S</strong>. 
-                            C'est une année cruciale où les élèves choisissent des spécialités et commencent à préparer le baccalauréat. Finalement, la classe de terminale <strong >T<sup>le</sup> A, D et C </strong>
-                            est la dernière année du lycée, consacrée à l'obtention du diplôme du baccalauréat, qui ouvre les portes de l'enseignement supérieur
-                            </p>
-                        </div>
-
-                        <div className="col-lg-4 mt-5 p-2">
-                            <div className="card card-body">
-                                <h2 className="text-primary text-center fw-bold"> <FaPen size={24} className='mx-1 text-danger' />Classe de Seconde(2<sup>nde</sup>)</h2>
-                                <div className="mb-3 text-center">
-                                    <ul className='list-unstyled mt-3' style={{ marginLeft: "25%" }}>
-                                        <li className='fw-bold d-flex align-items-center mb-3'>
-                                            <FaCheck size={24} className='mx-1 btn btn-warning' /> Droit d'Inscription:<h2 className='fw-bold text-success' style={{ marginLeft: '10%'}}>15 000Ar</h2>
-                                        </li>
-                                        <li className='fw-bold d-flex align-items-center mb-3'>
-                                            <FaCheck size={24} className='mx-1 btn btn-warning' /> Frais Scolaires: <h2 className='fw-bold text-success' style={{ marginLeft: '20%'}}>74 000Ar</h2>
-                                        </li>
-                                        <li className='fw-bold d-flex align-items-center mb-3'>
-                                            <FaCheck size={24} className='mx-1 btn btn-warning' /> VRM: <h2 className='fw-bold text-success' style={{ marginLeft: '40%'}}> 6 000Ar</h2>
-                                        </li>
-                                        <li className='fw-bold d-flex align-items-center mb-3'>
-                                            <FaCheck size={24} className='mx-1 btn btn-warning' /> Ecolage par mois: <h2 className='fw-bold text-success' style={{ marginLeft: '13%'}}>28 500Ar </h2>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="col-lg-4 mt-5 p-2">
-                            <div className="card card-body">
-                                <h2 className="text-primary text-center fw-bold"> <FaPen size={24} className='mx-1 text-danger' /> Classe de Première(1<sup>ère</sup>)</h2>
-                                <div className="mb-3 text-center">
-                                    <ul className='list-unstyled mt-3' style={{ marginLeft: "25%" }}>
-                                       <li className='fw-bold d-flex align-items-center mb-3'>
-                                            <FaCheck size={24} className='mx-1 btn btn-warning' /> Droit d'Inscription:<h2 className='fw-bold text-success' style={{ marginLeft: '10%'}}>15 000Ar</h2>
-                                        </li>
-                                        <li className='fw-bold d-flex align-items-center mb-3'>
-                                            <FaCheck size={24} className='mx-1 btn btn-warning' /> Frais Scolaires: <h2 className='fw-bold text-success' style={{ marginLeft: '20%'}}>74 000Ar</h2>
-                                        </li>
-                                        <li className='fw-bold d-flex align-items-center mb-3'>
-                                            <FaCheck size={24} className='mx-1 btn btn-warning' /> VRM: <h2 className='fw-bold text-success' style={{ marginLeft: '40%'}}> 6 000Ar</h2>
-                                        </li>
-                                        <li className='fw-bold d-flex align-items-center mb-3'>
-                                            <FaCheck size={24} className='mx-1 btn btn-warning' /> Ecolage par mois: <h2 className='fw-bold text-success' style={{ marginLeft: '13%'}}>29 000Ar </h2>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="col-lg-4 mt-5 p-2">
-                            <div className="card card-body">
-                                <h2 className="text-primary text-center fw-bold"> <FaPen size={24} className='mx-1 text-danger' /> Classe de Terminale(T<sup>le</sup>)</h2>
-                                <div className="mb-3 text-center">
-                                    <ul className='list-unstyled mt-3' style={{ marginLeft: "25%" }}>
-                                       <li className='fw-bold d-flex align-items-center mb-3'>
-                                            <FaCheck size={24} className='mx-1 btn btn-warning' /> Droit d'Inscription:<h2 className='fw-bold text-success' style={{ marginLeft: '10%'}}>15 000Ar</h2>
-                                        </li>
-                                        <li className='fw-bold d-flex align-items-center mb-3'>
-                                            <FaCheck size={24} className='mx-1 btn btn-warning' /> Frais Scolaires: <h2 className='fw-bold text-success' style={{ marginLeft: '20%'}}>74 000Ar</h2>
-                                        </li>
-                                        <li className='fw-bold d-flex align-items-center mb-3'>
-                                            <FaCheck size={24} className='mx-1 btn btn-warning' /> VRM: <h2 className='fw-bold text-success' style={{ marginLeft: '40%'}}> 6 000Ar</h2>
-                                        </li>
-                                        <li className='fw-bold d-flex align-items-center mb-3'>
-                                            <FaCheck size={24} className='mx-1 btn btn-warning' /> Ecolage par mois: <h2 className='fw-bold text-success' style={{ marginLeft: '13%'}}>30 000Ar </h2>
-                                        </li>
-                                    </ul>
-                                </div>
+                    <div className="col-lg-4 mt-5 p-2" >
+                        <div className="card card-body">
+                            <h2 className="text-primary text-center fw-bold"> <FaPen size={24} className='mx-1 text-danger' />Classe de Seconde(2<sup>nde</sup>)</h2>
+                            <div className="mb-3 text-center">
+                                <ul className='list-unstyled mt-3' style={{ marginLeft: "25%" }}>
+                                    <li className='fw-bold d-flex align-items-center mb-3'>
+                                        <FaCheck size={24} className='mx-1 btn btn-warning' /> Droit d'Inscription:<h2 className='fw-bold text-success' style={{ marginLeft: '10%'}}>15 000Ar</h2>
+                                    </li>
+                                    <li className='fw-bold d-flex align-items-center mb-3'>
+                                        <FaCheck size={24} className='mx-1 btn btn-warning' /> Frais Scolaires: <h2 className='fw-bold text-success' style={{ marginLeft: '20%'}}>74 000Ar</h2>
+                                    </li>
+                                    <li className='fw-bold d-flex align-items-center mb-3'>
+                                        <FaCheck size={24} className='mx-1 btn btn-warning' /> VRM: <h2 className='fw-bold text-success' style={{ marginLeft: '40%'}}> 6 000Ar</h2>
+                                    </li>
+                                    <li className='fw-bold d-flex align-items-center mb-3'>
+                                        <FaCheck size={24} className='mx-1 btn btn-warning' /> Ecolage par mois: <h2 className='fw-bold text-success' style={{ marginLeft: '13%'}}>28 500Ar </h2>
+                                    </li>
+                                </ul>
                             </div>
                         </div>
                     </div>
-                    
+                    <div className="col-lg-4 mt-5 p-2">
+                        <div className="card card-body">
+                            <h2 className="text-primary text-center fw-bold"> <FaPen size={24} className='mx-1 text-danger' /> Classe de Première(1<sup>ère</sup>)</h2>
+                            <div className="mb-3 text-center">
+                                <ul className='list-unstyled mt-3' style={{ marginLeft: "25%" }}>
+                                    <li className='fw-bold d-flex align-items-center mb-3'>
+                                        <FaCheck size={24} className='mx-1 btn btn-warning' /> Droit d'Inscription:<h2 className='fw-bold text-success' style={{ marginLeft: '10%'}}>15 000Ar</h2>
+                                    </li>
+                                    <li className='fw-bold d-flex align-items-center mb-3'>
+                                        <FaCheck size={24} className='mx-1 btn btn-warning' /> Frais Scolaires: <h2 className='fw-bold text-success' style={{ marginLeft: '20%'}}>74 000Ar</h2>
+                                    </li>
+                                    <li className='fw-bold d-flex align-items-center mb-3'>
+                                        <FaCheck size={24} className='mx-1 btn btn-warning' /> VRM: <h2 className='fw-bold text-success' style={{ marginLeft: '40%'}}> 6 000Ar</h2>
+                                    </li>
+                                    <li className='fw-bold d-flex align-items-center mb-3'>
+                                        <FaCheck size={24} className='mx-1 btn btn-warning' /> Ecolage par mois: <h2 className='fw-bold text-success' style={{ marginLeft: '13%'}}>29 000Ar </h2>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="col-lg-4 mt-5 p-2">
+                        <div className="card card-body">
+                            <h2 className="text-primary text-center fw-bold"> <FaPen size={24} className='mx-1 text-danger' /> Classe de Terminale(T<sup>le</sup>)</h2>
+                            <div className="mb-3 text-center">
+                                <ul className='list-unstyled mt-3' style={{ marginLeft: "25%" }}>
+                                    <li className='fw-bold d-flex align-items-center mb-3'>
+                                        <FaCheck size={24} className='mx-1 btn btn-warning' /> Droit d'Inscription:<h2 className='fw-bold text-success' style={{ marginLeft: '10%'}}>15 000Ar</h2>
+                                    </li>
+                                    <li className='fw-bold d-flex align-items-center mb-3'>
+                                        <FaCheck size={24} className='mx-1 btn btn-warning' /> Frais Scolaires: <h2 className='fw-bold text-success' style={{ marginLeft: '20%'}}>74 000Ar</h2>
+                                    </li>
+                                    <li className='fw-bold d-flex align-items-center mb-3'>
+                                        <FaCheck size={24} className='mx-1 btn btn-warning' /> VRM: <h2 className='fw-bold text-success' style={{ marginLeft: '40%'}}> 6 000Ar</h2>
+                                    </li>
+                                    <li className='fw-bold d-flex align-items-center mb-3'>
+                                        <FaCheck size={24} className='mx-1 btn btn-warning' /> Ecolage par mois: <h2 className='fw-bold text-success' style={{ marginLeft: '13%'}}>30 000Ar </h2>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     );
   }
 }
-
-// class App extends Component {
-
-//     constructor(props) {
-//         super(props);
-//         this.state = {
-//             currentPage: 'accueil',
-//         };
-//     }
-//     renderPage = () => {
-//         switch (this.state.currentPage) {
-//             case 'accueil': 
-//                 return <Accueil onNavigateToLogin={() =>this.setState({ currentPage : 'log'})} />;
-//             case 'log' :
-//                 return <Login onLoginSuccess={() =>this.setState({ currentPage: 'accueil'})} />;
-//             default: 
-//                 return <Accueil onNavigateToHome={() =>this.setState({ currentPage: 'accueil'})} />
-
-//         }
-//     };
-
-//     render() {
-//         return(
-//             <>
-            
-//                 { this.renderPage() }
-//             </>
-//         )
-//     }
-// }
-
-// export { , App };
 
 export default Accueil;

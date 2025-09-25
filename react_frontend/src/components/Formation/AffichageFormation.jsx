@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { FaEdit, FaTrash } from 'react-icons/fa';
 
-class Affichage extends Component {
+class AffichageFormation extends Component {
     
     render() {
         return (
@@ -82,4 +82,4 @@ class Affichage extends Component {
 }
 
 
-export default Affichage;
+export default AffichageFormation;

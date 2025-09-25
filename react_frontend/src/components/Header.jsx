@@ -1,6 +1,7 @@
 import { Dropdown } from 'bootstrap';
 import { FaHome, FaUserGraduate, FaMoneyCheckAlt, FaSun, FaLanguage, FaMoon, FaAdjust } from 'react-icons/fa';
 import React, { Component } from 'react';
+import "../App.css"
 import fma from '../assets/fma.png';
 class Headers extends Component {
     constructor(props){
@@ -26,9 +27,15 @@ class Headers extends Component {
         this.setState({ theme, dropdownOpen: false });
         document.body.setAttribute('data-bs-theme', theme);
     }
+    scrollToSection = (id) => {
+        const section = document.querySelector(id);
+        if (section) {
+            section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    };
 
     render() {
-        const { menuState, activeMenu, theme } = this.state;
+        const { menuState, activeMenu} = this.state;
         
         return (
             <div className="container-fluid">
@@ -39,47 +46,63 @@ class Headers extends Component {
                     data-bs-target="#navbarNav" aria-controls="navbarNav" aria-label="Toggle navigation"
                     aria-expanded={menuState ? "true" : "false"}  onClick={this.toggleMenu}>
                     {menuState ? (
-                        <span style={{ fontSize: "1.5rem", color: "red" }}>&#x2715;</span>
+                        <span style={{ fontSize: "2.2rem", color: "red" }}>&#x2715;</span>
                     ) : (
                         <span className="navbar-toggler-icon"></span>
                     )}
                 </button>
 
-                <div className={`collapse navbar-collapse ${menuState ? "show" : ""}`} style={{marginLeft: "20%"}} id="navbarNav">
+                <div className={`collapse navbar-collapse ${menuState ? "show" : ""}`} style={{marginLeft: "10%"}} id="navbarNav">
                     <ul className="navbar-nav mx-5 mb-2">
                         <li className="nav-item mx-5 text-center fw-bold">
-                            <a href="#" className={'nav-link ' + (activeMenu ? 'active fw-bold text-info border-bottom border-3 border-info' : '')}>
+                            <button className={'nav-link btn btn-link p-0 ' + (activeMenu === 'apropos' ? 'active fw-bold text-info border-bottom border-3 border-info' : '')}
+                                onClick={() => { this.setState({activeMenu: 'apropos'});
+                                this.scrollToSection(this.props.propos); }}>
                                 <FaHome size={24} className='mx-1' /> Apropos
-                            </a>
+                            </button>
                         </li>
                         <li className="nav-item mx-5 fw-bold">
-                            <a href="#" className="nav-link">Services</a>
+                             <button className={'nav-link btn btn-link p-0 ' + (activeMenu === 'service' ? 'active fw-bold text-info border-bottom border-3 border-info' : '')}
+                                onClick={() => { this.setState({activeMenu: 'service'});
+                                this.scrollToSection(this.props.cfp); }}>
+                                CFP 
+                            </button>
                         </li>
                         <li className="nav-item mx-5 fw-bold">
-                            <a href="#" className="nav-link">Contact</a>
-                            {/* <a href={this.props.contact} className="nav-link">Contact</a> */}
+                             <button className={'nav-link btn btn-link p-0 ' + (activeMenu === 'service' ? 'active fw-bold text-info border-bottom border-3 border-info' : '')}
+                                onClick={() => { this.setState({activeMenu: 'service'});
+                                this.scrollToSection(this.props.lycee); }}>
+                                Lycée 
+                            </button>
                         </li>
-                        <li className="nav-item dropdown mx-5">
-                            <a className="nav-link dropdown-toggle fw-bold" style={{ cursor: "pointer" }}
-                                href="#" id="themeDropdown" onClick={ this.toggleDropdown }
-                                role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <FaAdjust size={24} className='mx-1'/>Thème
-                            </a>
-                            <ul className="dropdown-menu" aria-labelledby="themeDropdown">
+                        <li className="nav-item mx-5 fw-bold">
+                            <button className={'nav-link btn btn-link p-0 ' + (activeMenu === 'contact' ? 'active fw-bold text-info border-bottom border-3 border-info' : '')}
+                                onClick={() => { this.setState({activeMenu: 'contact'});
+                                this.scrollToSection(this.props.contact); }} >
+                                Contact
+                            </button>
+                        </li>
+                       <li className={`nav-item dropdown mx-5 ${this.state.dropdownOpen ? 'show' : ''}`} onMouseEnter={() => this.setState({ dropdownOpen: true })} onMouseLeave={() => this.setState({ dropdownOpen: false })} >
+                            <button className="dropdown-toggle fw-bold nav-link btn btn-link p-0" style={{ cursor: 'pointer' }} href="#" id="themeDropdown" role="button" aria-expanded={this.state.dropdownOpen ? 'true' : 'false'}>
+                                <FaAdjust size={24} className="mx-1" />Thème
+                            </button>
+
+                            <ul className={`dropdown-menu ${this.state.dropdownOpen ? 'show' : ''}`}
+                                aria-labelledby="themeDropdown">
                                 <li>
-                                    <button className={`dropdown-item ${theme === 'light' ? 'active' : ''}`}
-                                        onClick={() => this.handleThemeChange('light') + this.setState(() => ({ menuState : false }))}>
-                                        <FaSun size={25} className='mx-1' /> Mode Claire
+                                    <button className={`dropdown-item ${this.state.theme === 'light' ? 'active' : ''}`}
+                                        onClick={() => this.handleThemeChange('light')} >
+                                        <FaSun size={25} className="mx-1" /> Mode Claire
                                     </button>
                                 </li>
                                 <li>
-                                    <button className={`dropdown-item ${theme === 'dark' ? 'active' : ''}`}
-                                        onClick={() => this.handleThemeChange('dark') + this.setState(() => ({ menuState : false }))}>
-                                        <FaMoon size={25} className='mx-1' /> Mode Sombre
+                                    <button className={`dropdown-item ${this.state.theme === 'dark' ? 'active' : ''}`} onClick={() => this.handleThemeChange('dark')} >
+                                        <FaMoon size={25} className="mx-1" /> Mode Sombre
                                     </button>
                                 </li>
                             </ul>
                         </li>
+
                     </ul>
                 </div>
             </div>

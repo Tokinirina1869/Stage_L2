@@ -41,8 +41,8 @@ class AffichageEleve extends Component {
                                 <td>2024-2025</td>
                                 <td>L2</td>
                                 <td>
-                                    <FaEdit size={24} style={{color: "blue"}} />
-                                    <FaTrash size={24} style={{color: "red"}} />
+                                    <FaEdit size={24} style={{color: "blue"}} className='mx-2' />
+                                    <FaTrash size={24} style={{color: "red"}} className='mx-2' />
                                 </td>
                             </tr>
                         </tbody>

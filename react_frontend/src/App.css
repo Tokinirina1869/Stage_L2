@@ -1,0 +1,13 @@
+.dropdown-menu {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  opacity: 0;
+  transform: translateY(5px);
+}
+
+.dropdown-menu.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+.responsive-text {
+  font-size: clamp(0.8rem, 2vw, 1.1rem);
+}
