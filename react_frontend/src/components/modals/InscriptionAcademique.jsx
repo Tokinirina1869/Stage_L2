@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { FaChevronDown } from "react-icons/fa";
 
 const InscriptionAcademique = ({ show, handleClose, onSubmit }) => {
 
@@ -37,16 +36,15 @@ const InscriptionAcademique = ({ show, handleClose, onSubmit }) => {
                             <div className="mb-3">
                                 <label htmlFor="annee" className="form-label">Type Inscription: </label>
                                 <div className="position-relative">
-                                    <select name="type" className="form-control text-center pe-5" style={{ appearance: 'none' }} value={type} onChange={(e) => setType(e.target.value)} >
+                                    <select name="type" className="form-select text-center pe-5" style={{ appearance: 'none' }} value={type} onChange={(e) => setType(e.target.value)} >
                                         <option value="inscription">Inscription</option>
                                         <option value="reinscription">Réinscription</option>
                                     </select>
-                                    <FaChevronDown style={{ position: 'absolute', right: '15px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: '#555', }} />
                                 </div>
                             </div>
                             <div className="justify-content-center mt-5 mb-3 modal-footer">
                                 <button type="button" className="btn btn-outline-danger w-25 mx-4 p-2" onClick={handleClose}>Annuler</button>
-                                <button type="submit" className="btn btn-outline-primary w-25 p-2 mx-4">Ajouter</button>
+                                <button type="submit" className="btn btn-outline-primary w-25 p-2 mx-4">S'inscrire</button>
                             </div>
                         </form>
                     </div>

@@ -1,12 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
-const ProfileComponent = ({
-  show,
-  currentUser,
-  handleClose,
-  onUpdateProfile,
-  onBack
-}) => {
+const ProfileComponent = ({ show, currentUser, handleClose, onUpdateProfile, onBack }) => {
+  const [profileImage, setProfileImage] = useState('https://placehold.co/128x128/FFFFFF/000000?text=Photo');
   const [name, setName] = useState(currentUser?.name || '');
   const [email, setEmail] = useState(currentUser?.email || '');
 
@@ -21,13 +16,16 @@ const ProfileComponent = ({
     handleClose(); // on ferme après sauvegarde si tu veux
   };
 
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if(file) {
+      const reader = new FileReader();
+      reader.onloadend= () => setProfileImage(reader.result);
+      reader.readAsDataURL(file);
+    }
+  }
   return (
-    <div
-      className={`modal fade ${show ? 'show d-block' : ''}`}
-      tabIndex="-1"
-      role="dialog"
-      style={{ backgroundColor: show ? 'rgba(0,0,0,0.5)' : 'transparent' }}
-    >
+    <div className={`modal fade ${show ? 'show d-block' : ''}`} tabIndex="-1" role="dialog" style={{ backgroundColor: show ? 'rgba(0,0,0,0.5)' : 'transparent' }} >
       <div className="modal-dialog modal-dialog-centered" role="document">
         <div className="modal-content">
           <div className="modal-header">
@@ -37,31 +35,21 @@ const ProfileComponent = ({
 
           <div className="modal-body">
             <div className="text-center mb-3">
-              <img
-                src={currentUser?.profilePicture || 'https://placehold.co/120'}
-                alt="Profile"
-                className="rounded-circle mb-3"
-                width="120"
-                height="120"
-              />
+              <img src={profileImage || 'https://placehold.co/120'} alt="Profile" className="rounded-circle mb-3 border border-primary border-3" width="120"/>
+              <div className="mt-2">
+                <label className="btn btn-sm btn-outline-primary cursor-pointer fw-bold">
+                    Modifier le photo de Profil
+                    <input type="file" accept="image/*" className="d-none" onChange={handleImageUpload} />
+                </label>
+            </div>
             </div>
             <div className="mb-3">
               <label className="form-label">Nom d'utilisateur</label>
-              <input
-                type="text"
-                className="form-control"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
+              <input type="text" className="form-control" value={name} onChange={(e) => setName(e.target.value)} />
             </div>
             <div className="mb-3">
               <label className="form-label">Email</label>
-              <input
-                type="email"
-                className="form-control"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
+              <input type="email" className="form-control" value={email} onChange={(e) => setEmail(e.target.value)} />
             </div>
           </div>
 

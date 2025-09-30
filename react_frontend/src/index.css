@@ -2,10 +2,29 @@
 @tailwind components;
 @tailwind utilities; */
 
+.dropdown-menu {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  opacity: 0;
+  transform: translateY(5px);
+}
+
+.dropdown-menu.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+.responsive-text {
+  font-size: clamp(0.8rem, 2vw, 1.1rem);
+}
+
 .responsive-text {
   font-size: clamp(0.9rem, 2vw, 1.2rem); /* min 0.9rem, max 1.2rem, suit 2vw */
 }
 
 .responsive-title {
   font-size: clamp(1rem, 3vw, 2rem); /* min 1rem, max 2rem, suit 3vw */
+}
+.table thead th {
+  background-color: var(--bs-primary);
+  color: white;
+  font-weight: bold;
 }

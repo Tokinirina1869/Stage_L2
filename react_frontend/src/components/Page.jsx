@@ -1,85 +1,82 @@
-import React, { Component } from 'react';
-import DashboardPage from './DashboadPage';
-import ListeFormation from './liste/ListeFormation';
+import React, { useState } from 'react';
+import DashboardPage from "./DashboadPage";
 import ListeEleve from './liste/ListeEleve';
-import PaymentPage from './Payement';         
-import App from './Accueil';
+import ListeFormation from './liste/ListeFormation'
+import PaymentPage from './Paiement/Payement';  
 import NavigationPage from './navigation/NavigationPage';
 import LogoutModal from './modals/LogoutModal';
 import ProfileComponent from './modals/ProfileComponent';
+import DashboadEleve from './liste/Dash_Eleve';
+import DashboadFormation from './liste/Dash_Formation';
 
-class Page extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      currentPage: 'dashboard',
-      showLogoutModal: false,
-      showProfilModal: false,
-      currentUser: {
-        name: 'Admin Laura Vicuna',
-        email: 'admin@gmail.com',
-        profilePicture: '/fma.png'
-      }
-    };
-  }
+function Page() {
+  const [currentPage, setCurrentPage] = useState('dashboard');
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [showProfilModal, setShowProfilModal] = useState(false);
+  const [currentUser, setCurrentUser] = useState({
+    name: 'Admin Laura Vicuna',
+    email: 'admin@gmail.com',
+    profilePicture: '/fma.png'
+  });
 
-  handleMenuChange = (menu) => {
-    this.setState({ currentPage: menu });
+  // === Handlers ===
+  const handleMenuChange = (menu) => {
+    setCurrentPage(menu);
   };
 
-  handleLogoutClick = () => {
-    this.setState({ showLogoutModal: true });
+  const handleLogoutClick = () => {
+    setShowLogoutModal(true);
   };
 
-  handleLogoutClose = () => {
-    this.setState({ showLogoutModal: false });
+  const handleLogoutClose = () => {
+    setShowLogoutModal(false);
   };
 
-  handleProfilClick = () => {
-    this.setState({ showProfilModal: true });
+  const handleProfilClick = () => {
+    setShowProfilModal(true);
   };
 
-  handleProfilClose = () => {
-    this.setState({ showProfilModal: false });
+  const handleProfilClose = () => {
+    setShowProfilModal(false);
   };
 
-  handleUpdateProfile = (newProfile) => {
-    // mettre à jour le profil local
-    this.setState({ currentUser: newProfile, showProfilModal: false });
+  const handleUpdateProfile = (newProfile) => {
+    setCurrentUser(newProfile);
+    setShowProfilModal(false);
   };
- 
-  handleLogoutConfirm = () => {
+
+  const handleLogoutConfirm = () => {
     // Ici tu peux aussi clear un token, etc.
-    this.setState({ currentPage: 'accueil', showLogoutModal: false });
+    setCurrentPage('accueil');
+    setShowLogoutModal(false);
     console.log('Déconnexion réussie !');
   };
 
-  render() {
-    const { currentPage, showLogoutModal, showProfilModal, currentUser } = this.state;
+  // === Pages disponibles ===
+  const pages = {
+    dashboard: <DashboardPage />,
+    eleve: <DashboadEleve onViewList={() => setCurrentPage('listeEleve')} />,
+    formation: <DashboadFormation onViewListPro={() => setCurrentPage('listeFormation')} />,
+    listeEleve: <ListeEleve onViewDash={() => setCurrentPage('eleve')}/>,
+    listeFormation: <ListeFormation onViewDashPro={() => setCurrentPage('formation')}  /> ,
+    paiement: <PaymentPage />,
+  };
 
-    const pages = {
-      dashboard: <DashboardPage />,
-      professionnelle: <ListeFormation />,
-      academique: <ListeEleve />,
-      paiement: <PaymentPage />,
-      accueil: <App />,
-    };
+  return (
+    <div>
+      <NavigationPage currentPage={currentPage} handleMenuChange={handleMenuChange} onLogout={handleLogoutClick} 
+        onProfil={handleProfilClick} // déclenche ouverture du modal profil currentUser={currentUser} // pour afficher l'avatar
+      />
 
-    return (
-      <div>
-        <NavigationPage currentPage={currentPage} handleMenuChange={this.handleMenuChange}  onLogout={this.handleLogoutClick}
-          onProfil={this.handleProfilClick} // déclenche ouverture du modal profil
-          currentUser={currentUser} // pour afficher l'avatar 
-        /> 
-        <main className="p-3">{pages[currentPage] || <DashboardPage />}</main>
+      <main className="p-3">
+        {pages[currentPage] || <DashboardPage />}
+      </main>
 
-        <ProfileComponent show={showProfilModal} currentUser={currentUser} handleClose={this.handleProfilClose} 
-          onUpdateProfile={this.handleUpdateProfile} onBack={this.handleProfilClose} />
+      <ProfileComponent show={showProfilModal} currentUser={currentUser} handleClose={handleProfilClose} onUpdateProfile={handleUpdateProfile} onBack={handleProfilClose}/>
 
-        <LogoutModal show={showLogoutModal} handleClose={this.handleLogoutClose} handleConfirm={this.handleLogoutConfirm} />
-      </div>
-    );
-  }
+      <LogoutModal show={showLogoutModal} handleClose={handleLogoutClose} handleConfirm={handleLogoutConfirm}/>
+    </div>
+  );
 }
 
 export default Page;

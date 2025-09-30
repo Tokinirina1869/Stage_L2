@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { FaChevronDown } from "react-icons/fa";
 
 const InscriptionFormation = ({ show, handleClose, onSubmit }) => {
     const [numInsc, setNumInsc] = useState('');
@@ -37,26 +36,19 @@ const InscriptionFormation = ({ show, handleClose, onSubmit }) => {
                             </div>
                             <div className="mb-3 position-relative">
                                 <label htmlFor="type" className="form-label">Type Formation:</label>
-                                <select id="type" className="form-control text-center pe-5"
+                                <select id="type" className="form-select text-center pe-5"
                                         style={{ appearance: 'none' }}
                                         value={type} onChange={(e) => setType(e.target.value)}>
                                     <option value="court">Court Terme</option>
                                     <option value="long">Long Terme</option>
                                 </select>
-                                <FaChevronDown style={{
-                                    position: 'absolute',
-                                    right: '15px',
-                                    top: '50%',
-                                    transform: 'translateY(-50%)',
-                                    pointerEvents: 'none',
-                                    color: '#555'
-                                }}/>
                             </div>
                             <div className="modal-footer justify-content-center mt-5 mb-3">
-                                <button type="button" className="btn btn-outline-danger w-25 mx-4 p-2"
-                                        onClick={handleClose}>Annuler
+                                <button type="button" className="btn btn-outline-danger w-25 mx-4 p-2" onClick={handleClose}>
+                                    Annuler
                                 </button>
-                                <button type="submit" className="btn btn-outline-primary w-25 mx-4 p-2">Ajouter
+                                <button type="submit" className="btn btn-outline-primary w-25 mx-4 p-2">
+                                    S'inscrire
                                 </button>
                             </div>
                         </form>

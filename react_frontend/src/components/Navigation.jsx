@@ -11,25 +11,6 @@ class Navigation extends Component {
             activeMenu: 'dashboard', 
             theme: 'light',
             dropdownOpen: false,
-
-            data: {
-                totalStudents: 1500,
-                professionalTraining: 550,
-                newRegistrations: 75,
-                pendingApplications: 20,
-                registrations: [
-                { id: 1, name: 'Jean Dupont', program: 'Ingénierie Logicielle', status: 'Inscrit' },
-                { id: 2, name: 'Marie Leblanc', program: 'Design Graphique', status: 'En attente' },
-                { id: 3, name: 'Paul Martin', program: 'Marketing Digital', status: 'Inscrit' },
-                { id: 4, name: 'Alice Dubois', program: 'Cybersécurité', status: 'Inscrit' },
-                ],
-            },
-
-            newRegistration: {
-                name: '',
-                program: '',
-                status: 'Inscrit',
-            },
         };
     }
 
@@ -45,17 +26,7 @@ class Navigation extends Component {
     handleThemeChange = (theme) => {
         this.setState({ theme, dropdownOpen: false });
         document.body.setAttribute('data-bs-theme', theme);
-    }
-
-    handleInputChange = (e) => {
-        const { name, value } = e.target;
-        this.setState(prevState => ({
-        newRegistration: {
-            ...prevState.newRegistration,
-            [name]: value,
-        },
-        }));
-    };    
+    } 
 
     render() {
         const { menuState, activeMenu, theme } = this.state;
@@ -93,23 +64,16 @@ class Navigation extends Component {
                                 menuObj.type === 'link'
                                     ? (
                                     <li key={menuObj.name} className="nav-item mx-2 text-center fw-bold">
-                                        <a href="#"
-                                        className={'nav-link ' + (activeMenu === menuObj.name ? 'active fw-bold text-info border-bottom border-3 border-info' : '')}
-                                        onClick={() => {
-                                            this.handleclick(menuObj.name);
-                                            this.setState({ menuState: false });
-                                        }}>
-                                        {menuObj.icon}{menuObj.name.charAt(0).toUpperCase() + menuObj.name.slice(1)}
+                                        <a href="#" className={'nav-link ' + (activeMenu === menuObj.name ? 'active fw-bold text-info border-bottom border-3 border-info' : '')}
+                                        onClick={() => { this.handleclick(menuObj.name);this.setState({ menuState: false });}}>
+                                            {menuObj.icon}{menuObj.name.charAt(0).toUpperCase() + menuObj.name.slice(1)}
                                         </a>
                                     </li>
                                     )
                                     : (
                                     <li key={menuObj.name} className="nav-item dropdown mx-2">
-                                        <a href="#"
-                                        className={'nav-link dropdown-toggle fw-bold mx-3 ' + (activeMenu.startsWith(menuObj.name) ? 'text-info border-bottom border-3 border-info' : '')}
-                                        id={`${menuObj.name}Dropdown`}
-                                        role="button"
-                                        data-bs-toggle="dropdown" aria-expanded="false">
+                                        <a href="#" className={'nav-link dropdown-toggle fw-bold mx-3 ' + (activeMenu.startsWith(menuObj.name) ? 'text-info border-bottom border-3 border-info' : '')}
+                                        id={`${menuObj.name}Dropdown`}role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                         {menuObj.icon}{menuObj.name.charAt(0).toUpperCase() + menuObj.name.slice(1)}
                                         </a>
                                         <ul className="dropdown-menu" aria-labelledby={`${menuObj.name}Dropdown`}>

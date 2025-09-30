@@ -34,7 +34,7 @@ const NouvellePersonne = ({ show, handleClose, onSubmit }) => {
                         <h2 className="jumbotron text-center fw-bold p-4">Ajouter une nouvelle Personne</h2>
                         <form onSubmit={handleFormSubmit}>
                             <div className="text-center mb-4">
-                                <img src={profileImage} alt="Profil" className="rounded-circle border border-primary" style={{ width: '128px', height: '128px', objectFit: 'cover' }} />
+                                <img src={profileImage} alt="Profil" className="rounded-circle border border-3 border-primary" style={{ width: '128px', height: '128px', objectFit: 'cover' }} />
                                 <div className="mt-2">
                                     <label className="btn btn-sm btn-outline-primary cursor-pointer fw-bold">
                                         Sélectionner une photo
@@ -43,10 +43,6 @@ const NouvellePersonne = ({ show, handleClose, onSubmit }) => {
                                 </div>
                             </div>
                             <div className="row">
-                                <div className="col-lg-6 mb-3">
-                                    <label className="form-label">Numéro Matricule:</label>
-                                    <input type="text" className="form-control text-center" value={mat} onChange={e=>setMat(e.target.value)} placeholder="Numéro matricule...."/>
-                                </div>
                                 <div className="col-lg-6 mb-3">
                                     <label className="form-label">Nom:</label>
                                     <input type="text" className="form-control text-center" value={nom} onChange={e=>setNom(e.target.value)} placeholder="Nom...."/>
@@ -61,24 +57,47 @@ const NouvellePersonne = ({ show, handleClose, onSubmit }) => {
                                 </div>
                                 <div className="col-lg-6 mb-3 position-relative">
                                     <label className="form-label">Sexe:</label>
-                                    <select className="form-control text-center pe-5" style={{appearance:'none'}} value={sexe} onChange={e=>setSexe(e.target.value)}>
+                                    <select className="form-select text-center pe-5" style={{appearance:'none'}} value={sexe} onChange={e=>setSexe(e.target.value)}>
                                         <option value="homme">Homme</option>
                                         <option value="femme">Femme</option>
                                     </select>
-                                    <FaChevronDown style={{ position:'absolute', right:'15px', top:'50%', transform:'translateY(-50%)', pointerEvents:'none', color:'#555'}}/>
                                 </div>
                                 <div className="col-lg-6 mb-3">
                                     <label className="form-label">Adresse:</label>
                                     <input type="text" className="form-control text-center" value={adresse} onChange={e=>setAdresse(e.target.value)} placeholder="Adresse actuelle...."/>
                                 </div>
                                 <div className="col-lg-6 mb-3">
-                                    <label className="form-label">CIN:</label>
+                                    <label className="form-label">CIN (Facultatif):</label>
                                     <input type="text" className="form-control text-center" value={cin} onChange={e=>setCin(e.target.value)} placeholder="Numéro CIN...."/>
+                                </div>
+                                <div className="col-lg-6 mb-3">
+                                    <label className='form-label'>Nom Père:</label>
+                                    <input type="text" name="pere" className="form-control text-center" placeholder='Nom père...'/>
+                                </div>
+                                <div className="col-lg-6 mb-3">
+                                    <label className='form-label'>Nom Mère:</label>
+                                    <input type="text" name="mere" className="form-control text-center" placeholder='Nom mère...'/>
+                                </div>
+                                <div className="col-lg-6 mb-3">
+                                    <label className='form-label'>Nom Tuteur:</label>
+                                    <input type="text" name="tuteur" className="form-control text-center" placeholder='Nom tuteur...'/>
+                                </div>
+                                <div className="col-lg-6 mb-3">
+                                    <label className='form-label'>Adresse Parents:</label>
+                                    <input type="text" name="adresseParent" className="form-control text-center" placeholder='Adresse parent...'/>
+                                </div>
+                                <div className="col-lg-6 mb-3">
+                                    <label className='form-label'>Phone Parent:</label>
+                                    <input type="text" name="phoneParent" className="form-control text-center" placeholder='Contact parent...'/>
+                                </div>
+                                <div className="col-lg-6 mb-3">
+                                    <label className='form-label'>Phone Tuteur:</label>
+                                    <input type="text" name="phoneTuteur" className="form-control text-center" placeholder='Contact tuteur...'/>
                                 </div>
                             </div>
                             <div className="modal-footer justify-content-center mt-5 mb-3">
                                 <button type="button" className="btn btn-outline-danger w-25 mx-4 p-2" onClick={handleClose}>Annuler</button>
-                                <button type="submit" className="btn btn-outline-primary w-25 mx-4 p-2">Ajouter</button>
+                                <button type="submit" className="btn btn-outline-primary w-25 mx-4 p-2">Suivant</button>
                             </div>
                         </form>
                     </div>

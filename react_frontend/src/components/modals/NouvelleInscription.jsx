@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { FaChevronDown } from 'react-icons/fa';
 
 const NouvelleInscription = ({ show, handleClose, onSubmit }) => {
     const [inscription, setInscription] = useState('');
@@ -36,7 +35,7 @@ const NouvelleInscription = ({ show, handleClose, onSubmit }) => {
                             </div>
                             <div className="justify-content-center mt-5 mb-3 modal-footer">
                                 <button type="button" className="btn btn-outline-danger w-25 mx-4 p-2" onClick={handleClose}>Annuler</button>
-                                <button type="submit" className="btn btn-outline-primary w-25 p-2 mx-4">Ajouter</button>
+                                <button type="submit" className="btn btn-outline-primary w-25 p-2 mx-4">Suivant</button>
                             </div>
                         </form>
                     </div>
