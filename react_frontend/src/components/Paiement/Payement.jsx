@@ -112,7 +112,7 @@ function PaymentPage() {
         )}
         {showForm1 && (
             <form onSubmit={handleSubmit}>
-                <div className="row g-3 align-items-end">
+                <div className="row g-3 align-items-end container">
                     <div className="col-md-4 mb-4">
                     <label htmlFor="matricule" className="form-label">N° Matricule</label>
                     <input type="text" name="matricule" id="matricule"

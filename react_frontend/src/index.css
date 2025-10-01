@@ -26,5 +26,6 @@
 .table thead th {
   background-color: var(--bs-primary);
   color: white;
+  text-align: center;
   font-weight: bold;
 }

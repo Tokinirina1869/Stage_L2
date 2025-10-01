@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 
 const NouvelleInscription = ({ show, handleClose, onSubmit }) => {
     const [inscription, setInscription] = useState('');
+    const [matricule, setMatricule] = useState('');
     const [date, setDate] = useState('');
     const [annee, setAnnee] = useState('');
-
+    const dateToday = new Date().toISOString().split("T")[0];
     const handleFormSubmit = (e) => {
         e.preventDefault();
-        onSubmit({ inscription, date, annee });
+        onSubmit({ inscription,matricule ,date, annee });
         setInscription(''); setDate(''); setAnnee('');
     };
 
@@ -26,8 +27,12 @@ const NouvelleInscription = ({ show, handleClose, onSubmit }) => {
                                 <input type="text" name="inscription" id="inscription" className="form-control rounded-pill" value={inscription} onChange={e => setInscription(e.target.value)} />
                             </div>
                             <div className="mb-3">
+                                <label htmlFor="matricule" className="form-label">N° Matricule: </label>
+                                <input type="text" name="matricule" id="matricule" className="form-control rounded-pill" value={matricule} onChange={e => setMatricule(e.target.value)} />
+                            </div>
+                            <div className="mb-3">
                                 <label htmlFor="dateInsc" className="form-label"> Date Inscription: </label>
-                                <input type="date" name="date" id="date" className="form-control rounded-pill" value={date} onChange={e => setDate(e.target.value)} />
+                                <input type="date" name="date" id="date" className="form-control rounded-pill" value={date} onChange={e => setDate(e.target.value)} max={dateToday} />
                             </div>
                             <div className="mb-3">
                                 <label htmlFor="annee" className="form-label">Année Scolaire: </label>

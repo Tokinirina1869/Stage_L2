@@ -10,10 +10,6 @@ import patisserie from "../FMA/Form/Patisserie.jpg";
 import { FaCheck, FaPen } from 'react-icons/fa';
 import Headers from './Header';
 
-// function number() {
-//     let n =5 ;
-//     return n;
-// }
 
 class Accueil extends Component {
 
@@ -92,15 +88,15 @@ class Accueil extends Component {
                                 </div>
                                 <ul className='list-unstyled mt-3' style={{ marginLeft: "25%" }}>
                                     <li className='fw-bold d-flex align-items-center mb-3'>
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather fw-bold text-success mx-1 feather-check"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather fw-bold text-success mx-1 feather-check"><polyline points="20 6 9 17 4 12"></polyline></svg>
                                         <button className='btn btn-primary w-50 fw-bold'>WORD</button>
                                     </li>
                                     <li className='fw-bold d-flex align-items-center mb-3'>
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather fw-bold text-success mx-1  feather-check"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather fw-bold text-success mx-1  feather-check"><polyline points="20 6 9 17 4 12"></polyline></svg>
                                         <button className="btn btn-success w-50 fw-bold">EXCEL</button>
                                     </li>
                                     <li className='fw-bold d-flex align-items-center mb-3'>
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather fw-bold text-success mx-1  feather-check"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather fw-bold text-success mx-1  feather-check"><polyline points="20 6 9 17 4 12"></polyline></svg>
                                         <button className="btn btn-danger w-50 fw-bold">POWERPOINT</button>
                                     </li>
                                 </ul>
@@ -121,15 +117,15 @@ class Accueil extends Component {
                                 </div>
                                 <ul className='list-unstyled mt-3' style={{ marginLeft: "25%" }} >
                                     <li className='fw-bold d-flex align-items-center mb-3'>
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather fw-bold text-success mx-1 feather-check"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather fw-bold text-success mx-1 feather-check"><polyline points="20 6 9 17 4 12"></polyline></svg>
                                         <button className='btn btn-primary w-50 fw-bold'>FRANCAISE</button>
                                     </li>
                                     <li className='fw-bold d-flex align-items-center mb-3'>
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather fw-bold text-success mx-1  feather-check"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather fw-bold text-success mx-1  feather-check"><polyline points="20 6 9 17 4 12"></polyline></svg>
                                         <button className="btn btn-success w-50 fw-bold">ANGLAISE</button>
                                     </li>
                                     <li className='fw-bold d-flex align-items-center mb-3'>
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather fw-bold text-success mx-1  feather-check"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather fw-bold text-success mx-1  feather-check"><polyline points="20 6 9 17 4 12"></polyline></svg>
                                         <button className="btn btn-danger w-50 fw-bold">ITALIENNE</button>
                                     </li>
                                 </ul>
@@ -151,15 +147,15 @@ class Accueil extends Component {
                                 </div>
                                 <ul className='list-unstyled mt-3' style={{ marginLeft: "25%" }}>
                                     <li className='fw-bold d-flex align-items-center mb-3'>
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather fw-bold text-success mx-1 feather-check"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather fw-bold text-success mx-1 feather-check"><polyline points="20 6 9 17 4 12"></polyline></svg>
                                         <button className='btn btn-primary w-50 fw-bold'>PETIT FOUR</button>
                                     </li>
                                     <li className='fw-bold d-flex align-items-center mb-3'>
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather fw-bold text-success mx-1  feather-check"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather fw-bold text-success mx-1  feather-check"><polyline points="20 6 9 17 4 12"></polyline></svg>
                                         <button className="btn btn-success w-50 fw-bold">FAST FOOD</button>
                                     </li>
                                     <li className='fw-bold d-flex align-items-center mb-3'>
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather fw-bold text-success mx-1  feather-check"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather fw-bold text-success mx-1  feather-check"><polyline points="20 6 9 17 4 12"></polyline></svg>
                                         <button className="btn btn-danger w-50 fw-bold">GATEAU</button>
                                     </li>
                                 </ul>
@@ -181,15 +177,15 @@ class Accueil extends Component {
                                 </div>
                                 <ul className='list-unstyled mt-3' style={{ marginLeft: "25%" }}>
                                     <li className='fw-bold d-flex align-items-center mb-3'>
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather fw-bold text-success mx-1 feather-check"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather fw-bold text-success mx-1 feather-check"><polyline points="20 6 9 17 4 12"></polyline></svg>
                                         <button className='btn btn-primary w-50 fw-bold'>PIANO-CLAVIER</button>
                                     </li>
                                     <li className='fw-bold d-flex align-items-center mb-3'>
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather fw-bold text-success mx-1  feather-check"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather fw-bold text-success mx-1  feather-check"><polyline points="20 6 9 17 4 12"></polyline></svg>
                                         <button className="btn btn-success w-50 fw-bold">GUITARE-DANSE</button>
                                     </li>
                                     <li className='fw-bold d-flex align-items-center mb-3'>
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather fw-bold text-success mx-1  feather-check"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className ="feather fw-bold text-success mx-1  feather-check"><polyline points="20 6 9 17 4 12"></polyline></svg>
                                         <button className="btn btn-danger w-50 fw-bold">FLUITE-BATTERIE</button>
                                     </li>
                                 </ul>
@@ -210,15 +206,15 @@ class Accueil extends Component {
                                 </div>
                                 <ul className='list-unstyled mt-3' style={{ marginLeft: "25%" }}>
                                     <li className='fw-bold d-flex align-items-center mb-3'>
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather fw-bold text-success mx-1 feather-check"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather fw-bold text-success mx-1 feather-check"><polyline points="20 6 9 17 4 12"></polyline></svg>
                                         <button className='btn btn-primary w-50 fw-bold'>PATALON-CHEMISE</button>
                                     </li>
                                     <li className='fw-bold d-flex align-items-center mb-3'>
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather fw-bold text-success mx-1  feather-check"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather fw-bold text-success mx-1  feather-check"><polyline points="20 6 9 17 4 12"></polyline></svg>
                                         <button className="btn btn-success w-50 fw-bold">VESTE-BLOUSE</button>
                                     </li>
                                     <li className='fw-bold d-flex align-items-center mb-3'>
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather fw-bold text-success mx-1  feather-check"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather fw-bold text-success mx-1  feather-check"><polyline points="20 6 9 17 4 12"></polyline></svg>
                                         <button className="btn btn-danger w-50 fw-bold">ROBE - COSTARD ...</button>
                                     </li>
                                 </ul>

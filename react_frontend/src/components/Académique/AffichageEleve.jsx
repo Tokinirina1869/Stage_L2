@@ -34,8 +34,12 @@ function AffichageEleve() {
                             <td>2024-2025</td>
                             <td>L2</td>
                             <td>
-                                <FaEdit size={24} style={{color: "blue"}} className='mx-2' />
-                                <FaTrash size={24} style={{color: "red"}} className='mx-2' />
+                                <button className="btn btn-sm btn-outline-primary mx-2">
+                                    <FaEdit size={24}/> Modifier
+                                </button>
+                                <button className="btn btn-sm btn-outline-danger mx-2">
+                                    <FaTrash size={24}/> Supprimer
+                                </button>
                             </td>
                         </tr>
                     </tbody>

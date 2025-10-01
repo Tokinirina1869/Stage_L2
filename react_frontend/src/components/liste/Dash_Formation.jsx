@@ -1,8 +1,8 @@
 import React from "react";
 import { FaEye } from "react-icons/fa";
 
+const PRIMARY_COLOR = '#143C78';
 const DashboadFormation = ({onViewListPro}) => {
-  // Indicateurs de performance du tableau de bord (simulés)
   const kpiData = [
     { title: 'Effectif total', icon: "fas fa-users", value: 80, color: 'success', barColor: 'success' },
     { title: 'Coupe et couture', icon: "fas fa-cut", value: 30, color: 'danger', barColor: 'danger' },
@@ -90,7 +90,10 @@ const DashboadFormation = ({onViewListPro}) => {
             </div>
             
             <div className="mt-4 text-center">
-              <button className="btn btn-warning text-white fw-bold w-100 py-2">
+              <button className="btn btn-warning text-white fw-bold w-100 py-2"
+                style={{backgroundColor: PRIMARY_COLOR, borderColor: PRIMARY_COLOR,
+                  boxShadow: '0 4px 6px rgba(20, 60, 120, 0.2)'
+                }}>
                 Lister par ordre
               </button>
             </div>

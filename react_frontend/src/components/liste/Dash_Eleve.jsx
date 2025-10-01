@@ -2,6 +2,7 @@ import React from "react";
 import { FaEye } from "react-icons/fa";
 import { Link } from "react-router-dom";
 const DashboadEleve = ({onViewList}) => {
+  const PRIMARY_COLOR = '#143C78';
   const kpiData = [
     { 
       title: 'Effectif total', 
@@ -120,8 +121,11 @@ const DashboadEleve = ({onViewList}) => {
             </div>
             
             <div className="mt-4 text-center">
-              <button className="btn btn-warning text-white fw-bold w-100 py-2">
-               Lister par ordre
+              <button className="btn btn-warning text-white fw-bold w-100 py-2"
+                style={{backgroundColor: PRIMARY_COLOR, borderColor: PRIMARY_COLOR,
+                  boxShadow: '0 4px 6px rgba(20, 60, 120, 0.2)',
+                }}>
+                Lister par ordre
               </button>
             </div>
           </div>

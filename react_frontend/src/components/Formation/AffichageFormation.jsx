@@ -34,8 +34,12 @@ return (
                         <td>2024-2025</td>
                         <td>Musique</td>
                         <td>
-                            <FaEdit color='blue' size={24} className='mx-2'/>
-                            <FaTrash color='red' size={24} className='mx-2'/>
+                            <button className="btn btn-sm btn-outline-primary mx-2">
+                                <FaEdit size={24}/> Modifier
+                            </button>
+                            <button className="btn btn-sm btn-outline-danger mx-2">
+                                <FaTrash size={24}/> Supprimer
+                            </button>
                         </td>
                     </tr>
                     <tr>
@@ -50,8 +54,12 @@ return (
                         <td>2024-2025</td>
                         <td>Musique</td>
                         <td>
-                            <FaEdit color='blue' size={24} className='mx-2'/>
-                            <FaTrash color='red' size={24} className='mx-2'/>
+                            <button className="btn btn-sm btn-outline-primary mx-2">
+                                <FaEdit size={24}/> Modifier
+                            </button>
+                            <button className="btn btn-sm btn-outline-danger mx-2">
+                                <FaTrash size={24}/> Supprimer
+                            </button>
                         </td>
                     </tr>
                     <tr>
@@ -66,8 +74,12 @@ return (
                         <td>2024-2025</td>
                         <td>Musique</td>
                         <td>
-                            <FaEdit color='blue' size={24} className='mx-2'/>
-                            <FaTrash color='red' size={24} className='mx-2'/>
+                            <button className="btn btn-sm btn-outline-primary mx-2">
+                                <FaEdit size={24}/> Modifier
+                            </button>
+                            <button className="btn btn-sm btn-outline-danger mx-2">
+                                <FaTrash size={24}/> Supprimer
+                            </button>
                         </td>
                     </tr>
                     

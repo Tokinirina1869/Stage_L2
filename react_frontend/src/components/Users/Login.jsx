@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import logo from '../../assets/fma.png';
 import background from '../../FMA/cfp.jpg';
 import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
@@ -13,37 +14,37 @@ function Logins() {
 
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setMessage("");
 
-    if (email !== 'admin@gmail.com' || password !== '1234') {
-      setMessage("Email ou Mot de passe incorrect");
+    try{
+      const res = await axios.post("http://127.0.0.1:8000/api/login", {
+        email,
+        password
+      });
+
+      localStorage.setItem("token", res.data.token);
+      localStorage.setItem("user", JSON.stringify(res.data.user));
+      
+
+      // setMessage("Connexion réussie ✅");
+      setLoading(false);
+      setTimeout(() => navigate('/page'), 500);
+    }
+    catch(err) {
+      setMessage('E-mail ou mot de passe incorrect ❌.');
+      setLoading(false);
+      console.error(err);
     }
 
-    setLoading(true);
-    setMessage('');
-
-    setTimeout(() => {
-      if (email === 'admin@gmail.com' && password === '1234') {
-        setLoading(false);
-        setMessage("Connexion réussie !");
-        setTimeout(() => navigate('/page'), 1000);
-      } else {
-        setMessage('E-mail ou mot de passe incorrect.');
-        setLoading(false);
-      }
-    }, 1000);
   };
 
   return (
     <div className="d-flex vh-100 align-items-center justify-content-center"
-      style={{
-        backgroundImage: `url(${background})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat'
-      }}
-    >
+      style={{backgroundImage: `url(${background})`, backgroundSize: 'cover',
+        backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}>
       <div className="card shadow p-4 bg-white" style={{ width: '100%', maxWidth: "450px", minWidth: '300px' }}>
         <div className="text-center mb-3">
           <img src={logo} alt="Logo" width={100} />
@@ -57,13 +58,7 @@ function Logins() {
               <span className="input-group-text">
                 <FaEnvelope color='gray' />
               </span>
-              <input
-                type="email"
-                className="form-control Loginnn"
-                name="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
+              <input type="email" className="form-control" name="email" value={email} onChange={(e) => setEmail(e.target.value)}/>
             </div>
           </div>
 
@@ -73,25 +68,10 @@ function Logins() {
               <div className="input-group-text">
                 <FaLock color='gray' />
               </div>
-              <input
-                type={showPass ? 'text' : 'password'}
-                className="form-control pe-5"
-                name="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Mot de passe"
-              />
-              <span
-                style={{
-                  position: 'absolute',
-                  top: '50%',
-                  right: '10px',
-                  transform: 'translateY(-50%)',
-                  cursor: 'pointer',
-                  color: 'gray'
-                }}
-                onClick={() => setShowPass(!showPass)}
-              >
+              <input type={showPass ? 'text' : 'password'} className="form-control pe-5" name="password" value={password}
+                onChange={(e) => setPassword(e.target.value)} placeholder="Mot de passe" />
+              <span style={{ position: 'absolute', top: '50%', right: '10px',transform: 'translateY(-50%)', cursor: 'pointer', 
+                color: 'gray'}} onClick={() => setShowPass(!showPass)} >
                 {showPass ? <FaEyeSlash size={25} /> : <FaEye size={25} />}
               </span>
             </div>

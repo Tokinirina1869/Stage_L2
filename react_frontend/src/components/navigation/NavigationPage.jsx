@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import fma from "../../assets/fma.png";
 
-const NavigationPage = ({ handleMenuChange, onLogout, onProfil }) => {
+const NavigationPage = ({ handleMenuChange, onLogout, onProfil, currentUser }) => {
   const [menuState, setMenuState] = useState(false);
   const [theme, setTheme] = useState('light');
 
@@ -26,6 +26,11 @@ const NavigationPage = ({ handleMenuChange, onLogout, onProfil }) => {
     { type: 'link', name: 'paiement', icon: <i className="fa-solid fa-money-check-alt mx-1"></i> }
   ];
 
+  const getInitialName = (name) => {
+    if(!name) return "?";
+    return name.charAt(0).toUpperCase();
+  }
+
   return (
     <header
       className={`navbar navbar-expand-md shadow py-3 px-4 bg-${theme === 'dark' ? 'dark' : 'light'} navbar-${theme === 'dark' ? 'dark' : 'light'}`}>
@@ -33,8 +38,7 @@ const NavigationPage = ({ handleMenuChange, onLogout, onProfil }) => {
         <img src={fma} alt="FMA" width={50} className='me-2' />
         <h4 className="fw-bold text-primary text-center mb-2">FMA Anjarasoa Ankofafa</h4>
         <button className="navbar-toggler" type="button" data-bs-toggle="collapse"
-          data-bs-target="#navbarNav" aria-controls="navbarNav" aria-label="Toggle navigation"
-          aria-expanded={menuState ? "true" : "false"} onClick={toggleMenu}>
+          data-bs-target="#navbarNav" aria-controls="navbarNav" aria-label="Toggle navigation" aria-expanded={menuState ? "true" : "false"} onClick={toggleMenu}>
           {menuState ? (
             <span style={{ fontSize: "2.2rem", color: "red" }}>&#x2715;</span>
           ) : (
@@ -44,7 +48,7 @@ const NavigationPage = ({ handleMenuChange, onLogout, onProfil }) => {
 
         <div className={`collapse navbar-collapse ${menuState ? "show" : ""}`} id="navbarNav">
           <ul className="navbar-nav ms-auto mb-2 mb-lg-0">
-            {menus.map(menuObj => (
+            {menus.map((menuObj) => (
               menuObj.type === 'link'
                 ? (
                   <li key={menuObj.name} className="nav-item mx-2 text-center fw-bold">
@@ -78,15 +82,22 @@ const NavigationPage = ({ handleMenuChange, onLogout, onProfil }) => {
           <div className="nav-item dropdown ms-3">
             <a className="nav-link dropdown-toggle d-flex align-items-center gap-2 p-0"
               href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" >
-              <span className="fw-bold">Tokinrina</span>
-              <img src={fma} alt="Profil" className="rounded-circle border" width="40" height="40" />
+              <span className="fw-bold">{currentUser?.name || 'Invité'}</span>
+              <img src={currentUser?.profilePicture || fma} alt="Profil" className="rounded-circle border" width="40" height="40" />
             </a>
 
             <ul className="dropdown-menu dropdown-menu-end shadow vh-auto">
               <li className="dropdown-header text-center p-3">
-                <img src={fma} alt="Profil" className="rounded-circle mb-2" width="60" height="60" />
-                <div className="fw-bold">Tokinirina</div>
-                <small className="text-muted">admin@gmail.com</small>
+                {currentUser?.profilePicture ? (
+                  <img src={currentUser.profilePicture} alt="Profil" className="rounded-circle border border-3 border-primary" width="80" height="80" />
+                ): (
+                  <h3 className="rounded-circle border border-3 border-primary text-danger text-center fw-bold m-5 d-flex justify-content-center align-items-center"
+                    style={{width: "70px", height:"70px",fontSize: '28px', lineHeight: '70px' }}>
+                    { getInitialName(currentUser?.name) }
+                  </h3>
+                )}
+                <div className="fw-bold">{currentUser?.name || 'Invité'}</div>
+                <small className="text-muted">{currentUser?.email || 'Aucun email'}</small>
               </li>
               <li><hr className="dropdown-divider" /></li>
 

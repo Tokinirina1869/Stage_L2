@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import DashboardPage from "./DashboadPage";
 import ListeEleve from './liste/ListeEleve';
 import ListeFormation from './liste/ListeFormation'
@@ -13,11 +13,14 @@ function Page() {
   const [currentPage, setCurrentPage] = useState('dashboard');
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showProfilModal, setShowProfilModal] = useState(false);
-  const [currentUser, setCurrentUser] = useState({
-    name: 'Admin Laura Vicuna',
-    email: 'admin@gmail.com',
-    profilePicture: '/fma.png'
-  });
+  const [currentUser, setCurrentUser] = useState(null);
+
+  useEffect(() => {
+    const saveUser = localStorage.getItem("user");
+    if(saveUser) {
+      setCurrentUser(JSON.parse(saveUser));
+    }
+  }, []);
 
   // === Handlers ===
   const handleMenuChange = (menu) => {
@@ -47,9 +50,13 @@ function Page() {
 
   const handleLogoutConfirm = () => {
     // Ici tu peux aussi clear un token, etc.
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+
+    setCurrentUser(null);
+
     setCurrentPage('accueil');
     setShowLogoutModal(false);
-    console.log('Déconnexion réussie !');
   };
 
   // === Pages disponibles ===
@@ -65,7 +72,7 @@ function Page() {
   return (
     <div>
       <NavigationPage currentPage={currentPage} handleMenuChange={handleMenuChange} onLogout={handleLogoutClick} 
-        onProfil={handleProfilClick} // déclenche ouverture du modal profil currentUser={currentUser} // pour afficher l'avatar
+        onProfil={handleProfilClick} currentUser={currentUser} // déclenche ouverture du modal profil currentUser={currentUser} // pour afficher l'avatar
       />
 
       <main className="p-3">

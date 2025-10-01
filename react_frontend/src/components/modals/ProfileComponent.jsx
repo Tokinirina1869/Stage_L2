@@ -12,7 +12,12 @@ const ProfileComponent = ({ show, currentUser, handleClose, onUpdateProfile, onB
   }, [currentUser]);
 
   const handleSave = () => {
-    onUpdateProfile({ ...currentUser, name, email });
+    onUpdateProfile({ 
+      ...currentUser, 
+      name, 
+      email,
+      profilePicture: profileImage,
+     });
     handleClose(); // on ferme après sauvegarde si tu veux
   };
 
@@ -24,6 +29,11 @@ const ProfileComponent = ({ show, currentUser, handleClose, onUpdateProfile, onB
       reader.readAsDataURL(file);
     }
   }
+  const getInitial = (name) => {
+    if (!name) return "?";
+    return name.charAt(0).toUpperCase();
+  };
+
   return (
     <div className={`modal fade ${show ? 'show d-block' : ''}`} tabIndex="-1" role="dialog" style={{ backgroundColor: show ? 'rgba(0,0,0,0.5)' : 'transparent' }} >
       <div className="modal-dialog modal-dialog-centered" role="document">
@@ -35,7 +45,14 @@ const ProfileComponent = ({ show, currentUser, handleClose, onUpdateProfile, onB
 
           <div className="modal-body">
             <div className="text-center mb-3">
-              <img src={profileImage || 'https://placehold.co/120'} alt="Profile" className="rounded-circle mb-3 border border-primary border-3" width="120"/>
+              { profileImage ? (
+                <img src={profileImage} alt="Profile" className="rounded-circle mb-3 border border-primary border-3" width="120"/>
+              ): (
+                <div className='rounded-circle bg-primary text-white fw-bold d-flex align-items-center mx-auto mb-3'
+                  style={{ width: "120px", height: "120px", fontSize: '3rem' }}>
+                  { getInitial(name) }    
+                </div>
+              )}
               <div className="mt-2">
                 <label className="btn btn-sm btn-outline-primary cursor-pointer fw-bold">
                     Modifier le photo de Profil
