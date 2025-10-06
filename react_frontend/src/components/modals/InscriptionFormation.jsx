@@ -1,21 +1,60 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 
-const InscriptionFormation = ({ show, handleClose, onSubmit }) => {
-    const [numInsc, setNumInsc] = useState('');
+const InscriptionFormation = ({ show, handleClose, onSubmit, currentEleve }) => {
+    const [no_inscrit, setNo_inscrit] = useState('');
     const [duree, setDuree] = useState('');
-    const [type, setType] = useState('');
+    const [type_formation, setType_formation] = useState('Court Terme');
+    const [parcoursList, setParcoursList] = useState([]);
+    const [id_parcours, setId_parcours] = useState('');
 
-    const handleFormSubmit = (e) => {
+    // ⚡ Mettre à jour no_inscrit si currentEleve change
+    useEffect(() => {
+        if (currentEleve?.no_inscrit) {
+            setNo_inscrit(currentEleve.no_inscrit);
+        }
+    }, [currentEleve]);
+
+    // Charger la liste des parcours
+    useEffect(() => {
+        axios.get("http://localhost:8000/api/parcours")
+            .then((res) => {
+                setParcoursList(res.data);
+            })
+            .catch((err) => {
+                console.error("Erreur lors du chargement des parcours:", err);
+            });
+    }, []);
+
+    const handleFormSubmit = async (e) => {
         e.preventDefault();
-        onSubmit({ numInsc, duree, type });
-        setNumInsc('');
-        setDuree('');
-        setType('');
+
+        if (!no_inscrit) {
+            alert("Erreur : aucun no_inscrit trouvé !");
+            return;
+        }
+
+        try {
+            const formData = new FormData();
+            formData.append("no_inscrit", no_inscrit);
+            formData.append("duree", duree);
+            formData.append("type_formation", type_formation);
+            formData.append("id_parcours", id_parcours); // ✅ ajout du parcours
+
+            await axios.post("http://localhost:8000/api/formation", formData, {
+                headers: { "Content-Type": "multipart/form-data" }
+            });
+
+            alert("Insertion réussie ✅");
+            onSubmit({ no_inscrit, duree, type_formation, id_parcours });
+        } catch {
+            alert("Erreur lors de l'ajout");
+        }
     };
 
     return (
         <div className={`modal fade ${show ? 'show d-block' : ''}`} tabIndex="-1" role="dialog"
-             style={{ backgroundColor: show ? 'rgba(0,0,0,0.5)' : 'transparent' }}>
+            style={{ backgroundColor: show ? 'rgba(0,0,0,0.5)' : 'transparent' }}>
             <div className="modal-dialog modal-dialog-centered modal-lg" role="document">
                 <div className="modal-content">
                     <div className="modal-header">
@@ -25,22 +64,31 @@ const InscriptionFormation = ({ show, handleClose, onSubmit }) => {
                         <h2 className="jumbotron text-center fw-bold p-4">Nouvelle Inscription</h2>
                         <form onSubmit={handleFormSubmit}>
                             <div className="mb-3">
-                                <label htmlFor="inscription" className="form-label">N° Inscription:</label>
-                                <input type="text" id="inscription" className="form-control rounded-pill"
-                                       value={numInsc} onChange={(e) => setNumInsc(e.target.value)} />
+                                <label className="form-label">N° Inscription:</label>
+                                <input type="number" className="form-control rounded-pill"
+                                    value={no_inscrit} readOnly />
                             </div>
                             <div className="mb-3">
-                                <label htmlFor="duree" className="form-label">Durée Formation:</label>
-                                <input type="number" id="duree" className="form-control rounded-pill"
-                                       value={duree} onChange={(e) => setDuree(e.target.value)} />
+                                <label className="form-label">Durée Formation:</label>
+                                <input type="number" className="form-control rounded-pill"
+                                    value={duree} onChange={(e) => setDuree(e.target.value)} />
                             </div>
-                            <div className="mb-3 position-relative">
-                                <label htmlFor="type" className="form-label">Type Formation:</label>
-                                <select id="type" className="form-select text-center pe-5"
-                                        style={{ appearance: 'none' }}
-                                        value={type} onChange={(e) => setType(e.target.value)}>
-                                    <option value="court">Court Terme</option>
-                                    <option value="long">Long Terme</option>
+                            <div className="mb-3">
+                                <label className="form-label">Type Formation:</label>
+                                <select className="form-select text-center"
+                                    value={type_formation} onChange={(e) => setType_formation(e.target.value)}>
+                                    <option value="Court Terme">Court Terme</option>
+                                    <option value="Long Terme">Long Terme</option>
+                                </select>
+                            </div>
+                            <div className="mb-3">
+                                <label className="form-label">Choisir Parcours:</label>
+                                <select className="form-select text-center"
+                                    value={id_parcours} onChange={(e) => setId_parcours(e.target.value)}>
+                                    <option value="">-- Sélectionner une formation --</option>
+                                    {parcoursList.map((p) => (
+                                        <option key={p.id} value={p.id}>{p.nom_formation}</option>
+                                    ))}
                                 </select>
                             </div>
                             <div className="modal-footer justify-content-center mt-5 mb-3">

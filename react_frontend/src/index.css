@@ -29,3 +29,17 @@
   text-align: center;
   font-weight: bold;
 }
+
+.table-responsive table th:first-child,
+.table-responsive table td:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+}
+.table-responsive table td{
+  text-align: center;
+}
+.table img{
+  border: 2px solid #007bff;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+}

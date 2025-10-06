@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import logo from '../assets/fma.png';
 import background from '../FMA/cfp.jpg';
+
 import { FaEnvelope, FaEye, FaEyeSlash, FaLock, FaUser } from 'react-icons/fa';
 function Registers({ navigate }) {
   const [nom, setNom] = useState("");

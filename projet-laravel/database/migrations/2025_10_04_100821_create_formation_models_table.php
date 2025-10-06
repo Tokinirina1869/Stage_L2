@@ -11,9 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('personnes', function (Blueprint $table) {
-            $table->char('sexe', 8)->nullable();
-            $table->char('adresse', 32)->nullable();
+        Schema::create('formation_models', function (Blueprint $table) {
+            $table->id();
+            $table->timestamps();
         });
     }
 
@@ -22,8 +22,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('personnes', function (Blueprint $table) {
-            $table->dropColumn(['sexe', 'adresse']);
-        });
+        Schema::dropIfExists('formation_models');
     }
 };

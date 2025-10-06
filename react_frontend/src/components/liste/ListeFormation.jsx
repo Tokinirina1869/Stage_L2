@@ -1,10 +1,9 @@
 import React, { useState } from "react";
-import { FaFeather, FaPlus, FaSignInAlt } from "react-icons/fa";
+import { FaPlus } from "react-icons/fa";
 import AffichageFormation from "../Formation/AffichageFormation";
 import NouvellePersonne from "../modals/NouvellePersonne";
 import NouvelleInscription from "../modals/NouvelleInscription";
 import InscriptionFormation from "../modals/InscriptionFormation";
-import NavigationPage from "../navigation/NavigationPage";
 
 const ListeFormation = ({onViewDashPro}) => {
     const [showPersonne, setShowPersonne] = useState(false);
@@ -24,9 +23,9 @@ const ListeFormation = ({onViewDashPro}) => {
     const closeFormation = () => setShowFormation(false);
 
     const submitPersonne = (data) => {
-        setCurrentEleve(data);
-        closeNewPersonne();
-        openNewInscription();
+        setCurrentEleve(data);  // Garde les inofs
+        closeNewPersonne();     // Ferme le popup personne
+        openNewInscription();   // Ouvre inscription
     };
 
     const submitInscription = (data) => {
@@ -79,9 +78,9 @@ const ListeFormation = ({onViewDashPro}) => {
 
                 <NouvellePersonne show={showPersonne} handleClose={closeNewPersonne} onSubmit={submitPersonne} />
 
-                <NouvelleInscription show={showInscription} handleClose={closeNewInscription} onSubmit={submitInscription} />
+                <NouvelleInscription show={showInscription} handleClose={closeNewInscription} onSubmit={submitInscription} currentEleve={currentEleve} />
 
-                <InscriptionFormation show={showFormation} handleClose={closeFormation} onSubmit={submitFormation} />
+                <InscriptionFormation show={showFormation} handleClose={closeFormation} onSubmit={submitFormation} currentEleve={currentEleve} />
             </div>
         </>
     );

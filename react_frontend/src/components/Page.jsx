@@ -64,7 +64,8 @@ function Page() {
     dashboard: <DashboardPage />,
     eleve: <DashboadEleve onViewList={() => setCurrentPage('listeEleve')} />,
     formation: <DashboadFormation onViewListPro={() => setCurrentPage('listeFormation')} />,
-    listeEleve: <ListeEleve onViewDash={() => setCurrentPage('eleve')}/>,
+    listeEleve: (<ListeEleve onViewDash={() => setCurrentPage('eleve')} 
+    />),
     listeFormation: <ListeFormation onViewDashPro={() => setCurrentPage('formation')}  /> ,
     paiement: <PaymentPage />,
   };
@@ -76,7 +77,8 @@ function Page() {
       />
 
       <main className="p-3">
-        {pages[currentPage] || <DashboardPage />}
+        {React.cloneElement(pages[currentPage] ||  <DashboardPage />)}
+        {/* {pages[currentPage] || <DashboardPage />} */}
       </main>
 
       <ProfileComponent show={showProfilModal} currentUser={currentUser} handleClose={handleProfilClose} onUpdateProfile={handleUpdateProfile} onBack={handleProfilClose}/>

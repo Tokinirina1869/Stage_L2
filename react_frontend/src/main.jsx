@@ -10,20 +10,22 @@ import { Register } from './components/Register';
 import ProfileComponent from './components/modals/ProfileComponent';
 import ListeFormation from './components/liste/ListeFormation';
 import ListeEleve from './components/liste/ListeEleve';
-import App from './components/App1';
+import NouvelleInscription from './components/modals/NouvelleInscription';
+// import Test from "./components/Formation/test";
 
 createRoot(document.getElementById('root')).render(
   <StrictMode> 
     <BrowserRouter>
         <Routes>
+          {/* <Route path='/' element={ <Test/> } /> */}
           <Route path='/' element={ <Inscription/> } />
-          {/* <Route path='/' element={ <App /> } /> */}
           <Route path='/login' element={ <Login /> } />
           <Route path='/register' element= { <Register /> } />
           <Route path='/profil' element={ <ProfileComponent /> } />
           <Route path='/page' element={ <Page /> } />
           <Route path='/listeFormation' element={ <ListeFormation/> } />
           <Route path='/listeEleve' element={ <ListeEleve/> } />
+          <Route path='/nouvelleInscription' element={ <NouvelleInscription /> } />
         </Routes>
     </BrowserRouter>
   </StrictMode>
