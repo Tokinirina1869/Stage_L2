@@ -1,52 +1,133 @@
 import React, { useState } from 'react';
 import { FaEdit, FaFilePdf, FaMoneyCheckAlt, FaTimes, FaTrash } from 'react-icons/fa';
+import {
+  Card,
+  CardContent,
+  Typography,
+  Grid,
+  TextField,
+  FormControlLabel,
+  Checkbox,
+  RadioGroup,
+  Radio,
+  Button,
+  Box,
+  Divider, TableContainer,
+  TableHead,
+  TableBody,
+  TableCell,
+  TableRow,
+  Paper,
+} from '@mui/material';
+import { Table } from 'react-bootstrap';
 
-const ecolage = [
-  { id: 1, mois: "Janvier" }, { id: 2, mois: "Février" },
-  { id: 3, mois: "Mars" }, { id: 4, mois: "Avril" },
-  { id: 5, mois: "Mai" }, { id: 6, mois: "Juin" },
-  { id: 7, mois: "Juillet" }, { id: 8, mois: "Août" },
-  { id: 9, mois: "Septembre" }, { id: 10, mois: "Octobre" },
-  { id: 11, mois: "Novembre" }, { id: 12, mois: "Décembre" }
+
+const academicFees = [
+  'Droit d\'inscrit',
+  'Frais generaux',
+  'VRM',
+  'Tenue de fete',
+  'Tenue de sport',
+  'Blouse',
 ];
 
-const droitPaie = [
-  { id: 1, droit: "Droit d'inscription" },
-  { id: 2, droit: "Frais Scolaire" },
-  { id: 3, droit: "VRM" },
-  { id: 4, droit: "Cantine" },
-  { id: 5, droit: "Blouse" },
-  { id: 6, droit: "Tenue de Fête" },
-  { id: 7, droit: "Tenue de Sport" },
+const monthOptions = [
+  'Janvier', 'Fevrier', 'Mars', 'Avril', 'Mai', 'Juin',
+  'Juillet', 'Aout', 'Septembre', 'Octobre', 'Novembre', 'Decembre',
 ];
+
+
 
 function PaymentPage() {
-  const [selectedMois, setSelectedMois] = useState([]);
-  const [selectedDroits, setSelectedDroits] = useState([]);
+
+  const [paymentDetails, setPaymentDetails] = useState({
+      paymentNo: '',
+      inscriptionNo: '',
+      matriculeNo: '',
+      paymentDate: '',
+      paymentMode: '',
+      amountToPay: '',
+      feeType: 'Academique', // 'Academique' or 'Formation'
+      academicChecks: [],
+      formationMonths: [],
+    });
+  
+    const handleChange = (event) => {
+      const { name, value } = event.target;
+      setPaymentDetails(prev => ({ ...prev, [name]: value }));
+    };
+  
+    const handleFeeTypeChange = (event) => {
+      const newFeeType = event.target.value;
+      setPaymentDetails(prev => ({
+        ...prev,
+        feeType: newFeeType,
+        // Reset checks when switching main type
+        academicChecks: [],
+        formationMonths: [],
+      }));
+    };
+  
+    const handleAcademicCheck = (fee) => {
+      setPaymentDetails(prev => {
+        const { academicChecks } = prev;
+        const newChecks = academicChecks.includes(fee)
+          ? academicChecks.filter(item => item !== fee)
+          : [...academicChecks, fee];
+        return { ...prev, academicChecks: newChecks };
+      });
+    };
+  
+    const handleFormationMonthCheck = (month) => {
+      setPaymentDetails(prev => {
+        const { formationMonths } = prev;
+        const newChecks = formationMonths.includes(month)
+          ? formationMonths.filter(item => item !== month)
+          : [...formationMonths, month];
+        return { ...prev, formationMonths: newChecks };
+      });
+    };
+  
+    const handleSubmit = (type) => {
+      if (type === 'Payer') {
+        console.log('Paiement soumis:', paymentDetails);
+        alert("Paiement soumis ! Vérifiez la console pour les détails.");
+        // Ici, vous enverriez les données à votre API
+      } else {
+        console.log('Annulation');
+        alert("Annulation du formulaire.");
+        setPaymentDetails({
+          paymentNo: '',
+          inscriptionNo: '',
+          matriculeNo: '',
+          paymentDate: '',
+          paymentMode: '',
+          amountToPay: '',
+          feeType: 'Academique',
+          academicChecks: [],
+          formationMonths: [],
+        });
+      }
+    };
+  
+    // Style personnalisé pour les boutons
+    const buttonStyle = () => ({
+      padding: '10px 30px',
+      borderRadius: '8px',
+      fontWeight: 'bold',
+      color: '#fff',
+      textTransform: 'none',
+      boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+      transition: 'transform 0.2s',
+      '&:hover': {
+        transform: 'translateY(-2px)',
+        boxShadow: '0 6px 8px rgba(0,0,0,0.15)',
+      }
+    });
   const [showForm, setShowForm] = useState(false);
-  const [showForm1, setShowForm1] = useState(false);
-
-  // Récupérer les valeurs sélectionnées
-  const handleMoisChange = (e) => {
-    const values = Array.from(e.target.selectedOptions, (option) => option.value);
-    setSelectedMois(values);
-  };
-
-  const handleDroitsChange = (e) => {
-    const values = Array.from(e.target.selectedOptions, (option) => option.value);
-    setSelectedDroits(values);
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log("Mois choisis :", selectedMois);
-    console.log("Droits choisis :", selectedDroits);
-    alert(`Mois: ${selectedMois.join(", ")} \nDroits: ${selectedDroits.join(", ")}`);
-  };
 
   return (
-    <div className="container-fluid py-5 mt-5">
-      <div className="card shadow p-5">
+    <Box sx={{ p: 3}}>
         <div className="d-flex justify-content-between align-items-center border-bottom pb-3 mb-4">
             <h2 className="p-3 fw-bold text-success text-center mb-3">
                 Liste de Paiement de droit d'inscription
@@ -59,156 +140,242 @@ function PaymentPage() {
         </div>
 
         {showForm && (
-            <form onSubmit={handleSubmit}>
-                <div className="row g-3 align-items-end">
-                    <div className="col-md-4 mb-4">
-                    <label htmlFor="matricule" className="form-label">N° Matricule</label>
-                    <input type="text" name="matricule" id="matricule"
-                        className="form-control rounded-pill" placeholder="Matricule..." />
-                    </div>
+           <Box size='xl' centered sx={{
+                 p: 4,
+                 backgroundColor: '#f4f6f8',
+                 display: 'flex',
+                 justifyContent: 'center',
+                 alignItems: 'center'
+               }}>
+                 <Card  size='xl' centered sx={{ maxWidth: 900, width: '100%', borderRadius: '12px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }}>
+                   <CardContent>
+                     <Typography variant="h5" component="div" gutterBottom sx={{ mb: 3, color: '#1976d2', fontWeight: 600 }}>
+                       Formulaire de Paiement
+                     </Typography>
+           
+                     <Grid container spacing={2}>
+                       <Grid item xs={12} md={4}>
+                         <TextField
+                           fullWidth
+                           label="No. Paiement"
+                           name="paymentNo"
+                           value={paymentDetails.paymentNo}
+                           onChange={handleChange}
+                           margin="normal"
+                           variant="outlined"
+                           size="small"
+                         />
+                        </Grid>
+                        <Grid>
+                         <TextField
+                           fullWidth
+                           label="No. Inscription"
+                           name="inscriptionNo"
+                           value={paymentDetails.inscriptionNo}
+                           onChange={handleChange}
+                           margin="normal"
+                           variant="outlined"
+                           size="small"
+                         />
+                        </Grid>
+                        <Grid>
+                         <TextField
+                           fullWidth
+                           label="No. Matricule"
+                           name="matriculeNo"
+                           value={paymentDetails.matriculeNo}
+                           onChange={handleChange}
+                           margin="normal"
+                           variant="outlined"
+                           size="small"
+                         />
+                       </Grid>
+          
+                       <Grid item xs={12} sm={6}>
+                         <TextField
+                           fullWidth
+                           label="Date de paiement"
+                           name="paymentDate"
+                           type="date"
+                           value={paymentDetails.paymentDate}
+                           onChange={handleChange}
+                           margin="normal"
+                           variant="outlined"
+                           size="small"
+                           InputLabelProps={{ shrink: true }}
+                         />
+                         </Grid>
+                         <Grid>
+                         <TextField
+                           fullWidth
+                           label="Mode de paiement"
+                           name="paymentMode"
+                           value={paymentDetails.paymentMode}
+                           onChange={handleChange}
+                           margin="normal"
+                           variant="outlined"
+                           size="small"
+                         />
+                        </Grid>
+                        <Grid>
+                         <TextField
+                           fullWidth
+                           label="Montant à payer (Ar)"
+                           name="amountToPay"
+                           type="number"
+                           value={paymentDetails.amountToPay}
+                           onChange={handleChange}
+                           margin="normal"
+                           variant="outlined"
+                           size="small"
+                         />
+                       </Grid>
+                     </Grid>
+           
+                     <Divider sx={{ my: 4 }} />
+           
+                      <Typography variant="subtitle1" component="div" sx={{ mb: 2, fontWeight: 500 }}>
+                        Frais à payer
+                      </Typography>
+           
+                      <Box sx={{ border: '1px solid #ccc', borderRadius: '8px', p: 3, backgroundColor: '#f9f9f9' }}>
+                       <Grid container spacing={3}>
+                         {/* Type de Frais (Radio buttons) */}
+                         <Grid item xs={12} sm={4}>
+                           <RadioGroup
+                             name="feeType"
+                             value={paymentDetails.feeType}
+                             onChange={handleFeeTypeChange}
+                             sx={{ display: 'flex', flexDirection: 'column' }}
+                           >
+                             <FormControlLabel
+                               value="Academique"
+                               control={<Radio size="small" />}
+                               label="Academique"
+                             />
+                             <FormControlLabel
+                               value="Formation"
+                               control={<Radio size="small" />}
+                               label="Formation"
+                             />
+                           </RadioGroup>
+                         </Grid>
+           
+                         {/* Checkboxes Gauche (Frais Académiques) */}
+                         <Grid item xs={12} sm={4} sx={{ borderLeft: { sm: '1px solid #eee' }, pl: { sm: 3 } }}>
+                           {paymentDetails.feeType === 'Academique' && (
+                             <>
+                               <Typography variant="body2" sx={{ mb: 1, fontWeight: 600, color: '#555' }}>Frais Académiques</Typography>
+                               {academicFees.map((fee) => (
+                                 <FormControlLabel
+                                   key={fee}
+                                   control={
+                                     <Checkbox
+                                       size="small"
+                                       checked={paymentDetails.academicChecks.includes(fee)}
+                                       onChange={() => handleAcademicCheck(fee)}
+                                       disabled={paymentDetails.feeType !== 'Academique'}
+                                     />
+                                   }
+                                   label={fee}
+                                 />
+                               ))}
+                             </>
+                           )}
+                         </Grid>
+           
+                         {/* Checkboxes Droite (Mois de Formation) */}
+                         <Grid item xs={12} sm={4} sx={{ borderLeft: { sm: '1px solid #eee' }, pl: { sm: 3 } }}>
+                           {paymentDetails.feeType === 'Formation' && (
+                             <>
+                               <Typography variant="body2" sx={{ mb: 1, fontWeight: 600, color: '#555' }}>Mois de Formation</Typography>
+                               <Grid container>
+                                 {monthOptions.map((month) => (
+                                   <Grid item xs={6} key={month}>
+                                     <FormControlLabel
+                                       control={
+                                         <Checkbox
+                                           size="small"
+                                           checked={paymentDetails.formationMonths.includes(month)}
+                                           onChange={() => handleFormationMonthCheck(month)}
+                                           disabled={paymentDetails.feeType !== 'Formation'}
+                                           sx={{ py: 0 }}
+                                         />
+                                       }
+                                       label={month}
+                                     />
+                                   </Grid>
+                                 ))}
+                               </Grid>
+                             </>
+                           )}
+                         </Grid>
+           
+                       </Grid>
+                      </Box>
+           
+                     <Divider sx={{ my: 4 }} />
 
-                    <div className="col-md-4 mb-4">
-                    <label htmlFor="ecolage" className="form-label">N° Frais Scolaire</label>
-                    <input type="text" name="ecolage" id="ecolage"
-                        className="form-control rounded-pill" placeholder="Inscription..." />
-                    </div>
-
-                    <div className="col-md-4 mb-4">
-                    <label htmlFor="datePaiement" className="form-label">Date de paiement</label>
-                    <input type="date" name="datePaiement" id="datePaiement"
-                        className="form-control rounded-pill" />
-                    </div>
-
-                    <div className="col-md-6 mb-4">
-                    <label className="form-label text-center">Sélectionner quel mois doit à payer---</label>
-                    <select multiple name="mois" id="mois"
-                        className="form-select text-center" onChange={handleMoisChange}>
-                        {ecolage.map((item) => (
-                        <option key={item.id} value={item.mois}>{item.mois}</option>
-                        ))}
-                    </select>
-                    </div>
-
-                    <div className="col-md-6 mb-4">
-                    <label className="form-label">Sélectionner quel mont doit à payer:</label>
-                    <select multiple name="droit" id="droit"
-                        className="form-select text-center" onChange={handleDroitsChange}>
-                        {droitPaie.map((item) => (
-                        <option key={item.id} value={item.droit}>{item.droit}</option>
-                        ))}
-                    </select>
-                    </div>
-
-                    <div className="d-flex justify-content-center pb-3 mb-4">
-                        <button type="submit" className="mx-2 col-lg-2 btn btn-outline-primary rounded-pill mt-2">
-                            Payer
-                        </button> 
-                        <button type="button" className="mx-2 col-lg-2 btn btn-outline-secondary rounded-pill mt-2" onClick={() => setShowForm(false)}>
-                            Annuler
-                        </button>
-                    </div>
-                </div>
-            </form>
+                     <Box sx={{ display: 'flex', justifyContent: 'center', gap: 3 }}>
+                       <Button
+                         variant="contained"
+                         sx={buttonStyle('#f44336')}
+                         onClick={() => handleSubmit('Annuler')}
+                       >
+                         Annuler
+                       </Button>
+                       <Button
+                         variant="contained"
+                         sx={buttonStyle('#4CAF50')}
+                         onClick={() => handleSubmit('Payer')}
+                       >
+                         Payer
+                       </Button>
+                     </Box>
+                   </CardContent>
+                 </Card>
+               </Box>
         )}
-        {showForm1 && (
-            <form onSubmit={handleSubmit}>
-                <div className="row g-3 align-items-end container">
-                    <div className="col-md-4 mb-4">
-                    <label htmlFor="matricule" className="form-label">N° Matricule</label>
-                    <input type="text" name="matricule" id="matricule"
-                        className="form-control rounded-pill" placeholder="Matricule..." />
-                    </div>
 
-                    <div className="col-md-4 mb-4">
-                    <label htmlFor="ecolage" className="form-label">N° Frais Scolaire</label>
-                    <input type="text" name="ecolage" id="ecolage"
-                        className="form-control rounded-pill" placeholder="Inscription..." />
-                    </div>
-
-                    <div className="col-md-4 mb-4">
-                    <label htmlFor="datePaiement" className="form-label">Date de paiement</label>
-                    <input type="date" name="datePaiement" id="datePaiement"
-                        className="form-control rounded-pill" />
-                    </div>
-
-                    <div className="col-md-6 mb-4">
-                    <label className="form-label text-center">Sélectionner quel mois doit à payer---</label>
-                    <select multiple name="mois" id="mois"
-                        className="form-select text-center" onChange={handleMoisChange}>
-                        {ecolage.map((item) => (
-                        <option key={item.id} value={item.mois}>{item.mois}</option>
-                        ))}
-                    </select>
-                    </div>
-
-                    <div className="col-md-6 mb-4">
-                    <label className="form-label">Sélectionner quel mont doit à payer:</label>
-                    <select multiple name="droit" id="droit"
-                        className="form-select text-center" onChange={handleDroitsChange}>
-                        {droitPaie.map((item) => (
-                        <option key={item.id} value={item.droit}>{item.droit}</option>
-                        ))}
-                    </select>
-                    </div>
-
-                    <div className="d-flex justify-content-center pb-3 mb-4">
-                        <button type="submit" className="mx-2 col-lg-2 btn btn-outline-primary rounded-pill mt-2">
-                            Modifier
-                        </button> 
-                        <button type="button" className="mx-2 col-lg-2 btn btn-outline-secondary rounded-pill mt-2" onClick={() => setShowForm1(false)}>
-                            Annuler
-                        </button>
-                    </div>
-                </div>
-            </form>
-        )}
-
-{/* 
-        <hr />
-        <h5>Mois sélectionnés : {selectedMois.join(", ") || "Aucun"}</h5>
-        <h5>Droits sélectionnés : {selectedDroits.join(", ") || "Aucun"}</h5> */}
-
-        {/* Tableau exemple */}
-        <section className="table-responsive mt-5">
-          <table className="table table-striped table-hover align-middle text-center">
-            <thead>
-              <tr>
-                <th>N° Paiement</th>
-                <th>N° Inscription</th>
-                <th>Nom et Prénom</th>
-                <th>Date de Paiement</th>
-                <th>Montant</th>
-                <th>Reste</th>
-                <th>Ecolage et frais Payé</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>PE0002</td>
-                <td>1869H-F</td>
-                <td>Tokinirina Jean Robert</td>
-                <td>26/09/2025</td>
-                <td>74 000ar</td>
-                <td>0ar</td>
-                <td>Septembre, Octobre</td>
-                <td>
-                  <button type="button" className="btn btn-sm btn-outline-primary mx-2" onClick={() => setShowForm1(!showForm)}>
-                    <FaEdit size={18} /> Modifer
-                  </button>
-                  <button type="button" className="btn btn-sm btn-outline-danger mx-2">
-                    <FaTrash size={18} /> Supprimer
-                  </button>
-                  <button type="button" className="btn btn-sm btn-outline-success mx-2">
-                    <FaFilePdf size={18} /> Exporter PDF
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </section>
-      </div>
-    </div>
+        <TableContainer component={Paper} sx={{ boxShadow: 5, borderRadius: 1}}>
+          <Table sx={{ mminWidth:1000 }} >
+            <TableHead sx={{ bgcolor: 'primary.light' }}>
+              <TableRow>
+                <TableCell> N° Paiement </TableCell>
+                <TableCell> N° Inscription </TableCell>
+                <TableCell> Nom et Prénom </TableCell>
+                <TableCell> Date de Paiement</TableCell>
+                <TableCell> Montant à payer</TableCell>
+                <TableCell> Reste</TableCell>
+                <TableCell> Ecolage et Frais Payé</TableCell>
+                <TableCell> Actions</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              <TableRow>
+                    <TableCell>PE0002</TableCell>
+                    <TableCell>1869H-F</TableCell>
+                    <TableCell>Tokinirina Jean Robert</TableCell>
+                    <TableCell>26/09/2025</TableCell>
+                    <TableCell>74 000ar</TableCell>
+                    <TableCell>0ar</TableCell>
+                    <TableCell>Septembre, Octobre</TableCell>
+                    <TableCell>
+                      <button type="button" className="btn btn-sm btn-outline-primary mx-2">
+                        <FaEdit size={18} /> Modifer
+                      </button>
+                      <button type="button" className="btn btn-sm btn-outline-danger mx-2">
+                        <FaTrash size={18} /> Supprimer
+                      </button>
+                      <button type="button" className="btn btn-sm btn-outline-success mx-2">
+                        <FaFilePdf size={18} /> Exporter PDF
+                      </button>
+                    </TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </TableContainer>
+    </Box>
   );
 }
 

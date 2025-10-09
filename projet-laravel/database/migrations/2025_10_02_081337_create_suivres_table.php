@@ -12,7 +12,7 @@ return new class extends Migration
         Schema::create('suivres', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('no_inscrit');
-            $table->string('code_formation', 10);
+            $table->string('code_formation', 50);
             $table->timestamps();
 
             $table->foreign('no_inscrit')->references('no_inscrit')->on('inscriptions')->onDelete('cascade');

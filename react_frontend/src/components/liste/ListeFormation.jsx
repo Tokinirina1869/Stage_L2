@@ -1,89 +1,240 @@
-import React, { useState } from "react";
-import { FaPlus } from "react-icons/fa";
+import React, { useState, useEffect } from "react";
+import {
+  Box, AppBar, Toolbar, Typography, IconButton, Button, Card,
+  Stack, TextField, InputAdornment, Fab, useMediaQuery, Chip
+} from "@mui/material";
+import { ArrowBack, Add, Search } from "@mui/icons-material";
 import AffichageFormation from "../Formation/AffichageFormation";
 import NouvellePersonne from "../modals/NouvellePersonne";
-import NouvelleInscription from "../modals/NouvelleInscription";
-import InscriptionFormation from "../modals/InscriptionFormation";
+import axios from "axios";
 
-const ListeFormation = ({onViewDashPro}) => {
-    const [showPersonne, setShowPersonne] = useState(false);
-    const [showInscription, setShowInscription] = useState(false);
-    const [showFormation, setShowFormation] = useState(false);
+const ListeFormation = ({ onViewDashPro }) => {
+  const [showPersonne, setShowPersonne] = useState(false);
+  const [formationsData, setFormationsData] = useState([]);
+  const [filteredFormations, setFilteredFormations] = useState([]);
+  const [searchText, setSearchText] = useState("");
+  const [activeCategory, setActiveCategory] = useState("Tous");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [isDateSearchActive, setIsDateSearchActive] = useState(false);
 
-    const [eleves, setEleves] = useState([]);
-    const [currentEleve, setCurrentEleve] = useState(null);
+  const isMobile = useMediaQuery("(max-width: 768px)");
+  const Formations = ["Tous","Informatique","Langues","Musique","Coupe et Coutûre","Pâtisserie"];
 
-    const openNewPersonne = () => setShowPersonne(true);
-    const closeNewPersonne = () => setShowPersonne(false);
+  const openNewPersonne = () => setShowPersonne(true);
+  const closeNewPersonne = () => setShowPersonne(false);
 
-    const openNewInscription = () => setShowInscription(true);
-    const closeNewInscription = () => setShowInscription(false);
+  // 🟢 Charger toutes les données au démarrage (équivaut à "Tous")
+  useEffect(() => {
+    handleFilter("Tous");
+  }, []);
 
-    const openFormation = () => setShowFormation(true);
-    const closeFormation = () => setShowFormation(false);
+  // 🟢 Fonction principale de filtrage (backend)
+  const handleFilter = async (nomformation) => {
+    try {
+      setActiveCategory(nomformation);
+      const response = await axios.get(`http://127.0.0.1:8000/api/inscriptions/formation/${nomformation}`);
+      
+      setFormationsData(response.data);
+      setFilteredFormations(response.data);
+    } catch (err) {
+      console.error("Erreur lors du filtrage :", err);
+    }
+  };
 
-    const submitPersonne = (data) => {
-        setCurrentEleve(data);  // Garde les inofs
-        closeNewPersonne();     // Ferme le popup personne
-        openNewInscription();   // Ouvre inscription
-    };
+  // 🟡 Recherche entre deux dates
+  const handleDateSearch = () => {
+    if (!startDate && !endDate) {
+      setIsDateSearchActive(false);
+      setFilteredFormations(formationsData);
+      return;
+    }
 
-    const submitInscription = (data) => {
-        setCurrentEleve((prev) => ({ ...prev, ...data }));
-        closeNewInscription();
-        openFormation();
-    };
+    if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
+      alert("La date de début ne peut pas être postérieure à la date de fin.");
+      return;
+    }
 
-    const submitFormation = (data) => {
-        const eleveComplet = { ...currentEleve, ...data };
-        setEleves((prev) => [...prev, eleveComplet]);
-        setCurrentEleve(null);
-        closeFormation();
-    };
+    const start = startDate ? new Date(startDate) : null;
+    const end = endDate ? new Date(endDate) : null;
 
-    return (
-        <>
-            <div className="container-fluid mt-2 shadow p-5">
-                <div className="d-flex justify-content-between align-items-center mb-4">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="45" height="50" onClick={onViewDashPro} viewBox="0 0 24 24" fill="none" 
-                    stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-arrow-left-circle text-primary fw-bold ">
-                    <circle cx="12" cy="12" r="10"></circle><polyline points="12 8 8 12 12 16"></polyline><line x1="16" y1="12" x2="8" y2="12"></line></svg>
-                    <h2 className="fw-bold text-success text-center">Formation Professionnelle</h2>
-                     <button onClick={openNewPersonne} className="btn btn-primary rounded-pill responsive-text">
-                        <FaPlus size={25} className="mx-1" /> Nouvelle Inscription
-                    </button>
-                </div>
-                <div className="card shadow-sm p-4 rounded-3">
-                    <div className="d-flex flex-wrap justify-content-between align-items-center border-bottom pb-3 mb-4">
-                        <div className="d-flex flex-wrap gap-2" role="group">
-                            <button className="btn fw-bold btn-outline-primary mx-3 responsive-text">Tous</button>
-                            <button className="btn fw-bold btn-outline-primary mx-3 responsive-text">Informatique</button>
-                            <button className="btn fw-bold btn-outline-primary mx-3 responsive-text">Langue</button>
-                            <button className="btn fw-bold btn-outline-primary mx-3 responsive-text">Musique</button>
-                            <button className="btn fw-bold btn-outline-primary mx-3 responsive-text">Coupe et Couture</button>
-                            <button className="btn fw-bold btn-outline-primary mx-3 responsive-text">Pâtisserie</button>
-                        </div>
+    const filtered = formationsData.filter(f => {
+      const dateInscrit = new Date(f.dateinscrit);
+      const afterStart = start ? dateInscrit >= start : true;
+      const beforeEnd = end ? dateInscrit <= end : true;
+      return afterStart && beforeEnd;
+    });
 
-                        <div className="input-group w-auto mb-2 mb-lg-0">
-                            <input type="search" name="search" className="form-control rounded-start-pill"  placeholder="Rechercher..."/>
-                            <button className="btn btn-primary rounded-end-pill responsive-text">
-                                Rechercher
-                            </button>
-                        </div>
-                        
-                    </div>
-                    <AffichageFormation data={eleves} />
-                </div>
+    setIsDateSearchActive(true);
+    setFilteredFormations(filtered);
+  };
+
+  // 🔍 Filtrage par recherche texte
+  useEffect(() => {
+    if (searchText.trim() === "") {
+      setFilteredFormations(formationsData);
+    } else {
+      const lowerSearch = searchText.toLowerCase();
+      const filtered = formationsData.filter(f =>
+        Object.values(f).some(val =>
+          val &&
+          (typeof val === "string" || typeof val === "number") &&
+          val.toString().toLowerCase().includes(lowerSearch)
+        ) ||
+        (f.personne &&
+          Object.values(f.personne).some(val =>
+            val &&
+            (typeof val === "string" || typeof val === "number") &&
+            val.toString().toLowerCase().includes(lowerSearch)
+          )
+        )
+      );
+      setFilteredFormations(filtered);
+    }
+  }, [searchText, formationsData]);
+
+  return (
+    <Box sx={{ flexGrow: 1 }}>
+      {/* ==== HEADER ==== */}
+      <AppBar position="static" color="transparent" elevation={1}>
+        <Toolbar sx={{ justifyContent: "space-between" }}>
+          <IconButton color="primary" onClick={onViewDashPro}>
+            <ArrowBack />
+          </IconButton>
+          <Typography
+            variant={isMobile ? "h6" : "h5"}
+            color="success.main"
+            fontWeight="bold"
+          >
+            Liste des inscrits à la Formation Professionnelle
+          </Typography>
+          {!isMobile && (
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={openNewPersonne}
+              startIcon={<Add />}
+              sx={{
+                borderRadius: "40px",
+                height: "50px",
+                fontWeight: "bold",
+                fontSize: "18px",
+                textTransform: "none",
+              }}
+            >
+              Nouvelle Inscription
+            </Button>
+          )}
+        </Toolbar>
+      </AppBar>
+
+      {/* ==== CONTENU ==== */}
+      <Box sx={{ p: { xs: 2, md: 5 } }}>
+        {/* === RECHERCHE ENTRE DEUX DATES === */}
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center' }}>
+          <TextField 
+            type="date" 
+            label="Date de début" 
+            InputLabelProps={{ shrink: true }} 
+            sx={{ width: 250, m: 1 }}
+            value={startDate} 
+            onChange={e => setStartDate(e.target.value)}
+          />
+          <TextField 
+            type="date" 
+            label="Date de fin" 
+            InputLabelProps={{ shrink: true }}  
+            sx={{ width: 250, m: 1 }}
+            value={endDate}
+            onChange={e => setEndDate(e.target.value)}
+          />
+          <Button  
+            variant="contained" 
+            sx={{ textTransform: 'none', marginTop: 1, height:50 }} 
+            onClick={handleDateSearch}
+          >
+            Rechercher
+          </Button>
+          {isDateSearchActive && (
+            <Button 
+              variant="outlined" 
+              color="error"
+              sx={{ textTransform: 'none', marginTop: 1, height:50, ml: 2 }}
+              onClick={() => {
+                setStartDate(""); 
+                setEndDate("");
+                setIsDateSearchActive(false); 
+                setFilteredFormations(formationsData);
+              }}
+            >
+              Annuler
+            </Button>
+          )}
+        </Box>
+
+        {/* === FILTRES + BARRE DE RECHERCHE === */}
+        <Card sx={{ p: 4, borderRadius: 3, boxShadow: 3, mt: 3 }}>
+          <Box sx={{ display: "flex", flexDirection: isMobile ? "column" : "row", justifyContent: "space-between", alignItems: isMobile ? "stretch" : "center", mb: 3, gap: 2 }}>
+            <Stack direction="row" spacing={1} flexWrap="wrap" justifyContent="flex-start">
+              {Formations.map(cat => (
+                <Chip 
+                  key={cat} 
+                  label={cat}
+                  onClick={() => handleFilter(cat)}
+                  sx={{
+                    textTransform: "none",
+                    fontWeight: "bold",
+                    cursor: "pointer",
+                    width: "200px",
+                    fontSize: "18px",
+                    height: "40px",
+                    border: "1px solid",
+                    borderColor: "primary.main",
+                    transition: "all 0.3s ease", // pour l'animation fluide
+                    bgcolor: activeCategory === cat ? "primary.main" : "transparent",
+                    color: activeCategory === cat ? "#fff" : "primary.main",
+                    transform: activeCategory === cat ? "scale(1.05)" : "scale(1)", // effet zoom pour actif
+                    "&:hover": {
+                      bgcolor: "primary.main",
+                      color: "#fff",
+                      transform: "scale(1.05)", // zoom léger au hover
+                    },
+                  }}
+                />
+              ))}
+            </Stack>
 
 
-                <NouvellePersonne show={showPersonne} handleClose={closeNewPersonne} onSubmit={submitPersonne} />
+            <TextField
+              placeholder="Rechercher..."
+              variant="outlined"
+              size="small"
+              sx={{ minWidth: isMobile ? "100%" : "250px" }}
+              value={searchText}
+              onChange={e => setSearchText(e.target.value)}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <Search color="primary" />
+                  </InputAdornment>
+                ),
+              }}
+            />
+          </Box>
 
-                <NouvelleInscription show={showInscription} handleClose={closeNewInscription} onSubmit={submitInscription} currentEleve={currentEleve} />
+          <AffichageFormation formations={filteredFormations} />
+        </Card>
+      </Box>
 
-                <InscriptionFormation show={showFormation} handleClose={closeFormation} onSubmit={submitFormation} currentEleve={currentEleve} />
-            </div>
-        </>
-    );
+      {isMobile && (
+        <Fab color="primary" aria-label="add" onClick={openNewPersonne} sx={{ position: "fixed", bottom: 24, right: 24 }}>
+          <Add />
+        </Fab>
+      )}
+
+      <NouvellePersonne show={showPersonne} handleClose={closeNewPersonne} />
+    </Box>
+  );
 };
 
 export default ListeFormation;

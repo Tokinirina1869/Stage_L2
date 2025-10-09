@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('no_inscrit');
             $table->integer('duree');
-            $table->string('type_formation', 32);
+            $table->string('type_formation', 11);
 
             $table->timestamps();
 

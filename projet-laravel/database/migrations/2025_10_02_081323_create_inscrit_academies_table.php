@@ -10,8 +10,8 @@ return new class extends Migration
     {
         Schema::create('inscrit_academies', function (Blueprint $table) {
             $table->unsignedBigInteger('no_inscrit');
-            $table->string('code_niveau', 5);
-            $table->string('type_inscrit', 32);
+            $table->string('code_niveau', 50);
+            $table->string('type_inscrit', 200);
             $table->timestamps();
 
             $table->primary('no_inscrit');

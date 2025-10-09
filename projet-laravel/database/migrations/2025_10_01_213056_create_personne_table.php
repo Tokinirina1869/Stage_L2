@@ -12,21 +12,21 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('personnes', function (Blueprint $table) {
-            $table->string('matricule', 5)->primary();
-            $table->string('nom', 32)->nullable();
-            $table->string('prenom', 32)->nullable();
+            $table->string('matricule',7)->primary();
+            $table->string('nom', 255)->nullable();
+            $table->string('prenom', 255)->nullable();
             $table->date('naiss')->nullable();
-            $table->string('sexe', 8)->nullable();
-            $table->string('adresse', 32)->nullable();
+            $table->string('sexe', 20)->nullable();
+            $table->string('adresse', 255)->nullable();
             $table->string('photo')->nullable();
-            $table->string('cin', 12)->nullable();
-            $table->string('nompere', 32)->nullable();
-            $table->string('nommere', 32)->nullable();
-            $table->string('nomtuteur', 32)->nullable();
-            $table->string('adressparent', 32)->nullable();
-            $table->string('adresstuteur', 32)->nullable();
-            $table->string('phoneparent', 10)->nullable();
-            $table->string('phonetuteur', 10)->nullable();
+            $table->string('cin', 20)->nullable();
+            $table->string('nompere', 255)->nullable();
+            $table->string('nommere', 255)->nullable();
+            $table->string('nomtuteur', 255)->nullable();
+            $table->string('adressparent', 100)->nullable();
+            $table->string('adresstuteur', 100)->nullable();
+            $table->string('phoneparent', 20)->nullable();
+            $table->string('phonetuteur', 20)->nullable();
             $table->timestamps();
         });
     }

@@ -17,29 +17,42 @@ class InscriptionCompleteController extends Controller
 {
     public function index()
     {
-        $inscriptions = Inscription::with(['personne', 'inscriptionformations', 'parcours'])->get();
+        // ✅ Charger toutes les relations nécessaires en une seule requête
+        $inscriptions = Inscription::with(['personne', 'inscriptionformations', 'parcours'])
+            ->get();
+            // ->each(function ($inscription) {
+            //     // Nettoyer localement les matricules au cas où (trim + uppercase)
+            //     $inscription->matricule = strtoupper(trim($inscription->matricule));
+            // });
 
-        // Corrige les matricules avec espaces
-        foreach ($inscriptions as $inscription) {
-            $inscription->matricule = trim($inscription->matricule);
-            if ($inscription->personne === null) {
-                $inscription->load(['personne' => function ($q) use ($inscription) {
-                    $q->where('matricule', trim($inscription->matricule));
-                }]);
-            }
-        }
+        return response()->json($inscriptions);
+
+    }
+
+    public function getByFormation($nomformation)
+    {
+        $inscriptions = Inscription::with(['personne', 'parcours'])
+        ->when($nomformation !== 'Tous', function ($query) use ($nomformation) {
+            $query->whereHas('parcours', function ($subQuery) use ($nomformation) {
+                $subQuery->where(function($q) use ($nomformation) {
+                    $q->where('nomformation', 'ILIKE', '%' . $nomformation . '%')
+                    ->orWhere('nomformation', 'ILIKE', '%' . str_replace(' et ', ',', $nomformation) . '%');
+                });
+            });
+        })
+        ->get();
 
         return response()->json($inscriptions);
     }
 
 
-    
     public function store(Request $request)
     {
         try {
             // 1️⃣ Personne
+            \Log::info('Requete reçue : ', $request->all());
+
             $personne = Personne::create([
-                // 'matricule'    => $request->matricule,
                 'nom'          => $request->nom,
                 'prenom'       => $request->prenom,
                 'naiss'        => $request->naiss,
@@ -126,6 +139,8 @@ class InscriptionCompleteController extends Controller
 
         try {
             // 🔹 1. Récupérer les enregistrements existants
+            \Log::info('Requete reçue : ', $request->all());
+            
             $personne = Personne::where('matricule', $matricule)->firstOrFail();
             $inscription = Inscription::where('matricule', $matricule)->firstOrFail();
 

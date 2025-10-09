@@ -11,4 +11,5 @@ class ParcoursController extends Controller
         $parcours = Parcours::all();
         return response()->json($parcours, 201);
     }
+
 }

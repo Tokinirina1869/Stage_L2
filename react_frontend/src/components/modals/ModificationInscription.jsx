@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
+import { useForm } from 'react-hook-form';
 import { Modal, Button, Form, Row, Col } from "react-bootstrap";
 import axios from "axios";
+import { FaEdit, FaTimes } from "react-icons/fa";
 
-const ModificationInscription = ({ show, handleClose, personneData }) => {
+const ModificationInscription = ({ show, handleClose, personneData,refreshList }) => {
   const today = new Date().toISOString().split("T")[0];
 
   const [form, setForm] = useState({
@@ -13,6 +15,7 @@ const ModificationInscription = ({ show, handleClose, personneData }) => {
     sexe: "",
     adresse: "",
     cin: "",
+    email: "",
     nompere: "",
     nommere: "",
     nomtuteur: "",
@@ -33,12 +36,15 @@ const ModificationInscription = ({ show, handleClose, personneData }) => {
   const generateAnnee = () => {
     const currentAnnee = new Date().getFullYear();
     const schoolYears = [];
-    for (let annee = 2010; annee <= currentAnnee; annee++) {
+    for (let annee = 2020; annee <= currentAnnee; annee++) {
       schoolYears.push(`${annee}-${annee + 1}`);
     }
     return schoolYears;
   };
   const [schoolYears] = useState(generateAnnee());
+
+  // Initialiser react-hook-form
+  const { setError, clearErrors, formState: { errors } } = useForm();
 
   useEffect(() => {
     if (personneData) {
@@ -50,6 +56,7 @@ const ModificationInscription = ({ show, handleClose, personneData }) => {
         sexe: personneData.personne?.sexe || "",
         adresse: personneData.personne?.adresse || "",
         cin: personneData.personne?.cin || "",
+        email: personneData.personne?.email || "",
         nompere: personneData.personne?.nompere || "",
         nommere: personneData.personne?.nommere || "",
         nomtuteur: personneData.personne?.nomtuteur || "",
@@ -71,9 +78,29 @@ const ModificationInscription = ({ show, handleClose, personneData }) => {
     }
   }, [personneData]);
 
+  // Gestion des champs avec validation dynamique
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm(prev => ({ ...prev, [name]: value }));
+
+    // Validation dynamique
+    if (name === 'cin') {
+      if (!/^[0-9]{8,12}$/.test(value)) {
+        setError(name, { type: "manual", message: "CIN invalide : chiffres uniquement (8-12 caractères)" });
+      } else clearErrors(name);
+    }
+
+    if (name === 'phoneparent' || name === 'phonetuteur') {
+      if (!/^[0-9]{10}$/.test(value)) {
+        setError(name, { type: "manual", message: "Numéro invalide : 10 chiffres requis" });
+      } else clearErrors(name);
+    }
+
+    if (name === 'email') {
+      if (value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+        setError(name, { type: "manual", message: "Email invalide" });
+      } else clearErrors(name);
+    }
   };
 
   const handleCheckboxChange = (e) => {
@@ -99,7 +126,12 @@ const ModificationInscription = ({ show, handleClose, personneData }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validation frontend
+    // Validation formulaire global
+    if (Object.keys(errors).length > 0) {
+      alert("Veuillez corriger les erreurs du formulaire ❌");
+      return;
+    }
+
     if (!form.datedebut) {
       alert("Veuillez sélectionner la date de début avant de modifier.");
       return;
@@ -112,39 +144,39 @@ const ModificationInscription = ({ show, handleClose, personneData }) => {
 
     const formData = new FormData();
     Object.keys(form).forEach((key) => {
-        if (key === 'nomformation') {
-            form.nomformation.forEach(f => formData.append('nomformation[]', f));
-        } else if (key !== 'profileImage') {
-            formData.append(key, form[key] ?? '');
-        }
+      if (key === 'nomformation') {
+        form.nomformation.forEach(f => formData.append('nomformation[]', f));
+      } else if (key !== 'profileImage') {
+        formData.append(key, form[key] ?? '');
+      }
     });
 
     if (form.photo) formData.append('photo', form.photo);
     formData.append('_method', 'PATCH');
 
     try {
-        await axios.post(
-            `http://localhost:8000/api/inscriptionComplete/${form.matricule}`,
-            formData,
-            { headers: { 'Content-Type': 'multipart/form-data' } }
-        );
+      await axios.post(
+        `http://localhost:8000/api/inscriptionComplete/${form.matricule}`,
+        formData,
+        { headers: { 'Content-Type': 'multipart/form-data' } }
+      );
 
-        alert("Modification réussie ✅");
-        handleClose();
+      alert("Modification réussie ✅");
+      if (refreshList) refreshList();  
+      handleClose();
     } catch (error) {
-        console.error(error.response?.data || error.message);
-        alert("Erreur lors de la modification ❌");
+      console.error(error.response?.data || error.message);
+      alert("Erreur lors de la modification ❌");
     }
   };
 
   return (
     <Modal show={show} onHide={handleClose} size="xl" centered>
       <Modal.Header closeButton>
-        <Modal.Title>Modifier Inscription</Modal.Title>
+        <Modal.Title >Modifier Inscription</Modal.Title>
       </Modal.Header>
       <Modal.Body>
         <Form onSubmit={handleSubmit}>
-          {/* Image Profil */}
           <div className="text-center mb-3">
             <img
               src={form.profileImage}
@@ -160,7 +192,6 @@ const ModificationInscription = ({ show, handleClose, personneData }) => {
             </div>
           </div>
 
-          {/* Informations Personne */}
           <Row>
             <h5 className="text-center fw-bold">Informations Personne</h5>
             <Col lg={4}><Form.Group className="mb-2"><Form.Label>Nom</Form.Label><Form.Control name="nom" value={form.nom} onChange={handleChange} required/></Form.Group></Col>
@@ -172,14 +203,39 @@ const ModificationInscription = ({ show, handleClose, personneData }) => {
               <option value="Feminin">Féminin</option>
             </Form.Select></Form.Group></Col>
             <Col lg={4}><Form.Group className="mb-2"><Form.Label>Adresse</Form.Label><Form.Control name="adresse" value={form.adresse} onChange={handleChange} /></Form.Group></Col>
-            <Col lg={4}><Form.Group className="mb-2"><Form.Label>CIN</Form.Label><Form.Control name="cin" value={form.cin} onChange={handleChange} /></Form.Group></Col>
-            <Col lg={4}><Form.Group className="mb-2"><Form.Label>Nom Père</Form.Label><Form.Control name="nompere" value={form.nompere} onChange={handleChange} /></Form.Group></Col>
-            <Col lg={4}><Form.Group className="mb-2"><Form.Label>Nom Mère</Form.Label><Form.Control name="nommere" value={form.nommere} onChange={handleChange} /></Form.Group></Col>
-            <Col lg={4}><Form.Group className="mb-2"><Form.Label>Nom Tuteur</Form.Label><Form.Control name="nomtuteur" value={form.nomtuteur} onChange={handleChange} /></Form.Group></Col>
-            <Col lg={4}><Form.Group className="mb-2"><Form.Label>Adresse Parents</Form.Label><Form.Control name="adressparent" value={form.adressparent} onChange={handleChange} /></Form.Group></Col>
-            <Col lg={4}><Form.Group className="mb-2"><Form.Label>Adresse Tuteur</Form.Label><Form.Control name="adresstuteur" value={form.adresstuteur} onChange={handleChange} /></Form.Group></Col>
-            <Col lg={4}><Form.Group className="mb-2"><Form.Label>Phone Parent</Form.Label><Form.Control name="phoneparent" value={form.phoneparent} onChange={handleChange} /></Form.Group></Col>
-            <Col lg={4}><Form.Group className="mb-2"><Form.Label>Phone Tuteur</Form.Label><Form.Control name="phonetuteur" value={form.phonetuteur} onChange={handleChange} /></Form.Group></Col>
+
+            <Col lg={4}><Form.Group className="mb-2">
+              <Form.Label>CIN</Form.Label>
+              <Form.Control name="cin" value={form.cin} onChange={handleChange} />
+              {errors.cin && <small className="text-danger">{errors.cin.message}</small>}
+            </Form.Group></Col>
+
+            <Col lg={4}><Form.Group className="mb-2">
+              <Form.Label>Phone Parent</Form.Label>
+              <Form.Control name="phoneparent" value={form.phoneparent} onChange={handleChange} />
+              {errors.phoneparent && <small className="text-danger">{errors.phoneparent.message}</small>}
+            </Form.Group></Col>
+
+            <Col lg={4}><Form.Group className="mb-2">
+              <Form.Label>Phone Tuteur</Form.Label>
+              <Form.Control name="phonetuteur" value={form.phonetuteur} onChange={handleChange} />
+              {errors.phonetuteur && <small className="text-danger">{errors.phonetuteur.message}</small>}
+            </Form.Group></Col>
+
+            <Col lg={4}><Form.Group className="mb-2">
+              <Form.Label>Nom Père</Form.Label><Form.Control name="nompere" value={form.nompere} onChange={handleChange} />
+            </Form.Group></Col>
+            <Col lg={4}><Form.Group className="mb-2">
+              <Form.Label>Nom Mère</Form.Label><Form.Control name="nommere" value={form.nommere} onChange={handleChange} /></Form.Group>
+            </Col>
+            <Col lg={4}><Form.Group className="mb-2"><Form.Label>Nom Tuteur</Form.Label><Form.Control name="nomtuteur" value={form.nomtuteur} onChange={handleChange} />
+              </Form.Group>
+            </Col> 
+            <Col lg={4}><Form.Group className="mb-2"><Form.Label>Adresse Parents</Form.Label><Form.Control name="adressparent" value={form.adressparent} onChange={handleChange} />
+              </Form.Group></Col> 
+            <Col lg={4}><Form.Group className="mb-2"><Form.Label>Adresse Tuteur</Form.Label><Form.Control name="adresstuteur" value={form.adresstuteur} onChange={handleChange} />
+            </Form.Group></Col>
+            
           </Row>
 
           {/* Inscription */}
@@ -201,14 +257,11 @@ const ModificationInscription = ({ show, handleClose, personneData }) => {
           <Row>
             <Col lg={4}><Form.Group className="mb-2"><Form.Label>Durée</Form.Label><Form.Control type="number" name="duree" value={form.duree} onChange={handleChange} required/></Form.Group></Col>
             <Col lg={4}><Form.Group className="mb-2"><Form.Label>Type Formation</Form.Label>
-
-              {/* === CORRECTION ICI : utiliser type_formation (avant: anneesco) === */}
               <Form.Select name="type_formation" value={form.type_formation} onChange={handleChange} required>
                 <option value="">-- Choisir --</option>
                 <option value="Court Terme">Court Terme</option>
-                <option value="Long Terme">Long Terme</option>
+                <option value="Longs Terme">Longs Terme</option>
               </Form.Select>
-
             </Form.Group></Col>
             <Col lg={4}><Form.Group className="mb-2"><Form.Label>Date Début Formation</Form.Label><Form.Control type="date" name="datedebut" value={form.datedebut} onChange={handleChange} max={today} required/></Form.Group></Col>
           </Row>
@@ -216,7 +269,7 @@ const ModificationInscription = ({ show, handleClose, personneData }) => {
           <div className="mb-3 text-center">
             <Form.Label>Nouvelles Formations</Form.Label>
             <Row className="p-2">
-                {["Informatique","Musique","Langue","Coupe","Pâtisserie"].map((f) => (
+                {["Informatique","Musique","Langues","Coupe et Coutûre","Pâtisserie"].map((f) => (
                     <Col key={f} className="form-check">
                         <Form.Check
                             type="checkbox"
@@ -227,13 +280,12 @@ const ModificationInscription = ({ show, handleClose, personneData }) => {
                         />
                     </Col>
                 ))}
-
             </Row>
           </div>
 
           <div className="d-flex justify-content-between mt-3">
-            <Button variant="outline-danger" onClick={handleClose}>Annuler</Button>
-            <Button type="submit" variant="primary">Modifier</Button>
+            <Button variant="outline-danger" onClick={handleClose}><FaTimes className="mx-1" /> Annuler</Button>
+            <Button type="submit" variant="primary"> <FaEdit className="mx-1" /> Modifier</Button>
           </div>
         </Form>
       </Modal.Body>

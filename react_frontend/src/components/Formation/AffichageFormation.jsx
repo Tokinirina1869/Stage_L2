@@ -1,130 +1,113 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { FaEdit, FaTrash } from 'react-icons/fa';
-import ModificationInscription from '../modals/ModificationInscription';
+import React, { useState, useEffect } from "react";
+import { Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Typography } from "@mui/material";
+import { FaBookOpen, FaEdit, FaTrash } from "react-icons/fa";
+import ModificationInscription from "../modals/ModificationInscription";
+import NouvellePersonne from "../modals/NouvellePersonne";
 
-function AffichageFormation({refresh}) {
-  const [personnes, setPersonnes] = useState([]);
-  const [loading, setLoading] = useState(true);
+const columns = [
+  { headerName: 'N° Matricule', width: 80 },
+  { headerName: 'N° Inscription', width: 20 },
+  { headerName: 'Nom', width: 250 },
+  { headerName: 'Prénom', width: 250 },
+  { headerName: 'Date de Naissance', width: 140 },
+  { headerName: 'Sexe', width: 60 },
+  { headerName: 'Adresse Actuelle', width: 220 },
+  { headerName: 'Photo', width: 80 },
+  { headerName: 'CIN', width: 120 },
+  { headerName: 'Nom Mère', width: 180 },
+  { headerName: 'Nom Père', width: 180 },
+  { headerName: 'Nom Tuteur(euse)', width: 180 },
+  { headerName: 'Phone Parent', width: 120 },
+  { headerName: 'Phone Tuteur', width: 120 },
+  { headerName: 'Adresse Parent', width: 200 },
+  { headerName: 'Adresse Tuteur', width: 200 },
+  { headerName: 'Date Inscription', width: 140 },
+  { headerName: 'Année Scolaire', width: 140 },
+  { headerName: 'Type Formation', width: 140 },
+  { headerName: 'Nom Formation', width: 300 },
+  { headerName: 'Actions à faire', width: 200 },
+];
+
+function AffichageFormation({ formations }) {
+  const [personnes, setPersonnes] = useState(formations || []);
   const [modalModification, setModalModification] = useState(false);
   const [selectedPersonne, setSelectedPersonne] = useState(null);
 
-  const openModal = (personne) => {
-    setSelectedPersonne(personne);
-    setModalModification(true);
-  };
-  const closeModal = () => {
-    setModalModification(false);
-    setSelectedPersonne(null);
-  };
+  const openModal = (p) => { setSelectedPersonne(p); setModalModification(true); };
+  const closeModal = () => { setModalModification(false); setSelectedPersonne(null); };
 
-  useEffect(() => {
-    axios
-      .get("http://localhost:8000/api/personnes")
-      .then((res) => {
-        setPersonnes(res.data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("Erreur API: ", err);
-        setLoading(false);
-      });
-  }, [refresh]);
-
-  if (loading) {
-    return <p className="text-center mt-3">Chargement...</p>;
-  }
+  useEffect(() => { setPersonnes(formations || []); }, [formations]);
 
   const handleDelete = async (matricule) => {
-      if (window.confirm( "Voulez-vous vraiement supprimer cette personne ?" ))
-      {
-          try{
-              await axios.delete(`http://localhost:8000/api/inscriptionComplete/${matricule}`);
-              setPersonnes(personnes.filter(p => p.matricule !== matricule));
-              alert ("Suppression réussie ✅");
-          }
-          catch(err) {
-            console.err(err);
-            alert("Erreur lors de la suppression ❌");
-          }
+    if (window.confirm("Voulez-vous vraiment supprimer cette personne ?")) {
+      try {
+        await fetch(`http://localhost:8000/api/inscriptionComplete/${matricule}`, { method: "DELETE" });
+        setPersonnes(personnes.filter(p => p.matricule !== matricule));
+        alert("Suppression réussie ✅");
+      } catch (err) {
+        console.error(err); alert("Erreur lors de la suppression ❌");
       }
-  }
+    }
+  };
+
   return (
-    <div className="table-responsive mt-3" style={{ overflowX: "auto", whiteSpace: "nowrap" }}>
-      <table className="table table-striped table-hover">
-        <thead className="table-primary text-center">
-          <tr>
-            <th>N° Matricule</th>
-            <th>N° Inscription</th>
-            <th>Nom</th>
-            <th>Prénom</th>
-            <th>Naissance</th>
-            <th>Sexe</th>
-            <th>Adresse</th>
-            <th>Photo</th>
-            <th>CIN</th>
-            <th>NomPère</th>
-            <th>NomMère</th>
-            <th>NomTuteur</th>
-            <th>PhoneParent</th>
-            <th>PhoneTuteur</th>
-            <th>AdresseParent</th>
-            <th>AdresseTuteur</th>
-            <th>Date Inscription</th>
-            <th>Année Scolaire</th>
-            <th>Type Formation</th>
-            <th>Nom Formation</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {personnes && personnes.length > 0 ? (
-            personnes.map((liste) => (
-              <tr key={liste.no_inscrit}>
-                <td>{liste.matricule}</td>
-                <td>{liste.no_inscrit}</td>
-                <td>{liste.personne?.nom || "---"}</td>
-                <td>{liste.personne?.prenom || "---"}</td>
-                <td>{liste.personne?.naiss || "---"}</td>
-                <td>{liste.personne?.sexe || "---"}</td>
-                <td>{liste.personne?.adresse || "---"}</td>
-                <td>
-                  <img width={40} height={40}  src={ "http://localhost:8000/storage/" + liste.personne?.photo } alt='Photo'  className='rounded-circle'/>
-                </td>
-                <td>{liste.personne?.cin || "---"}</td>
-                <td>{liste.personne?.nompere || "---"}</td>
-                <td>{liste.personne?.nommere || "---"}</td>
-                <td>{liste.personne?.nomtuteur || "---"}</td>
-                <td>{liste.personne?.phoneparent || "---"}</td>
-                <td>{liste.personne?.phonetuteur || "---"}</td>
-                <td>{liste.personne?.adressparent || "---"}</td>
-                <td>{liste.personne?.adresstuteur || "---"}</td>
-                <td>{liste.dateinscrit}</td>
-                <td>{liste.anneesco}</td>
-                <td>{liste.inscriptionformations[0]?.type_formation || "---"}</td>
-                <td>{liste.parcours[0]?.nomformation || "---"}</td>
-                <td>
-                  <button className="btn btn-sm btn-outline-primary mx-1" onClick={() => openModal(liste)}>
-                    <FaEdit /> Modifier
-                  </button>
-                  <button className="btn btn-sm btn-outline-danger mx-1" onClick={() => handleDelete(liste.matricule)}>
-                    <FaTrash /> Supprimer
-                  </button>
-                </td>
-              </tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan="19" className="text-center text-danger">
-                Aucune donnée trouvée !!!
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
-      
-      <ModificationInscription show={modalModification} handleClose={closeModal} personneData={selectedPersonne}/>
-    </div>
+    <Box sx={{ p: 3 }}>
+      <TableContainer component={Paper} sx={{ boxShadow: 5, borderRadius: 2 }}>
+        <Table sx={{ minWidth: 2200 }}>
+          <TableHead sx={{ bgcolor: 'primary.light' }}>
+            <TableRow>
+              {columns.map((c, i) => (
+                <TableCell key={i} sx={{ color: 'white', fontWeight: 'bold', fontSize: '20px', textAlign: 'center', width: c.width }}>
+                  {c.headerName}
+                </TableCell>
+              ))}
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {personnes.length > 0 ? personnes.map((liste, idx) => (
+              <TableRow key={idx} hover>
+                <TableCell sx={{ width: columns[0].width }}>{liste.matricule}</TableCell>
+                <TableCell sx={{ width: columns[1].width }}>{liste.no_inscrit}</TableCell>
+                <TableCell sx={{ width: columns[2].width }}>{liste.personne?.nom || "---"}</TableCell>
+                <TableCell sx={{ width: columns[3].width }}>{liste.personne?.prenom || "---"}</TableCell>
+                <TableCell sx={{ width: columns[4].width }}>{liste.personne?.naiss || "---"}</TableCell>
+                <TableCell sx={{ width: columns[5].width }}>{liste.personne?.sexe || "---"}</TableCell>
+                <TableCell sx={{ width: columns[6].width }}>{liste.personne?.adresse || "---"}</TableCell>
+                <TableCell sx={{ width: columns[7].width }}>
+                  <img width={40} height={40} src={"http://localhost:8000/storage/" + liste.personne?.photo} alt="photo" className="rounded-circle"/>
+                </TableCell>
+                <TableCell sx={{ width: columns[8].width }}>{liste.personne?.cin || "---"}</TableCell>
+                <TableCell sx={{ width: columns[9].width }}>{liste.personne?.nompere || "---"}</TableCell>
+                <TableCell sx={{ width: columns[10].width }}>{liste.personne?.nompere || "---"}</TableCell>
+                <TableCell sx={{ width: columns[11].width }}>{liste.personne?.nomtuteur || "---"}</TableCell>
+                <TableCell sx={{ width: columns[12].width }}>{liste.personne?.phoneparent || "---"}</TableCell>
+                <TableCell sx={{ width: columns[13].width }}>{liste.personne?.phonetuteur || "---"}</TableCell>
+                <TableCell sx={{ width: columns[14].width }}>{liste.personne?.adressparent || "---"}</TableCell>
+                <TableCell sx={{ width: columns[15].width }}>{liste.personne?.adresstuteur || "---"}</TableCell>
+                <TableCell sx={{ width: columns[16].width }}>{liste.dateinscrit}</TableCell>
+                <TableCell sx={{ width: columns[17].width }}>{liste.anneesco}</TableCell>
+                <TableCell sx={{ width: columns[18].width }}>{liste.inscriptionformations?.[0]?.type_formation || "---"}</TableCell>
+                <TableCell sx={{ width: columns[19].width }}>{liste.parcours?.[0]?.nomformation || "---"}</TableCell>
+                <TableCell sx={{ display: 'flex', justifyContent: 'space-between', minWidth: columns[20].width }}>
+                  <Button onClick={() => openModal(liste)} variant="contained" color="primary" sx={{ textTransform:'none',m:1 }} size="large"><FaEdit className="mx-2" /> Modifier</Button>
+                  <Button onClick={() => handleDelete(liste.matricule)} variant="contained" sx={{ textTransform:'none',m:1 }} color="error" size="large"><FaTrash className="mx-2"/> Supprimer</Button>
+                </TableCell>
+              </TableRow>
+            )) : (
+              <TableRow>
+                <TableCell colSpan={columns.length} sx={{ textAlign: "center", color: "red", py: 5 }}>
+                  <FaBookOpen size={24} style={{ marginBottom: 10 }} />
+                  <Typography variant="h6">Aucune donnée trouvée !!!</Typography>
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+
+      </TableContainer>
+      <ModificationInscription show={modalModification} handleClose={closeModal} personneData={selectedPersonne} refreshList={() => {}} />
+      <NouvellePersonne refreshList={() => {}} />
+    </Box>
   );
 }
 

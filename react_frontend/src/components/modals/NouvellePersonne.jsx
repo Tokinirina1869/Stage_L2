@@ -1,276 +1,487 @@
 import React, { useState } from "react";
+import {
+  Box,
+  Button,
+  Modal,
+  Typography,
+  Grid,
+  TextField,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Checkbox,
+  FormGroup,
+  FormControlLabel,
+  Avatar,
+  Paper,
+  Divider,
+} from "@mui/material";
 import axios from "axios";
 
+const style = {
+  position: "absolute",
+  top: "50%",
+  left: "50%",
+  transform: "translate(-50%, -50%)",
+  width: "95%",
+  maxWidth: 1250,
+  bgcolor: "background.paper",
+  borderRadius: 3,
+  boxShadow: 24,
+  p: 4,
+  maxHeight: "95vh",
+  overflowY: "auto",
+};
+
 const NouvellePersonne = ({ show, handleClose }) => {
-    const today = new Date().toISOString().split("T")[0];
+  const today = new Date().toISOString().split("T")[0];
+  const [profileImage, setProfileImage] = useState(
+    "https://placehold.co/128x128/FFFFFF/000000?text=Photo"
+  );
+  const [selectedFile, setSelectedFile] = useState(null);
 
-    // ✅ Personne
-    const [profileImage, setProfileImage] = useState('https://placehold.co/128x128/FFFFFF/000000?text=Photo');
-    const [nom, setNom] = useState('');
-    const [prenom, setPrenom] = useState('');
-    const [naiss, setNaiss] = useState('');
-    const [sexe, setSexe] = useState('');
-    const [adresse, setAdresse] = useState('');
-    const [cin, setCin] = useState('');
-    const [nomPere, setNomPere] = useState('');
-    const [nomMere, setNomMere] = useState('');
-    const [nomTut, setNomTut] = useState('');
-    const [adresseParent, setAdresseParent] = useState('');
-    const [adresseTut, setAdresseTut] = useState('');
-    const [phoneParent, setPhoneParent] = useState('');
-    const [phoneTut, setPhoneTut] = useState('');
-    const [selectedFile, setSelectedFile] = useState(null);
+  const [form, setForm] = useState({
+    nom: "",
+    prenom: "",
+    naiss: "",
+    sexe: "",
+    adresse: "",
+    cin: "",
+    nompere: "",
+    nommere: "",
+    nomtuteur: "",
+    adressparent: "",
+    adresstuteur: "",
+    phoneparent: "",
+    phonetuteur: "",
+    dateinscrit: "",
+    anneesco: "",
+    duree: "",
+    type_formation: "Court Terme",
+    datedebut: "",
+    nomformation: [],
+  });
 
-    // ✅ Inscription
-    const [dateinscrit, setDateinscrit] = useState('');
-    const [anneesco, setAnneesco] = useState('');
+  const [errors, setErrors] = useState({});
 
-    // ✅ Formation / Parcours
-    const [duree, setDuree] = useState('');
-    const [type_formation, setType_formation] = useState('Court Terme');
-    const [nomformation, setNomformation] = useState('');
-    const [datedebut, setDatebut] = useState('');
-   
-    const handleChoixFormation = (e) => {
-        const value = e.target.value;
-        if(e.target.checked) {
-            setNomformation([...nomformation, value]);
-        }
+  const validateField = (name, value) => {
+    let error = "";
+    if (name === "cin" && !/^\d{12}$/.test(value))
+      error = "Le CIN doit contenir exactement 12 chiffres.";
+    if ((name === "phoneparent" || name === "phonetuteur") && !/^\d{10}$/.test(value))
+      error = "Le numéro doit contenir exactement 10 chiffres.";
+    setErrors((prev) => ({ ...prev, [name]: error }));
+  };
 
-        else {
-            setNomformation(nomformation.filter(f => f !== value));
-        }
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+    validateField(name, value);
+  };
+
+  const handleChoixFormation = (e) => {
+    const { value, checked } = e.target;
+    setForm((prev) => ({
+      ...prev,
+      nomformation: checked
+        ? [...prev.nomformation, value]
+        : prev.nomformation.filter((f) => f !== value),
+    }));
+  };
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSelectedFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => setProfileImage(reader.result);
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const generateAnnee = () => {
+    const currentAnnee = new Date().getFullYear();
+    const schoolYears = [];
+    for (let annee = 2020; annee <= currentAnnee; annee++) {
+      schoolYears.push(`${annee}-${annee + 1}`);
+    }
+    return schoolYears;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const hasError = Object.values(errors).some((err) => err);
+    if (hasError) {
+      alert("Veuillez corriger les erreurs dans le formulaire ❌");
+      return;
     }
 
-    const generateAnnee = () => {
-        const currentAnnee = new Date().getFullYear();
-        const schoolYears = [];
+    try {
+      const formData = new FormData();
+      Object.entries(form).forEach(([key, value]) => {
+        if (Array.isArray(value)) formData.append(key, value.join(","));
+        else formData.append(key, value);
+      });
+      if (selectedFile) formData.append("photo", selectedFile);
 
-        for (let annee = 2010  ; annee <= currentAnnee ; annee++)
-        {
-            schoolYears.push(`${annee}-${annee + 1}`);
-        }
-        return schoolYears;
+      await axios.post("http://localhost:8000/api/inscriptionComplete", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      alert("✅ Inscription complète réussie !");
+      handleClose();
+    } catch (err) {
+      console.error(err);
+      alert("Erreur lors de l'inscription ❌");
     }
+  };
 
-    const [schoolYears, setSchoolYears] = useState(generateAnnee());
+  return (
+    <Modal open={show} onClose={handleClose}>
+      <Box sx={style}>
+        <Typography
+          variant="h5"
+          textAlign="center"
+          fontWeight="bold"
+          color="primary"
+          mb={3}
+        >
+          Inscription Complète au CFP
+        </Typography>
 
-    const handleImageUpload = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            setSelectedFile(file);
-            const reader = new FileReader();
-            reader.onloadend = () => setProfileImage(reader.result);
-            reader.readAsDataURL(file);
-        }
-    };
+        <form onSubmit={handleSubmit}>
+          {/* Profil */}
+          <Box textAlign="center" mb={3}>
+            <Avatar
+              src={profileImage}
+              sx={{
+                width: 120,
+                height: 120,
+                margin: "auto",
+                border: "3px solid #1976d2",
+              }}
+            />
+            <Button variant="outlined" component="label" sx={{ mt: 1 }}>
+              Sélectionner une photo
+              <input type="file" accept="image/*" hidden onChange={handleImageUpload} />
+            </Button>
+          </Box>
 
-    const handleFormSubmit = async (e) => {
-        e.preventDefault();
+          {/* Informations Personnelles */}
+          <Paper elevation={3} sx={{ p: 3, mb: 3, borderRadius: 3 }}>
+            <Typography
+              variant="h6"
+              color="primary"
+              fontWeight="bold"
+              textAlign="center"
+              mb={2}
+            >
+              Informations Personnelles
+            </Typography>
+            <Grid container spacing={2}>
+              <Grid item xs={12} md={4}>
+                <TextField
+                  label="Nom"
+                  name="nom"
+                  fullWidth
+                  required
+                  value={form.nom}
+                  onChange={handleChange}
+                />
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <TextField
+                  label="Prénom"
+                  name="prenom"
+                  fullWidth
+                  required
+                  value={form.prenom}
+                  onChange={handleChange}
+                />
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <TextField
+                  label="Date de Naissance"
+                  name="naiss"
+                  type="date"
+                  fullWidth
+                  required
+                  InputLabelProps={{ shrink: true }}
+                  inputProps={{ max: today }}
+                  value={form.naiss}
+                  onChange={handleChange}
+                />
+              </Grid>
 
-        try {
-            const formData = new FormData();
+              {/* Sexe élargi */}
+              <Grid item xs={12} md={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Sexe</InputLabel>
+                  <Select
+                    name="sexe"
+                    value={form.sexe}
+                    onChange={handleChange}
+                    label="Sexe"
+                  >
+                    <MenuItem value="Masculin">Masculin</MenuItem>
+                    <MenuItem value="Feminin">Féminin</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
 
-            // ✅ Personne
-            formData.append("nom", nom);
-            formData.append("prenom", prenom);
-            formData.append("naiss", naiss);
-            formData.append("sexe", sexe);
-            formData.append("adresse", adresse);
-            formData.append("cin", cin);
-            formData.append("nompere", nomPere);
-            formData.append("nommere", nomMere);
-            formData.append("nomtuteur", nomTut);
-            formData.append("adressparent", adresseParent);
-            formData.append("adresstuteur", adresseTut);
-            formData.append("phoneparent", phoneParent);
-            formData.append("phonetuteur", phoneTut);
-            if (selectedFile) formData.append("photo", selectedFile);
+              <Grid item xs={12} md={6}>
+                <TextField
+                  label="Adresse"
+                  name="adresse"
+                  fullWidth
+                  value={form.adresse}
+                  onChange={handleChange}
+                />
+              </Grid>
 
-            // ✅ Inscription
-            formData.append("dateinscrit", dateinscrit);
-            formData.append("anneesco", anneesco);
+              <Grid item xs={12} md={4}>
+                <TextField
+                  label="CIN"
+                  name="cin"
+                  fullWidth
+                  required
+                  value={form.cin}
+                  onChange={handleChange}
+                  error={!!errors.cin}
+                  helperText={errors.cin}
+                />
+              </Grid>
 
-            // ✅ Formation / Parcours
-            formData.append("duree", duree);
-            formData.append("type_formation", type_formation);
-            formData.append("datedebut", datedebut);
+              <Grid item xs={12} md={4}>
+                <TextField
+                  label="Nom Père"
+                  name="nompere"
+                  fullWidth
+                  value={form.nompere}
+                  onChange={handleChange}
+                />
+              </Grid>
 
-            if(nomformation.length > 0){
-                formData.append('nomformation', nomformation.join(' , '));
-            }
-            else{
-                alert("Veuiller choisir au moins une formation !!!");
-                return;
-            }
+              <Grid item xs={12} md={4}>
+                <TextField
+                  label="Nom Mère"
+                  name="nommere"
+                  fullWidth
+                  value={form.nommere}
+                  onChange={handleChange}
+                />
+              </Grid>
 
-            const res = await axios.post("http://localhost:8000/api/inscriptionComplete", formData, {
-                headers: { "Content-Type": "multipart/form-data" }
-            });
+              <Grid item xs={12} md={4}>
+                <TextField
+                  label="Nom Tuteur"
+                  name="nomtuteur"
+                  fullWidth
+                  value={form.nomtuteur}
+                  onChange={handleChange}
+                />
+              </Grid>
 
+              <Grid item xs={12} md={4}>
+                <TextField
+                  label="Adresse Parents"
+                  name="adressparent"
+                  fullWidth
+                  value={form.adressparent}
+                  onChange={handleChange}
+                />
+              </Grid>
 
-            alert("Inscription complète réussie ✅");
-            console.log(res.data);
-            handleClose();
+              <Grid item xs={12} md={4}>
+                <TextField
+                  label="Adresse Tuteur"
+                  name="adresstuteur"
+                  fullWidth
+                  value={form.adresstuteur}
+                  onChange={handleChange}
+                />
+              </Grid>
 
-        } 
-        catch (err) {
-            console.error(err.response || err.message);
-            alert("Erreur lors de l'inscription ❌");
-        }
-    };
+              <Grid item xs={12} md={6}>
+                <TextField
+                  label="Téléphone Parent"
+                  name="phoneparent"
+                  fullWidth
+                  required
+                  value={form.phoneparent}
+                  onChange={handleChange}
+                  error={!!errors.phoneparent}
+                  helperText={errors.phoneparent}
+                />
+              </Grid>
 
-    return (
-        <div className={`modal fade ${show ? 'show d-block' : ''}`} tabIndex="-1" style={{ backgroundColor: show ? 'rgba(0,0,0,0.5)' : 'transparent' }}>
-            <div className="modal-dialog modal-dialog-centered modal-xl">
-                <div className="modal-content">
-                    <div className="modal-header">
-                        <h3 className="modal-title text_center fw-bold">Inscription Complète  au CFP</h3>
-                        <button type="button" className="btn-close" onClick={handleClose}></button>
-                    </div>
-                    <div className="modal-body">
-                        <form onSubmit={handleFormSubmit}>
-                            {/* --- Image Profil --- */}
-                            <div className="text-center mb-4">
-                                <img src={profileImage} alt="Profil" className="rounded-circle border border-3 border-primary" style={{ width: '128px', height: '128px', objectFit: 'cover' }} />
-                                <div className="mt-2">
-                                    <label className="btn btn-sm btn-outline-primary fw-bold">
-                                        Sélectionner une photo
-                                        <input type="file" accept="image/*" className="d-none" onChange={handleImageUpload} />
-                                    </label>
-                                </div>
-                            </div>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  label="Téléphone Tuteur"
+                  name="phonetuteur"
+                  fullWidth
+                  required
+                  value={form.phonetuteur}
+                  onChange={handleChange}
+                  error={!!errors.phonetuteur}
+                  helperText={errors.phonetuteur}
+                />
+              </Grid>
+            </Grid>
+          </Paper>
 
-                            <div className="row">
-                                <h5 className="fw-bold mt-3 text-center fw-bold">Informations Personne</h5>
-                                <div className="col-lg-4 mb-3">
-                                    <label className="form-label">Nom</label>
-                                    <input type="text" className="form-control" value={nom} onChange={e => setNom(e.target.value)} required />
-                                </div>
-                                <div className="col-lg-4 mb-3">
-                                    <label className="form-label">Prénom</label>
-                                    <input type="text" className="form-control" value={prenom} onChange={e => setPrenom(e.target.value)} required />
-                                </div>
-                                <div className="col-lg-4 mb-3">
-                                    <label className="form-label">Date Naissance</label>
-                                    <input type="date" className="form-control" value={naiss} onChange={e => setNaiss(e.target.value)} max={today} required />
-                                </div>
-                                <div className="col-lg-4 mb-3">
-                                    <label className="form-label">Sexe</label>
-                                    <select className="form-select text-center" value={sexe} onChange={e => setSexe(e.target.value)} required>
-                                        <option value="">-- Choisir le sexe --</option>
-                                        <option value="Masulin">Masulin</option>
-                                        <option value="Feminin">Feminin</option>
-                                    </select>
-                                </div>
-                                <div className="col-lg-4 mb-3">
-                                    <label className="form-label">Adresse</label>
-                                    <input type="text" className="form-control" value={adresse} onChange={e => setAdresse(e.target.value)} />
-                                </div>
+          {/* Inscription */}
+          <Paper elevation={3} sx={{ p: 3, mb: 3, borderRadius: 3 }}>
+            <Typography
+              variant="h6"
+              color="primary"
+              fontWeight="bold"
+              textAlign="center"
+              mb={2}
+            >
+              Nouvelle Inscription
+            </Typography>
+            <Grid container spacing={2}>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  label="Date Inscription"
+                  name="dateinscrit"
+                  type="date"
+                  fullWidth
+                  required
+                  InputLabelProps={{ shrink: true }}
+                  inputProps={{ max: today }}
+                  value={form.dateinscrit}
+                  onChange={handleChange}
+                />
+              </Grid>
 
-                                <div className="col-lg-4 mb-3">
-                                    <label className="form-label">CIN</label>
-                                    <input type="text" className="form-control" value={cin} onChange={e => setCin(e.target.value)} />
-                                </div>
-                                <div className="col-lg-4 mb-3">
-                                    <label className="form-label">Nom Père</label>
-                                    <input type="text" className="form-control" value={nomPere} onChange={e => setNomPere(e.target.value)} />
-                                </div>
-                                <div className="col-lg-4 mb-3">
-                                    <label className="form-label">Nom Mère</label>
-                                    <input type="text" className="form-control" value={nomMere} onChange={e => setNomMere(e.target.value)} />
-                                </div>
-                                <div className="col-lg-4 mb-3">
-                                    <label className="form-label">Nom Tuteur</label>
-                                    <input type="text" className="form-control" value={nomTut} onChange={e => setNomTut(e.target.value)} />
-                                </div>
-                                <div className="col-lg-4 mb-3">
-                                    <label className="form-label">Adresse Parents</label>
-                                    <input type="text" className="form-control" value={adresseParent} onChange={e => setAdresseParent(e.target.value)} />
-                                </div>
-                                <div className="col-lg-4 mb-3">
-                                    <label className="form-label">Adresse Tuteur</label>
-                                    <input type="text" className="form-control" value={adresseTut} onChange={e => setAdresseTut(e.target.value)} />
-                                </div>
-                                <div className="col-lg-4 mb-3">
-                                    <label className="form-label">Phone Parent</label>
-                                    <input type="text" className="form-control" value={phoneParent} onChange={e => setPhoneParent(e.target.value)} />
-                                </div>
-                                <div className="col-lg-4 mb-3">
-                                    <label className="form-label">Phone Tuteur</label>
-                                    <input type="text" className="form-control" value={phoneTut} onChange={e => setPhoneTut(e.target.value)} />
-                                </div>
+              {/* Année scolaire élargie */}
+              <Grid item xs={12} md={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Année Scolaire</InputLabel>
+                  <Select
+                    name="anneesco"
+                    value={form.anneesco}
+                    onChange={handleChange}
+                    label="Année Scolaire"
+                  >
+                    {generateAnnee().map((annee, i) => (
+                      <MenuItem key={i} value={annee}>
+                        {annee}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+            </Grid>
+          </Paper>
 
-                                <h5 className="fw-bold mt-3 fw-bold text-center">Nouvelle Inscription</h5>
-                                <div className="col-lg-6 mb-3">
-                                    <label className="form-label">Date Inscription</label>
-                                    <input type="date" className="form-control" value={dateinscrit} onChange={e => setDateinscrit(e.target.value)} max={today} required />
-                                </div>
-                                <div className="col-lg-6 mb-3">
-                                    <label className="form-label">Année Scolaire</label>
-                                    <select className="form-select text-center" value={anneesco} onChange={e => setAnneesco(e.target.value)} required>
-                                        <option value="">-- Choisir Année Scolaire --</option>
-                                        {schoolYears.map((annee, index) => (
-                                            <option key={index} value={annee}>
-                                                { annee }
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
+          {/* Formation */}
+          <Paper elevation={3} sx={{ p: 3, mb: 3, borderRadius: 3 }}>
+            <Typography
+              variant="h6"
+              color="primary"
+              fontWeight="bold"
+              textAlign="center"
+              mb={2}
+            >
+              Formation / Parcours
+            </Typography>
+            <Grid container spacing={2}>
+              <Grid item xs={12} md={4}>
+                <TextField
+                  label="Durée (mois)"
+                  name="duree"
+                  fullWidth
+                  required
+                  value={form.duree}
+                  onChange={handleChange}
+                />
+              </Grid>
 
-                                <h5 className="fw-bold mt-3 text-center fw-bold">Formation / Parcours</h5>
-                                <div className="col-lg-4 mb-3">
-                                    <label className="form-label">Durée</label>
-                                    <input type="number" className="form-control" value={duree} onChange={e => setDuree(e.target.value)} required />
-                                </div>
-                                <div className="col-lg-4 mb-3">
-                                    <label className="form-label">Type Formation</label>
-                                    <select className="form-select text-center" value={type_formation} onChange={e => setType_formation(e.target.value)}>
-                                        <option value="Court Terme">Court Terme</option>
-                                        <option value="Long Terme">Long Terme</option>
-                                    </select>
-                                </div>
-                                <div className="col-lg-4 mb-3">
-                                    <label className="form-label">Date de Début de formation</label>
-                                    <input type="date" className="form-control" value={datedebut} onChange={e => setDatebut(e.target.value)} max={today}/>
-                                </div>
-                                <div className="col-lg-12 text-center mb-3">
-                                    <label className="form-label fw-bold">Nouveau Formations (cocher au moins une formation) </label>
-                                    <div className="row p-2">
-                                        <div className="form-check col-lg-2 col-md-4 col-sm-6 col-6">
-                                            <input type="checkbox" value="Informatique" className="form-check-input" onChange={handleChoixFormation} />
-                                            <label htmlFor="Informatique" className="form-check-label">Informatique</label>
-                                        </div>
-                                         <div className="form-check col-lg-2 col-md-4 col-sm-6 col-6">
-                                            <input type="checkbox" value="Musique" className="form-check-input" onChange={handleChoixFormation} />
-                                            <label htmlFor="Musique" className="form-check-label">Musique</label>
-                                        </div>
-                                        <div className="form-check col-lg-2 col-md-4 col-sm-6 col-6">
-                                            <input type="checkbox" value="Langue" className="form-check-input" onChange={handleChoixFormation} />
-                                            <label htmlFor="Langue" className="form-check-label">Langues</label>
-                                        </div>
-                                        <div className="form-check col-lg-2 col-md-4 col-sm-6 col-6">
-                                            <input type="checkbox" value="Coupe" className="form-check-input" onChange={handleChoixFormation} />
-                                            <label htmlFor="Coupe" className="form-check-label">Coupe et Coutûre</label>
-                                        </div>
-                                          <div className="form-check col-lg-2 col-md-4 col-sm-6 col-6">
-                                            <input type="checkbox" value="Pâtisserie" className="form-check-input" onChange={handleChoixFormation} />
-                                            <label htmlFor="Pâtisserie" className="form-check-label">Pâtisserie</label>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+              <Grid item xs={12} md={4}>
+                <FormControl fullWidth>
+                  <InputLabel>Type Formation</InputLabel>
+                  <Select
+                    name="type_formation"
+                    value={form.type_formation}
+                    onChange={handleChange}
+                  >
+                    <MenuItem value="Court Terme">Court Terme</MenuItem>
+                    <MenuItem value="Long Terme">Long Terme</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
 
-                            <div className="modal-footer justify-content-center mt-4">
-                                <button type="button" className="btn btn-outline-danger w-25 mx-2" onClick={handleClose}>Annuler</button>
-                                <button type="submit" className="btn btn-outline-primary w-25 mx-2">S'inscrire</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
+              <Grid item xs={12} md={4}>
+                <TextField
+                  label="Date Début Formation"
+                  name="datedebut"
+                  type="date"
+                  fullWidth
+                  InputLabelProps={{ shrink: true }}
+                  inputProps={{ max: today }}
+                  value={form.datedebut}
+                  onChange={handleChange}
+                />
+              </Grid>
+            </Grid>
+
+            <Divider sx={{ my: 2 }} />
+
+            <Typography
+              variant="subtitle1"
+              textAlign="center"
+              fontWeight="bold"
+              mb={1}
+            >
+              Cochez au moins une formation
+            </Typography>
+
+            <FormGroup row sx={{ justifyContent: "center" }}>
+              {["Informatique", "Musique", "Langues", "Coupe et Coutûre", "Pâtisserie"].map(
+                (formation) => (
+                  <FormControlLabel
+                    key={formation}
+                    control={
+                      <Checkbox
+                        value={formation}
+                        checked={form.nomformation.includes(formation)}
+                        onChange={handleChoixFormation}
+                      />
+                    }
+                    label={formation}
+                  />
+                )
+              )}
+            </FormGroup>
+          </Paper>
+
+          {/* Boutons */}
+          <Box textAlign="center" mt={3}>
+            <Button
+              variant="outlined"
+              color="error"
+              onClick={handleClose}
+              sx={{ mx: 2, width: 150 }}
+            >
+              Annuler
+            </Button>
+            <Button
+              type="submit"
+              variant="contained"
+              color="primary"
+              sx={{ mx: 2, width: 150 }}
+            >
+              S'inscrire
+            </Button>
+          </Box>
+        </form>
+      </Box>
+    </Modal>
+  );
 };
 
 export default NouvellePersonne;

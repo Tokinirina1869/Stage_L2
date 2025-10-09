@@ -20,23 +20,23 @@ class Personne extends Model
         'phoneparent','phonetuteur'
     ];
 
-    protected static function boot() {
+    protected static function boot()
+    {
         parent::boot();
 
         static::creating(function ($personne) {
-            $latest = Personne::orderBy('matricule', 'desc')->first();
+            // Récupérer le plus grand numéro existant dans la table
+            $latestNumber = Personne::selectRaw('MAX(CAST(SUBSTRING(matricule FROM 4) AS INTEGER)) as max_number')
+                ->first()
+                ->max_number;
 
-            if(!$latest) {
-                $number = 1;
-            }
-            else{
-                $lastNumber = (int)substr($latest->matricule, 3);
-                $number = $lastNumber + 1;
-            }
+            $number = $latestNumber ? $latestNumber + 1 : 1;
 
-            $personne->matricule = 'FMA' .str_pad($number, 4, '0'.STR_PAD_LEFT);
+            // Générer le matricule avec remplissage à gauche
+            $personne->matricule = 'FMA' . str_pad($number, 4, '0', STR_PAD_LEFT);
         });
     }
+
     // Nettoie les espaces dans le matricule
     public function setMatriculeAttribute($value)
     {
@@ -49,3 +49,4 @@ class Personne extends Model
         return $this->hasMany(Inscription::class, 'matricule', 'matricule');
     }
 }
+

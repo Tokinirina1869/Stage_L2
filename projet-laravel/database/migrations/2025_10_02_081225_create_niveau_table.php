@@ -9,8 +9,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('niveaux', function (Blueprint $table) {
-            $table->string('code_niveau',5)->primary();
-            $table->string("nomniveau", 12);
+            $table->string('code_niveau',50)->primary();
+            $table->string("nomniveau", 100);
             $table->timestamps();
         });
     }
