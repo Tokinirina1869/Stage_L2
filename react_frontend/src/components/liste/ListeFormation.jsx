@@ -6,6 +6,7 @@ import {
 import { ArrowBack, Add, Search } from "@mui/icons-material";
 import AffichageFormation from "../Formation/AffichageFormation";
 import NouvellePersonne from "../modals/NouvellePersonne";
+import ModificationInscription from "../modals/ModificationInscription";
 import axios from "axios";
 
 const ListeFormation = ({ onViewDashPro }) => {
@@ -18,13 +19,26 @@ const ListeFormation = ({ onViewDashPro }) => {
   const [endDate, setEndDate] = useState("");
   const [isDateSearchActive, setIsDateSearchActive] = useState(false);
 
+  const [showModification, setShowModification] = useState(false);
+  const [selectedPersonne, setSelectedPersonne] = useState(null);
+
   const isMobile = useMediaQuery("(max-width: 768px)");
   const Formations = ["Tous","Informatique","Langues","Musique","Coupe et Coutûre","Pâtisserie"];
 
   const openNewPersonne = () => setShowPersonne(true);
   const closeNewPersonne = () => setShowPersonne(false);
 
-  // 🟢 Charger toutes les données au démarrage (équivaut à "Tous")
+  const openModification = (personne) => {
+    setSelectedPersonne(personne);
+    setShowModification(true);
+  };
+
+  const closeModification = () => {
+    setShowModification(false);
+    setSelectedPersonne(null);
+  };
+
+  // 🟢 Charger toutes les données au démarrage
   useEffect(() => {
     handleFilter("Tous");
   }, []);
@@ -92,6 +106,36 @@ const ListeFormation = ({ onViewDashPro }) => {
       setFilteredFormations(filtered);
     }
   }, [searchText, formationsData]);
+
+  // 🔄 Mise à jour locale après modification
+  const handleUpdateList = (updatedPersonne) => {
+    const updatedFormations = formationsData.map(f =>
+      f.matricule === updatedPersonne.matricule ? updatedPersonne : f
+    );
+    setFormationsData(updatedFormations);
+
+    // Re-filtrer selon recherche ou date active
+    if (isDateSearchActive) {
+      handleDateSearch();
+    } else if (searchText.trim() !== "") {
+      const lowerSearch = searchText.toLowerCase();
+      const filtered = updatedFormations.filter(f =>
+        Object.values(f).some(val =>
+          val && (typeof val === "string" || typeof val === "number") &&
+          val.toString().toLowerCase().includes(lowerSearch)
+        ) ||
+        (f.personne &&
+          Object.values(f.personne).some(val =>
+            val && (typeof val === "string" || typeof val === "number") &&
+            val.toString().toLowerCase().includes(lowerSearch)
+          )
+        )
+      );
+      setFilteredFormations(filtered);
+    } else {
+      setFilteredFormations(updatedFormations);
+    }
+  };
 
   return (
     <Box sx={{ flexGrow: 1 }}>
@@ -190,20 +234,19 @@ const ListeFormation = ({ onViewDashPro }) => {
                     height: "40px",
                     border: "1px solid",
                     borderColor: "primary.main",
-                    transition: "all 0.3s ease", // pour l'animation fluide
+                    transition: "all 0.3s ease",
                     bgcolor: activeCategory === cat ? "primary.main" : "transparent",
                     color: activeCategory === cat ? "#fff" : "primary.main",
-                    transform: activeCategory === cat ? "scale(1.05)" : "scale(1)", // effet zoom pour actif
+                    transform: activeCategory === cat ? "scale(1.05)" : "scale(1)",
                     "&:hover": {
                       bgcolor: "primary.main",
                       color: "#fff",
-                      transform: "scale(1.05)", // zoom léger au hover
+                      transform: "scale(1.05)",
                     },
                   }}
                 />
               ))}
             </Stack>
-
 
             <TextField
               placeholder="Rechercher..."
@@ -222,7 +265,10 @@ const ListeFormation = ({ onViewDashPro }) => {
             />
           </Box>
 
-          <AffichageFormation formations={filteredFormations} />
+          <AffichageFormation 
+            formations={filteredFormations} 
+            onEdit={openModification} // <-- passer la fonction d'ouverture modal
+          />
         </Card>
       </Box>
 
@@ -232,7 +278,17 @@ const ListeFormation = ({ onViewDashPro }) => {
         </Fab>
       )}
 
-      <NouvellePersonne show={showPersonne} handleClose={closeNewPersonne} />
+      <ModificationInscription
+        show={showModification}
+        handleClose={closeModification}
+        personneData={selectedPersonne}
+        refreshList={handleUpdateList} // mise à jour locale
+      />
+      <NouvellePersonne 
+        show={showPersonne} 
+        handleClose={closeNewPersonne} 
+        refreshList={() => handleFilter(activeCategory)}  
+      />
     </Box>
   );
 };

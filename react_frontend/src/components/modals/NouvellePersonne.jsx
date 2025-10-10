@@ -1,45 +1,10 @@
 import React, { useState } from "react";
-import {
-  Box,
-  Button,
-  Modal,
-  Typography,
-  Grid,
-  TextField,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  Checkbox,
-  FormGroup,
-  FormControlLabel,
-  Avatar,
-  Paper,
-  Divider,
-} from "@mui/material";
+import { Modal, Button, Form, Row, Col } from "react-bootstrap";
 import axios from "axios";
+import { FaPlus, FaTrash } from "react-icons/fa";
 
-const style = {
-  position: "absolute",
-  top: "50%",
-  left: "50%",
-  transform: "translate(-50%, -50%)",
-  width: "95%",
-  maxWidth: 1250,
-  bgcolor: "background.paper",
-  borderRadius: 3,
-  boxShadow: 24,
-  p: 4,
-  maxHeight: "95vh",
-  overflowY: "auto",
-};
-
-const NouvellePersonne = ({ show, handleClose }) => {
+const NouvellePersonne = ({ show, handleClose, refreshList }) => {
   const today = new Date().toISOString().split("T")[0];
-  const [profileImage, setProfileImage] = useState(
-    "https://placehold.co/128x128/FFFFFF/000000?text=Photo"
-  );
-  const [selectedFile, setSelectedFile] = useState(null);
 
   const [form, setForm] = useState({
     nom: "",
@@ -59,60 +24,73 @@ const NouvellePersonne = ({ show, handleClose }) => {
     anneesco: "",
     duree: "",
     type_formation: "Court Terme",
-    datedebut: "",
-    nomformation: [],
+    photo: null,
+    profileImage: "https://placehold.co/128x128/FFFFFF/000000?text=Photo",
   });
 
+  const [parcoursForm, setParcoursForm] = useState([]);
   const [errors, setErrors] = useState({});
 
-  const validateField = (name, value) => {
-    let error = "";
-    if (name === "cin" && !/^\d{12}$/.test(value))
-      error = "Le CIN doit contenir exactement 12 chiffres.";
-    if ((name === "phoneparent" || name === "phonetuteur") && !/^\d{10}$/.test(value))
-      error = "Le numéro doit contenir exactement 10 chiffres.";
-    setErrors((prev) => ({ ...prev, [name]: error }));
+  // Générer années scolaires
+  const generateAnnee = () => {
+    const currentAnnee = new Date().getFullYear();
+    const years = [];
+    for (let annee = 2020; annee <= currentAnnee; annee++) {
+      years.push(`${annee}-${annee + 1}`);
+    }
+    return years;
   };
 
+  // Gestion champs
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-    validateField(name, value);
+    setForm(prev => ({ ...prev, [name]: value }));
+
+    if (name === "cin" && !/^[0-9]{8,12}$/.test(value)) {
+      setErrors(prev => ({ ...prev, cin: "CIN invalide : 8-12 chiffres" }));
+    } else if (name === "cin") {
+      setErrors(prev => ({ ...prev, cin: "" }));
+    }
+
+    if ((name === "phoneparent" || name === "phonetuteur") && !/^[0-9]{10}$/.test(value)) {
+      setErrors(prev => ({ ...prev, [name]: "Numéro invalide : 10 chiffres" }));
+    } else if (name === "phoneparent" || name === "phonetuteur") {
+      setErrors(prev => ({ ...prev, [name]: "" }));
+    }
   };
 
-  const handleChoixFormation = (e) => {
-    const { value, checked } = e.target;
-    setForm((prev) => ({
-      ...prev,
-      nomformation: checked
-        ? [...prev.nomformation, value]
-        : prev.nomformation.filter((f) => f !== value),
-    }));
-  };
-
+  // Image
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setSelectedFile(file);
+      setForm(prev => ({ ...prev, photo: file }));
       const reader = new FileReader();
-      reader.onloadend = () => setProfileImage(reader.result);
+      reader.onloadend = () => setForm(prev => ({ ...prev, profileImage: reader.result }));
       reader.readAsDataURL(file);
     }
   };
 
-  const generateAnnee = () => {
-    const currentAnnee = new Date().getFullYear();
-    const schoolYears = [];
-    for (let annee = 2020; annee <= currentAnnee; annee++) {
-      schoolYears.push(`${annee}-${annee + 1}`);
-    }
-    return schoolYears;
+  // Parcours
+  const handleParcoursChange = (index, field, value) => {
+    setParcoursForm(prev => {
+      const updated = [...prev];
+      updated[index][field] = value;
+      return updated;
+    });
   };
 
+  const addNewParcours = () => {
+    setParcoursForm(prev => [...prev, { nomformation: "", datedebut: today }]);
+  };
+
+  const removeParcours = (index) => {
+    setParcoursForm(prev => prev.filter((_, i) => i !== index));
+  };
+
+  // Soumission
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const hasError = Object.values(errors).some((err) => err);
-    if (hasError) {
+    if (Object.values(errors).some(err => err)) {
       alert("Veuillez corriger les erreurs dans le formulaire ❌");
       return;
     }
@@ -120,10 +98,14 @@ const NouvellePersonne = ({ show, handleClose }) => {
     try {
       const formData = new FormData();
       Object.entries(form).forEach(([key, value]) => {
-        if (Array.isArray(value)) formData.append(key, value.join(","));
-        else formData.append(key, value);
+        if (value !== null) formData.append(key, value);
       });
-      if (selectedFile) formData.append("photo", selectedFile);
+
+      // Ajouter les parcours
+      parcoursForm.forEach((p, i) => {
+        formData.append(`parcours[${i}][nomformation]`, p.nomformation);
+        formData.append(`parcours[${i}][datedebut]`, p.datedebut);
+      });
 
       await axios.post("http://localhost:8000/api/inscriptionComplete", formData, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -131,6 +113,7 @@ const NouvellePersonne = ({ show, handleClose }) => {
 
       alert("✅ Inscription complète réussie !");
       handleClose();
+      if (refreshList) refreshList();
     } catch (err) {
       console.error(err);
       alert("Erreur lors de l'inscription ❌");
@@ -138,348 +121,92 @@ const NouvellePersonne = ({ show, handleClose }) => {
   };
 
   return (
-    <Modal open={show} onClose={handleClose}>
-      <Box sx={style}>
-        <Typography
-          variant="h5"
-          textAlign="center"
-          fontWeight="bold"
-          color="primary"
-          mb={3}
-        >
-          Inscription Complète au CFP
-        </Typography>
+    <Modal show={show} onHide={handleClose} size="xl" centered>
+      <Modal.Header closeButton>
+        <Modal.Title>Nouvelle Inscription</Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        <Form onSubmit={handleSubmit}>
 
-        <form onSubmit={handleSubmit}>
-          {/* Profil */}
-          <Box textAlign="center" mb={3}>
-            <Avatar
-              src={profileImage}
-              sx={{
-                width: 120,
-                height: 120,
-                margin: "auto",
-                border: "3px solid #1976d2",
-              }}
-            />
-            <Button variant="outlined" component="label" sx={{ mt: 1 }}>
-              Sélectionner une photo
-              <input type="file" accept="image/*" hidden onChange={handleImageUpload} />
-            </Button>
-          </Box>
+          {/* PHOTO */}
+          <div className="text-center mb-3">
+            <img src={form.profileImage} alt="Profil"
+              className="rounded-circle border border-3 border-primary"
+              style={{ width: 128, height: 128, objectFit: "cover" }} />
+            <div className="mt-2">
+              <Form.Label className="btn btn-sm btn-outline-primary fw-bold">
+                Sélectionner une photo
+                <Form.Control type="file" hidden accept="image/*" onChange={handleImageUpload} />
+              </Form.Label>
+            </div>
+          </div>
 
-          {/* Informations Personnelles */}
-          <Paper elevation={3} sx={{ p: 3, mb: 3, borderRadius: 3 }}>
-            <Typography
-              variant="h6"
-              color="primary"
-              fontWeight="bold"
-              textAlign="center"
-              mb={2}
-            >
-              Informations Personnelles
-            </Typography>
-            <Grid container spacing={2}>
-              <Grid item xs={12} md={4}>
-                <TextField
-                  label="Nom"
-                  name="nom"
-                  fullWidth
-                  required
-                  value={form.nom}
-                  onChange={handleChange}
-                />
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <TextField
-                  label="Prénom"
-                  name="prenom"
-                  fullWidth
-                  required
-                  value={form.prenom}
-                  onChange={handleChange}
-                />
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <TextField
-                  label="Date de Naissance"
-                  name="naiss"
-                  type="date"
-                  fullWidth
-                  required
-                  InputLabelProps={{ shrink: true }}
-                  inputProps={{ max: today }}
-                  value={form.naiss}
-                  onChange={handleChange}
-                />
-              </Grid>
+          {/* INFORMATIONS PERSONNELLES */}
+          <h5 className="text-center fw-bold">Informations Personne</h5>
+          <Row>
+            <Col lg={4}><Form.Group className="mb-2"><Form.Label>Nom</Form.Label><Form.Control name="nom" value={form.nom} onChange={handleChange} required/></Form.Group></Col>
+            <Col lg={4}><Form.Group className="mb-2"><Form.Label>Prénom</Form.Label><Form.Control name="prenom" value={form.prenom} onChange={handleChange} required/></Form.Group></Col>
+            <Col lg={4}><Form.Group className="mb-2"><Form.Label>Date Naissance</Form.Label><Form.Control type="date" name="naiss" value={form.naiss} onChange={handleChange} max={today}/></Form.Group></Col>
+            <Col lg={4}><Form.Group className="mb-2"><Form.Label>Sexe</Form.Label><Form.Select name="sexe" value={form.sexe} onChange={handleChange}><option value="">-- Choisir --</option><option>Masculin</option><option>Feminin</option></Form.Select></Form.Group></Col>
+            <Col lg={4}><Form.Group className="mb-2"><Form.Label>Adresse</Form.Label><Form.Control name="adresse" value={form.adresse} onChange={handleChange} /></Form.Group></Col>
+            <Col lg={4}><Form.Group className="mb-2"><Form.Label>CIN</Form.Label><Form.Control name="cin" value={form.cin} onChange={handleChange} />{errors.cin && <small className="text-danger">{errors.cin}</small>}</Form.Group></Col>
+          </Row>
 
-              {/* Sexe élargi */}
-              <Grid item xs={12} md={6}>
-                <FormControl fullWidth>
-                  <InputLabel>Sexe</InputLabel>
-                  <Select
-                    name="sexe"
-                    value={form.sexe}
-                    onChange={handleChange}
-                    label="Sexe"
-                  >
-                    <MenuItem value="Masculin">Masculin</MenuItem>
-                    <MenuItem value="Feminin">Féminin</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
+          {/* PARENTS */}
+          <h5 className="text-center fw-bold mt-3">Informations des Parents</h5>
+          <Row>
+            <Col lg={4}><Form.Group className="mb-2"><Form.Label>Nom Père</Form.Label><Form.Control name="nompere" value={form.nompere} onChange={handleChange}/></Form.Group></Col>
+            <Col lg={4}><Form.Group className="mb-2"><Form.Label>Nom Mère</Form.Label><Form.Control name="nommere" value={form.nommere} onChange={handleChange}/></Form.Group></Col>
+            <Col lg={4}><Form.Group className="mb-2"><Form.Label>Adresse Parents</Form.Label><Form.Control name="adressparent" value={form.adressparent} onChange={handleChange}/></Form.Group></Col>
+            <Col lg={6}><Form.Group className="mb-2"><Form.Label>Téléphone Parent</Form.Label><Form.Control name="phoneparent" value={form.phoneparent} onChange={handleChange}/>{errors.phoneparent && <small className="text-danger">{errors.phoneparent}</small>}</Form.Group></Col>
+          </Row>
 
-              <Grid item xs={12} md={6}>
-                <TextField
-                  label="Adresse"
-                  name="adresse"
-                  fullWidth
-                  value={form.adresse}
-                  onChange={handleChange}
-                />
-              </Grid>
+          {/* TUTEUR */}
+          <h5 className="text-center fw-bold mt-3">Informations du Tuteur</h5>
+          <Row>
+            <Col lg={4}><Form.Group className="mb-2"><Form.Label>Nom Tuteur</Form.Label><Form.Control name="nomtuteur" value={form.nomtuteur} onChange={handleChange}/></Form.Group></Col>
+            <Col lg={4}><Form.Group className="mb-2"><Form.Label>Adresse Tuteur</Form.Label><Form.Control name="adresstuteur" value={form.adresstuteur} onChange={handleChange}/></Form.Group></Col>
+            <Col lg={4}><Form.Group className="mb-2"><Form.Label>Téléphone Tuteur</Form.Label><Form.Control name="phonetuteur" value={form.phonetuteur} onChange={handleChange}/>{errors.phonetuteur && <small className="text-danger">{errors.phonetuteur}</small>}</Form.Group></Col>
+          </Row>
 
-              <Grid item xs={12} md={4}>
-                <TextField
-                  label="CIN"
-                  name="cin"
-                  fullWidth
-                  required
-                  value={form.cin}
-                  onChange={handleChange}
-                  error={!!errors.cin}
-                  helperText={errors.cin}
-                />
-              </Grid>
+          {/* INSCRIPTION */}
+          <h5 className="text-center fw-bold mt-3">Informations d’Inscription</h5>
+          <Row>
+            <Col lg={4}><Form.Group className="mb-2"><Form.Label>Date d’inscription</Form.Label><Form.Control type="date" name="dateinscrit" value={form.dateinscrit} onChange={handleChange}/></Form.Group></Col>
+            <Col lg={4}><Form.Group className="mb-2"><Form.Label>Année scolaire</Form.Label><Form.Select name="anneesco" value={form.anneesco} onChange={handleChange}><option value="">-- Choisir --</option>{generateAnnee().map(a => <option key={a}>{a}</option>)}</Form.Select></Form.Group></Col>
+            <Col lg={4}><Form.Group className="mb-2"><Form.Label>Durée</Form.Label><Form.Control name="duree" value={form.duree} onChange={handleChange}/></Form.Group></Col>
+            <Col lg={4}><Form.Group className="mb-2"><Form.Label>Type de formation</Form.Label><Form.Select name="type_formation" value={form.type_formation} onChange={handleChange}><option>Court Terme</option><option>Long Terme</option></Form.Select></Form.Group></Col>
+          </Row>
 
-              <Grid item xs={12} md={4}>
-                <TextField
-                  label="Nom Père"
-                  name="nompere"
-                  fullWidth
-                  value={form.nompere}
-                  onChange={handleChange}
-                />
-              </Grid>
+          {/* PARCOURS */}
+          <h5 className="text-center fw-bold mt-3">Formations / Parcours</h5>
+          {parcoursForm.map((p, i) => (
+            <Row key={i} className="align-items-center mb-2">
+              <Col lg={5}>
+                <Form.Select value={p.nomformation} onChange={e => handleParcoursChange(i, "nomformation", e.target.value)} required>
+                  <option value="">-- Choisir formation --</option>
+                  {["Informatique", "Musique", "Langues", "Couture", "Pâtisserie"].map(f => <option key={f} value={f}>{f}</option>)}
+                </Form.Select>
+              </Col>
+              <Col lg={5}>
+                <Form.Control type="date" value={p.datedebut} onChange={e => handleParcoursChange(i, "datedebut", e.target.value)} required max={today}/>
+              </Col>
+              <Col lg={2} className="text-center">
+                <Button variant="outline-danger" onClick={() => removeParcours(i)}><FaTrash /></Button>
+              </Col>
+            </Row>
+          ))}
+          <div className="mb-3">
+            <Button variant="outline-primary" onClick={addNewParcours}><FaPlus /> Ajouter Parcours</Button>
+          </div>
 
-              <Grid item xs={12} md={4}>
-                <TextField
-                  label="Nom Mère"
-                  name="nommere"
-                  fullWidth
-                  value={form.nommere}
-                  onChange={handleChange}
-                />
-              </Grid>
-
-              <Grid item xs={12} md={4}>
-                <TextField
-                  label="Nom Tuteur"
-                  name="nomtuteur"
-                  fullWidth
-                  value={form.nomtuteur}
-                  onChange={handleChange}
-                />
-              </Grid>
-
-              <Grid item xs={12} md={4}>
-                <TextField
-                  label="Adresse Parents"
-                  name="adressparent"
-                  fullWidth
-                  value={form.adressparent}
-                  onChange={handleChange}
-                />
-              </Grid>
-
-              <Grid item xs={12} md={4}>
-                <TextField
-                  label="Adresse Tuteur"
-                  name="adresstuteur"
-                  fullWidth
-                  value={form.adresstuteur}
-                  onChange={handleChange}
-                />
-              </Grid>
-
-              <Grid item xs={12} md={6}>
-                <TextField
-                  label="Téléphone Parent"
-                  name="phoneparent"
-                  fullWidth
-                  required
-                  value={form.phoneparent}
-                  onChange={handleChange}
-                  error={!!errors.phoneparent}
-                  helperText={errors.phoneparent}
-                />
-              </Grid>
-
-              <Grid item xs={12} md={6}>
-                <TextField
-                  label="Téléphone Tuteur"
-                  name="phonetuteur"
-                  fullWidth
-                  required
-                  value={form.phonetuteur}
-                  onChange={handleChange}
-                  error={!!errors.phonetuteur}
-                  helperText={errors.phonetuteur}
-                />
-              </Grid>
-            </Grid>
-          </Paper>
-
-          {/* Inscription */}
-          <Paper elevation={3} sx={{ p: 3, mb: 3, borderRadius: 3 }}>
-            <Typography
-              variant="h6"
-              color="primary"
-              fontWeight="bold"
-              textAlign="center"
-              mb={2}
-            >
-              Nouvelle Inscription
-            </Typography>
-            <Grid container spacing={2}>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  label="Date Inscription"
-                  name="dateinscrit"
-                  type="date"
-                  fullWidth
-                  required
-                  InputLabelProps={{ shrink: true }}
-                  inputProps={{ max: today }}
-                  value={form.dateinscrit}
-                  onChange={handleChange}
-                />
-              </Grid>
-
-              {/* Année scolaire élargie */}
-              <Grid item xs={12} md={6}>
-                <FormControl fullWidth>
-                  <InputLabel>Année Scolaire</InputLabel>
-                  <Select
-                    name="anneesco"
-                    value={form.anneesco}
-                    onChange={handleChange}
-                    label="Année Scolaire"
-                  >
-                    {generateAnnee().map((annee, i) => (
-                      <MenuItem key={i} value={annee}>
-                        {annee}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-            </Grid>
-          </Paper>
-
-          {/* Formation */}
-          <Paper elevation={3} sx={{ p: 3, mb: 3, borderRadius: 3 }}>
-            <Typography
-              variant="h6"
-              color="primary"
-              fontWeight="bold"
-              textAlign="center"
-              mb={2}
-            >
-              Formation / Parcours
-            </Typography>
-            <Grid container spacing={2}>
-              <Grid item xs={12} md={4}>
-                <TextField
-                  label="Durée (mois)"
-                  name="duree"
-                  fullWidth
-                  required
-                  value={form.duree}
-                  onChange={handleChange}
-                />
-              </Grid>
-
-              <Grid item xs={12} md={4}>
-                <FormControl fullWidth>
-                  <InputLabel>Type Formation</InputLabel>
-                  <Select
-                    name="type_formation"
-                    value={form.type_formation}
-                    onChange={handleChange}
-                  >
-                    <MenuItem value="Court Terme">Court Terme</MenuItem>
-                    <MenuItem value="Long Terme">Long Terme</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-
-              <Grid item xs={12} md={4}>
-                <TextField
-                  label="Date Début Formation"
-                  name="datedebut"
-                  type="date"
-                  fullWidth
-                  InputLabelProps={{ shrink: true }}
-                  inputProps={{ max: today }}
-                  value={form.datedebut}
-                  onChange={handleChange}
-                />
-              </Grid>
-            </Grid>
-
-            <Divider sx={{ my: 2 }} />
-
-            <Typography
-              variant="subtitle1"
-              textAlign="center"
-              fontWeight="bold"
-              mb={1}
-            >
-              Cochez au moins une formation
-            </Typography>
-
-            <FormGroup row sx={{ justifyContent: "center" }}>
-              {["Informatique", "Musique", "Langues", "Coupe et Coutûre", "Pâtisserie"].map(
-                (formation) => (
-                  <FormControlLabel
-                    key={formation}
-                    control={
-                      <Checkbox
-                        value={formation}
-                        checked={form.nomformation.includes(formation)}
-                        onChange={handleChoixFormation}
-                      />
-                    }
-                    label={formation}
-                  />
-                )
-              )}
-            </FormGroup>
-          </Paper>
-
-          {/* Boutons */}
-          <Box textAlign="center" mt={3}>
-            <Button
-              variant="outlined"
-              color="error"
-              onClick={handleClose}
-              sx={{ mx: 2, width: 150 }}
-            >
-              Annuler
-            </Button>
-            <Button
-              type="submit"
-              variant="contained"
-              color="primary"
-              sx={{ mx: 2, width: 150 }}
-            >
-              S'inscrire
-            </Button>
-          </Box>
-        </form>
-      </Box>
+          {/* BOUTONS */}
+          <div className="d-flex justify-content-between mt-4">
+            <Button variant="outline-danger" onClick={handleClose}>Annuler</Button>
+            <Button type="submit" variant="primary">S'inscrire</Button>
+          </div>
+        </Form>
+      </Modal.Body>
     </Modal>
   );
 };

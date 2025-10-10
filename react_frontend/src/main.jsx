@@ -11,11 +11,7 @@ import ProfileComponent from './components/modals/ProfileComponent';
 import ListeFormation from './components/liste/ListeFormation';
 import ListeEleve from './components/liste/ListeEleve';
 import NouvelleInscription from './components/modals/NouvelleInscription';
-// import Test from "./components/Formation/test";
 // import ContactForm from './components/App1';
-// import DataDisplayTable from './components/tets';
-// import DataDisplayTable1 from './components/test2';
-// import FomikYupForm from './components/formik';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode> 
@@ -24,8 +20,6 @@ createRoot(document.getElementById('root')).render(
           <Route path='/' element={ <Inscription/> } />
           {/* <Route path='/' element={ <FomikYupForm/> } /> */}
           {/* <Route path='/' element={ <ContactForm/> } /> */}
-          {/* <Route path='/' element={ <DataDisplayTable/> } /> */}
-          {/* <Route path='/' element={ <DataDisplayTable1/> } /> */}
           <Route path='/login' element={ <Login /> } />
           <Route path='/register' element= { <Register /> } />
           <Route path='/profil' element={ <ProfileComponent /> } />

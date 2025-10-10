@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Typography } from "@mui/material";
 import { FaBookOpen, FaEdit, FaTrash } from "react-icons/fa";
 import ModificationInscription from "../modals/ModificationInscription";
-import NouvellePersonne from "../modals/NouvellePersonne";
 
 const columns = [
   { headerName: 'N° Matricule', width: 80 },
@@ -86,7 +85,12 @@ function AffichageFormation({ formations }) {
                 <TableCell sx={{ width: columns[15].width }}>{liste.personne?.adresstuteur || "---"}</TableCell>
                 <TableCell sx={{ width: columns[16].width }}>{liste.dateinscrit}</TableCell>
                 <TableCell sx={{ width: columns[17].width }}>{liste.anneesco}</TableCell>
-                <TableCell sx={{ width: columns[18].width }}>{liste.inscriptionformations?.[0]?.type_formation || "---"}</TableCell>
+                <TableCell sx={{ width: columns[18].width }}>
+                  {Array.isArray(liste.inscriptionformations) && liste.inscriptionformations.length > 0
+                    ? liste.inscriptionformations[0].type_formation
+                    : "---"}
+                </TableCell>
+
                 <TableCell sx={{ width: columns[19].width }}>{liste.parcours?.[0]?.nomformation || "---"}</TableCell>
                 <TableCell sx={{ display: 'flex', justifyContent: 'space-between', minWidth: columns[20].width }}>
                   <Button onClick={() => openModal(liste)} variant="contained" color="primary" sx={{ textTransform:'none',m:1 }} size="large"><FaEdit className="mx-2" /> Modifier</Button>
@@ -105,8 +109,7 @@ function AffichageFormation({ formations }) {
         </Table>
 
       </TableContainer>
-      <ModificationInscription show={modalModification} handleClose={closeModal} personneData={selectedPersonne} refreshList={() => {}} />
-      <NouvellePersonne refreshList={() => {}} />
+      <ModificationInscription show={modalModification} handleClose={closeModal} personneData={selectedPersonne}/>
     </Box>
   );
 }

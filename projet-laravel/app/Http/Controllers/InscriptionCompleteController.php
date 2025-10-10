@@ -10,6 +10,7 @@ use App\Models\FormationModel;
 use App\Models\Parcours;
 use App\Models\Suivre;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 
@@ -20,11 +21,6 @@ class InscriptionCompleteController extends Controller
         // ✅ Charger toutes les relations nécessaires en une seule requête
         $inscriptions = Inscription::with(['personne', 'inscriptionformations', 'parcours'])
             ->get();
-            // ->each(function ($inscription) {
-            //     // Nettoyer localement les matricules au cas où (trim + uppercase)
-            //     $inscription->matricule = strtoupper(trim($inscription->matricule));
-            // });
-
         return response()->json($inscriptions);
 
     }
@@ -45,86 +41,112 @@ class InscriptionCompleteController extends Controller
         return response()->json($inscriptions);
     }
 
+    public function countinscription(){
+        $totalInscrit = Inscription::count();
+        return response()->json(['total' => $totalInscrit]);
+    }
 
-    public function store(Request $request)
+    public function countMusique()
     {
-        try {
-            // 1️⃣ Personne
-            \Log::info('Requete reçue : ', $request->all());
+        $totalMusique = Parcours::where('nomformation', 'LIKE', '%Musique%')->count();
 
-            $personne = Personne::create([
-                'nom'          => $request->nom,
-                'prenom'       => $request->prenom,
-                'naiss'        => $request->naiss,
-                'sexe'         => $request->sexe,
-                'adresse'      => $request->adresse,
-                'cin'          => $request->cin,
-                'nompere'      => $request->nompere,
-                'nommere'      => $request->nommere,
-                'nomtuteur'    => $request->nomtuteur,
-                'adressparent' => $request->adressparent,
-                'adresstuteur' => $request->adresstuteur,
-                'phoneparent'  => $request->phoneparent,
-                'phonetuteur'  => $request->phonetuteur,
+        return response()->json(['total' => $totalMusique]);
+    }
+   
+    public function countInformatique()
+    {
+        $totalInfo = Parcours::where('nomformation', 'LIKE', '%Informatique%')->count();
+        return response()->json(['total' => $totalInfo]);
+    }
+    public function countCoupeEtCouture()
+    {
+        $totalCoupe = Parcours::where('nomformation', 'LIKE', '%Coupe et Coutûre%')->count();
+        return response()->json(['total' => $totalCoupe]);
+    }
+
+    public function countLangues()
+    {
+        $totalLangue = Parcours::where('nomformation', 'LIKE', '%Langues%')->count();
+        return response()->json(['total' => $totalLangue]);
+    }
+    public function countPatisserie()
+    {
+        $totalPatisserie = Parcours::where('nomformation', 'LIKE', '%Pâtisserie%')->count();
+        return response()->json(['total' => $totalPatisserie]);
+    }
+
+    public function topParcours()
+    {
+        $result = DB::select("
+            SELECT 
+                TRIM(f.formation) AS formation,
+                COUNT(DISTINCT i.matricule) AS total_personnes
+            FROM inscriptions i
+            JOIN suivres s ON s.no_inscrit = i.no_inscrit
+            JOIN parcours p ON p.code_formation = s.code_formation
+            CROSS JOIN LATERAL string_to_table(p.nomformation, ',') AS f(formation)
+            GROUP BY TRIM(f.formation)
+            ORDER BY total_personnes DESC
+            LIMIT 1
+        ");
+
+        return response()->json($result[0] ?? []);
+    }
+
+     public function store(Request $request)
+    {
+        DB::beginTransaction();
+
+        try {
+            // 1️⃣ Création ou mise à jour de la personne
+            $personneData = $request->only([
+                'nom','prenom','naiss','sexe','adresse','cin',
+                'nompere','nommere','nomtuteur','adressparent','adresstuteur',
+                'phoneparent','phonetuteur'
             ]);
 
-            // Photo
-            if ($request->hasFile('photo')) {
+            if($request->hasFile('photo')) {
                 $path = $request->file('photo')->store('photos', 'public');
-                $personne->photo = $path;
-                $personne->save();
+                $personneData['photo'] = $path;
             }
 
-            // 2️⃣ Inscription
-            $inscription = Inscription::create([
-                'matricule'   => $personne->matricule,
-                'dateinscrit' => $request->dateinscrit,
-                'anneesco'    => $request->anneesco,
-            ]);
+            $personne = Personne::updateOrCreate(
+                ['cin' => $request->cin], // clé unique pour update
+                $personneData
+            );
 
-            // 3️⃣ Formation / Parcours
-            $formation = FormationModel::create([
-                'no_inscrit'     => $inscription->no_inscrit,
-                'duree'          => $request->duree,
+            // 2️⃣ Création de l'inscription
+            $inscription = Inscription::create([
+                'matricule' => $personne->matricule,
+                'dateinscrit' => $request->dateinscrit,
+                'anneesco' => $request->anneesco,
+                'duree' => $request->duree ?? null,
                 'type_formation' => $request->type_formation,
             ]);
 
+            // 3️⃣ Création des parcours liés
+            if($request->has('parcours')) {
+                foreach($request->parcours as $p) {
+                    if(!empty($p['nomformation'])) {
+                        // Vérifie si le parcours existe déjà
+                        $parcours = Parcours::firstOrCreate(
+                            ['nomformation' => $p['nomformation'], 'datedebut' => $p['datedebut']],
+                            ['code_formation' => 'CF'.strtoupper(uniqid())]
+                        );
 
-            // 4️⃣ Parcours
-            $parcours = null;
-
-            if ($request->code_formation) {
-                // Utiliser un parcours existant
-                $parcours = Parcours::find($request->code_formation);
-            } 
-            elseif ($request->nomformation) {
-                // Générer un code aléatoire unique de 5 caractères
-                $newCode = strtoupper(substr($request->nomformation, 0, 3)) . rand(10, 99);
-
-                $parcours = Parcours::create([
-                    'code_formation' => $newCode,
-                    'nomformation'   => $request->nomformation,
-                    'datedebut'      => $request->datedebut,
-                ]);
+                        // Liaison avec l'inscription
+                        $inscription->parcours()->attach($parcours->code_formation);
+                    }
+                }
             }
 
-            $suivre = Suivre::create([
-                'no_inscrit'     => $inscription->no_inscrit,
-                'code_formation' => $parcours->code_formation,
-            ]);
-
-            return response()->json([
-                'message'     => 'Inscription complète réussie',
-                'personne'    => $personne,
-                'inscription' => $inscription,
-                'formation'   => $formation,
-                'parcours'    => $parcours,
-            ], 201);
-
+            DB::commit();
+            return response()->json(['status' => 'success', 'message' => 'Inscription complète enregistrée']);
         } catch (\Exception $e) {
+            DB::rollBack();
             return response()->json([
-                'message' => 'Erreur serveur',
-                'error' => $e->getMessage()
+                'status' => 'error',
+                'message' => $e->getMessage()
             ], 500);
         }
     }
@@ -133,109 +155,106 @@ class InscriptionCompleteController extends Controller
     /**
      * Mettre à jour une inscription complète
      */
-    public function update(Request $request, $matricule)
+   public function update(Request $request, $matricule)
     {
         DB::beginTransaction();
 
         try {
-            // 🔹 1. Récupérer les enregistrements existants
-            \Log::info('Requete reçue : ', $request->all());
-            
+            // ✅ Validation
+            $request->validate([
+                'nom' => 'required|string|max:100',
+                'prenom' => 'required|string|max:100',
+                'naiss' => 'nullable|date',
+                'sexe' => 'nullable|string',
+                'adresse' => 'nullable|string|max:255',
+                'cin' => 'nullable|string|max:20',
+                'email' => 'nullable|email',
+                'nompere' => 'nullable|string|max:100',
+                'nommere' => 'nullable|string|max:100',
+                'nomtuteur' => 'nullable|string|max:100',
+                'adressparent' => 'nullable|string|max:255',
+                'adresstuteur' => 'nullable|string|max:255',
+                'phoneparent' => 'nullable|string|max:20',
+                'phonetuteur' => 'nullable|string|max:20',
+                'dateinscrit' => 'nullable|date',
+                'anneesco' => 'nullable|string|max:20',
+                'duree' => 'nullable|string|max:50',
+                'type_formation' => 'nullable|string|max:50',
+                'parcours' => 'nullable|array',
+                'parcours.*.nomformation' => 'required_with:parcours|string|max:100',
+                'parcours.*.datedebut' => 'required_with:parcours|date',
+                'photo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            ]);
+
+            // ✅ Récupération des modèles
             $personne = Personne::where('matricule', $matricule)->firstOrFail();
             $inscription = Inscription::where('matricule', $matricule)->firstOrFail();
 
-            // 🔹 2. Validation
-            $request->validate([
-                'datedebut' => 'required|date',
-                'nomformation' => 'required|array|min:1',
-                'nomformation.*' => 'string',
-            ]);
-
-            $datedebut = $request->input('datedebut');
-            $nomFormations = $request->input('nomformation', []);
-
-            // 🔹 3. Mise à jour des infos de la personne
+            // ✅ Mise à jour de la personne
             $personne->fill($request->only([
-                'nom', 'prenom', 'naiss', 'sexe', 'adresse', 'cin',
-                'nompere', 'nommere', 'nomtuteur', 'adressparent',
-                'adresstuteur', 'phoneparent', 'phonetuteur'
+                'nom', 'prenom', 'naiss', 'sexe', 'adresse', 'cin', 'email',
+                'nompere', 'nommere', 'nomtuteur', 'adressparent', 'adresstuteur',
+                'phoneparent', 'phonetuteur'
             ]));
 
+            // ✅ Gestion de la photo
             if ($request->hasFile('photo')) {
+                if ($personne->photo && Storage::exists('public/' . $personne->photo)) {
+                    Storage::delete('public/' . $personne->photo);
+                }
                 $path = $request->file('photo')->store('photos', 'public');
                 $personne->photo = $path;
             }
 
             $personne->save();
 
-            // 🔹 4. Mise à jour des infos d’inscription
-            $inscription->update($request->only(['dateinscrit', 'anneesco']));
+            // ✅ Mise à jour de l’inscription
+            $inscription->update([
+                'dateinscrit' => $request->dateinscrit,
+                'anneesco' => $request->anneesco,
+            ]);
 
-            // 🔹 5. Détection du modèle formation utilisé
-            $formationClass = null;
-            if (class_exists(\App\Models\FormationModel::class)) {
-                $formationClass = \App\Models\FormationModel::class;
-            } elseif (class_exists(\App\Models\InscriptionFormation::class)) {
-                $formationClass = \App\Models\InscriptionFormation::class;
-            }
+            // ✅ Mise à jour des parcours (table pivot `suivres`)
+            if ($request->has('parcours')) {
+                // Supprime les liaisons existantes
+                DB::table('suivres')->where('no_inscrit', $inscription->no_inscrit)->delete();
 
-            if ($formationClass) {
-                $formation = $formationClass::where('no_inscrit', $inscription->no_inscrit)->first();
-                if ($formation) {
-                    $formation->update([
-                        'duree' => $request->input('duree', $formation->duree),
-                        'type_formation' => $request->input('type_formation', $formation->type_formation),
+                foreach ($request->parcours as $p) {
+                    // Vérifie si le parcours existe déjà (par nom)
+                    $parcours = Parcours::firstOrCreate(
+                        ['nomformation' => $p['nomformation']],
+                        ['datedebut' => $p['datedebut']]
+                    );
+
+                    // Crée le lien dans la table pivot
+                    DB::table('suivres')->insert([
+                        'no_inscrit' => $inscription->no_inscrit,
+                        'code_formation' => $parcours->code_formation,
                     ]);
                 }
             }
 
-            // 🔹 6. Supprimer les anciens liens Suivre et Parcours
-            $suivres = Suivre::where('no_inscrit', $inscription->no_inscrit)->get();
-            $codes = $suivres->pluck('code_formation');
-
-            Suivre::where('no_inscrit', $inscription->no_inscrit)->delete();
-            if ($codes->count() > 0) {
-                Parcours::whereIn('code_formation', $codes)->delete();
-            }
-
-            // 🔹 7. Créer les nouveaux Parcours et liens Suivre
-            foreach ($nomFormations as $nomFormation) {
-                $parcours = Parcours::create([
-                    'nomformation' => $nomFormation,
-                    'datedebut' => $datedebut,
-                ]);
-
-                Suivre::create([
-                    'no_inscrit' => $inscription->no_inscrit,
-                    'code_formation' => $parcours->code_formation,
-                ]);
-            }
-
             DB::commit();
 
-            return response()->json(['message' => 'Modification réussie ✅'], 200);
-        } 
-        catch (ModelNotFoundException $e) {
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Inscription mise à jour avec succès ✅',
+            ], 200);
+        } catch (\Illuminate\Validation\ValidationException $e) {
             DB::rollBack();
             return response()->json([
-                'message' => "Données introuvables pour matricule $matricule",
-                'error' => $e->getMessage(),
-            ], 404);
-        } 
-        catch (\Exception $e) {
+                'status' => 'validation_error',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
             DB::rollBack();
+            \Log::error('Erreur update inscription: ' . $e->getMessage());
 
-            // journalisation détaillée
-            \Log::error("Erreur serveur update inscription (Matricule: $matricule): " . $e->getMessage());
-
-            $response = ['message' => 'Erreur interne du serveur lors de la modification ❌'];
-            if (config('app.debug')) {
-                $response['error_detail'] = $e->getMessage();
-                $response['file'] = $e->getFile();
-                $response['line'] = $e->getLine();
-            }
-
-            return response()->json($response, 500);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Erreur interne du serveur lors de la mise à jour.',
+                'details' => $e->getMessage(),
+            ], 500);
         }
     }
 

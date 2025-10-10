@@ -6,17 +6,21 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Run the migrations.
+     */
     public function up(): void
     {
-        Schema::create('niveaux', function (Blueprint $table) {
-            $table->string('code_niveau',7)->primary();
-            $table->string("nomniveau", 100);
+        Schema::create('frais', function (Blueprint $table) {
+            $table->string('idfrais')->primary();
+            $table->string('nomfrais', 200);
+            $table->integer('montant');
             $table->timestamps();
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('niveaux');
+        Schema::dropIfExists('frais');
     }
 };

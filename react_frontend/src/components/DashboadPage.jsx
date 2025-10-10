@@ -92,7 +92,7 @@ const ChartPlaceholder = ({ title, icon, borderStyle }) => (
   </div>
 );
 
-function DashboardPage() {
+function DashboardPage({ autre }) {
   const statColors = {
     inscrits: { valueClass: 'text-info', borderClass: 'border-info' },
     academiques: { valueClass: 'text-danger', borderClass: 'border-danger' },
@@ -102,8 +102,10 @@ function DashboardPage() {
 
   return (
     <div className="container-fluid py-5 p-5">
-      <h1 className="mb-4 fw-bolder" style={{ color: '#343a40' }}>Tableau de bord Général</h1>
-
+      <div className="d-flex justify-content-between">
+        <h1 className="mb-4 fw-bolder" style={{ color: '#343a40' }}>Tableau de bord Général</h1>
+        <button className="btn btn-warning" style={{ width:'120px', height:'60px' }} onClick={autre}>Autres</button>
+      </div>
       <div className="alert alert-white text-center border-start border-5 border-info p-3 mb-5 rounded-4 shadow-sm" style={{ backgroundColor: '#ffffff', borderColor: statColors.inscrits.borderClass }}>
         <p className="mb-0 text-secondary fst-italic fw-bold">
           « Sekoly katolika mijoro, manabe ny olona manontolo ... antoky ny ho avy »

@@ -8,6 +8,7 @@ import LogoutModal from './modals/LogoutModal';
 import ProfileComponent from './modals/ProfileComponent';
 import DashboadEleve from './liste/Dash_Eleve';
 import DashboadFormation from './liste/Dash_Formation';
+import SchoolDashboard from './liste/AutreDash';
 
 function Page() {
   const [currentPage, setCurrentPage] = useState('dashboard');
@@ -61,7 +62,8 @@ function Page() {
 
   // === Pages disponibles ===
   const pages = {
-    dashboard: <DashboardPage />,
+    dashboard: <DashboardPage autre={() => setCurrentPage('autre')} />,
+    autre: <SchoolDashboard retourDash={() => setCurrentPage('dashboard')} />,
     eleve: <DashboadEleve onViewList={() => setCurrentPage('listeEleve')} />,
     formation: <DashboadFormation onViewListPro={() => setCurrentPage('listeFormation')} />,
     listeEleve: (<ListeEleve onViewDash={() => setCurrentPage('eleve')} 
@@ -78,7 +80,6 @@ function Page() {
 
       <main className="p-3">
         {React.cloneElement(pages[currentPage] ||  <DashboardPage />)}
-        {/* {pages[currentPage] || <DashboardPage />} */}
       </main>
 
       <ProfileComponent show={showProfilModal} currentUser={currentUser} handleClose={handleProfilClose} onUpdateProfile={handleUpdateProfile} onBack={handleProfilClose}/>
