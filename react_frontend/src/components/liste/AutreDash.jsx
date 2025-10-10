@@ -1,123 +1,292 @@
-import React, { useState,useEffect } from 'react';
-import { Container, Row, Col, Button, Card, Table, Form } from 'react-bootstrap';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Container, Row, Col, Button, Card, Table } from 'react-bootstrap';
 import { Dialog, DialogTitle, DialogContent, DialogActions, TextField, IconButton } from '@mui/material';
 import { FaEdit, FaTrash } from 'react-icons/fa';
 import { ArrowBack } from '@mui/icons-material';
 import axios from 'axios';
 
-function SchoolDashboard({retourDash}) {
+// URL de base pour éviter la répétition
+const API_BASE_URL = "http://localhost:8000/api";
+
+function SchoolDashboard({ retourDash }) {
+  // --- États pour les données de l'application ---
   const [parcours, setParcours] = useState([]);
   const [niveaux, setNiveaux] = useState([]);
   const [frais, setFrais] = useState([]);
+
+  // --- États pour les formulaires d'ajout/modification de Parcours ---
   const [code_formation, setCode_formation] = useState("");
   const [datedebut, setDatedebut] = useState("");
   const [nomformation, setNomformation] = useState("");
-  
+  const [selectedParcours, setSelectedParcours] = useState(null); // Pour la modification
+  const [openParcours, setOpenParcours] = useState(false);
+  const [modalParcours, setModalParcours] = useState(false);
+
+  // --- États pour les formulaires d'ajout/modification de Frais ---
+  const [idfrais, setIdfrais] = useState('');
+  const [nomfrais, setNomfrais] = useState("");
+  const [montant, setMontant] = useState("");
+  const [selectedFrais, setSelectedFrais] = useState(null); // Pour la modification
+  const [openFrais, setOpenFrais] = useState(false);
+  const [modalFrais, setModalFrais] = useState(false);
+
+  // --- États pour les formulaires d'ajout/modification de Niveau ---
   const [code_niveau, setCode_niveau] = useState('');
   const [nomniveau, setNomniveau] = useState('');
+  const [selectedNiveaux, setSelectedNiveaux] = useState(null); // Pour la modification
   const [openNiveau, setOpenNiveau] = useState(false);
-  const [openParcours, setOpenParcours] = useState(false);
-  const [openFrais, setOpenFrais] = useState(false);
+  const [modalNiveaux, setModalNiveaux] = useState(false);
 
-  useEffect(() => {
-    axios.get("http://localhost:8000/api/parcours")
-    .then(res => {
-      setParcours(res.data);
-    })
-    .catch(err => {
-      console.error("Erreur: ", err);
-    })
-  }, []);
-
-  useEffect(() => {
-    axios.get("http://localhost:8000/api/niveau")
-    .then(res => {
-      console.log(res.data); 
-      setNiveaux(res.data.data);
-    })
-    .catch(err => {
-      console.error("Erreur: ", err);
-    })
-  },[]);
-
-   useEffect(() => {
-    axios.get("http://localhost:8000/api/frais")
-    .then(res => {
-      setFrais(res.data);
-    })
-    .catch(err => {
-      console.error("Erreur: ", err);
-    })
-  },[]);
+  // --- Fonctions de gestion des modales (Ouverture/Fermeture) ---
 
   const handleOpenNiveau = () => setOpenNiveau(true);
-  const handleCloseNiveau = () => setOpenNiveau(false);
-  // PARCOURS Handlers
-  const handleOpenParcours = () => setOpenParcours(true);
-  const handleCloseParcours = () => setOpenParcours(false);
+  const handleCloseNiveau = () => { setOpenNiveau(false); resetNiveauForm(); };
+  const handleUpdateNiveaux = () => setModalNiveaux(true);
+  const handleCloseNiveaux = () => { setModalNiveaux(false); resetNiveauForm(); };
 
-  // FRAIS Handlers
+  const handleOpenParcours = () => setOpenParcours(true);
+  const handleCloseParcours = () => { setOpenParcours(false); resetParcoursForm(); };
+  const handleUpdateParcours = () => setModalParcours(true);
+  const handleCloseparcours = () => { setModalParcours(false); resetParcoursForm(); };
+
   const handleOpenFrais = () => setOpenFrais(true);
-  const handleCloseFrais = () => setOpenFrais(false);
-  const handleAddFrais = () => {
-      // Logique d'ajout réel ici.
-      console.log("Ajout d'un frais simulé");
-      handleCloseFrais();
+  const handleCloseFrais = () => { setOpenFrais(false); resetFraisForm(); };
+  const handleUpdateFrais = () => setModalFrais(true);
+  const handleClosefrais = () => { setModalFrais(false); resetFraisForm(); };
+  
+  // --- Fonctions de Réinitialisation des formulaires (Ajouté pour une meilleure UX) ---
+  const resetNiveauForm = () => {
+    setCode_niveau('');
+    setNomniveau('');
+    setSelectedNiveaux(null);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const resetFraisForm = () => {
+    setIdfrais('');
+    setNomfrais('');
+    setMontant('');
+    setSelectedFrais(null);
+  };
+  
+  const resetParcoursForm = () => {
+    setCode_formation('');
+    setNomformation('');
+    setDatedebut('');
+    setSelectedParcours(null);
+  };
 
-    // Petite validation côté frontend
+  // --- Fonction centralisée de récupération des données (Optimisation useEffect) ---
+  const fetchData = useCallback(async () => {
+    try {
+      // Récupération des Parcours
+      const parcoursRes = await axios.get(`${API_BASE_URL}/parcours`);
+      setParcours(parcoursRes.data);
+
+      // Récupération des Niveaux (Gestion de la structure de réponse différente, ex: .data.data)
+      const niveauRes = await axios.get(`${API_BASE_URL}/niveau`);
+      // Utilisation de .data.data si la structure est `{ data: [...] }` sinon .data
+      setNiveaux(niveauRes.data.data || niveauRes.data); 
+
+      // Récupération des Frais
+      const fraisRes = await axios.get(`${API_BASE_URL}/frais`);
+      setFrais(fraisRes.data);
+      
+    } catch (err) {
+      console.error("Erreur lors de la récupération des données initiales: ", err);
+      // Optionnel: Ajouter une alerte utilisateur ici
+    }
+  }, []);
+
+  // --- useEffect unique pour le montage du composant ---
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]); // Dépendance à fetchData (stable grâce à useCallback)
+
+  const handleSubmitNiveaux = async (e) => {
+    e.preventDefault();
     if (!code_niveau.trim() || !nomniveau.trim()) {
       alert("Veuillez remplir tous les champs !");
       return;
     }
 
     try {
-      const response = await axios.post("http://localhost:8000/api/niveaux", {
+      const response = await axios.post(`${API_BASE_URL}/niveaux`, {
         code_niveau,
         nomniveau,
       });
 
       if (response.status === 201 || response.status === 200) {
         alert("✅ Niveau ajouté avec succès !");
-        
-        // Vide les champs
-        setCode_niveau("");
-        setNomniveau("");
-        
-        // Ferme la fenêtre
         handleCloseNiveau();
-
-        // Rafraîchit la liste des niveaux
-        const res = await axios.get("http://localhost:8000/api/niveau");
-        setNiveaux(res.data.data);
+        await fetchData(); // Mise à jour des données
       }
-    } catch (error) {
+    } 
+    catch (error) {
       console.error("Erreur Axios :", error);
+      alert("Erreur lors de l'ajout du niveau. Vérifiez le serveur Laravel !");
+    }
+  };
 
-      if (error.response) {
-        // Laravel renvoie souvent une erreur 422 si la validation échoue
-        if (error.response.status === 422) {
-          const msg = error.response.data.errors?.code_niveau
-            ? "❌ Ce code niveau existe déjà ou est invalide !"
-            : "❌ Données invalides. Vérifiez vos champs.";
-          alert(msg);
-        } else if (error.response.status === 500) {
-          alert("Erreur interne du serveur (500)");
-        } else {
-          alert(`Erreur : ${error.response.statusText}`);
-        }
-      } else {
-        alert("Erreur de connexion au serveur Laravel !");
+  const handleEditNiveau = async (e) => {
+    e.preventDefault();
+    if (!selectedNiveaux) return; // Sécurité
+
+    try{
+      await axios.put(`${API_BASE_URL}/updateNiveaux/${selectedNiveaux.code_niveau}`, {
+        code_niveau, nomniveau
+      });
+
+      alert("Niveau modifié avec succès !");
+      handleCloseNiveaux();
+      await fetchData(); // Mise à jour des données
+    }
+    catch(error){
+      console.error(error);
+      alert("Erreur lors de la modification du niveau !");
+    }
+  }
+  
+  // Correction: Remplir les champs lors de l'ouverture de la modale de modification des Niveaux
+  const handleSelectNiveauForEdit = (niveau) => {
+    setSelectedNiveaux(niveau); 
+    setCode_niveau(niveau.code_niveau);
+    setNomniveau(niveau.nomniveau);
+    handleUpdateNiveaux();
+  }
+
+
+  const handleDelete = async (code_niveau) => {
+    if (window.confirm("Voulez-vous vraiment supprimer cette personne ?")) {
+      try {
+        await axios.delete(`http://localhost:8000/api/deleteNiveaux/${code_niveau}`);
+        setNiveaux(niveaux.filter(p => p.code_niveau !== code_niveau));
+        alert("Suppression réussie ✅");
+        await fetchData();
+      } 
+      catch (err) {
+        console.error(err); alert("Erreur lors de la suppression ❌");
       }
     }
   };
 
+  // ---------------------------------------------
+  // --- LOGIQUE CRUD pour les Frais ---
+  // ---------------------------------------------
+
+  const handleSubmitFrais = async (e) => {
+    e.preventDefault();
+
+    if(!idfrais.trim() || !nomfrais.trim() || !montant) {
+      alert("Veuillez remplir tous les champs !");
+      return;
+    }
+
+    try {
+      const response = await axios.post(`${API_BASE_URL}/addfrais`, {
+        idfrais,
+        nomfrais,
+        montant: parseInt(montant, 10)
+      });
+
+      if(response.status === 201 || response.status === 200) {
+        alert("Frais ajouté avec succès !!!");
+        handleCloseFrais();
+        await fetchData(); // Mise à jour des données
+      }
+    } 
+    catch(error) {
+      console.error("Erreur Axios :", error.response ? error.response.data : error.message);
+      alert("Erreur lors de l'ajout des frais. Vérifiez le serveur Laravel !");
+    }
+  };
+
+  const handleEditFrais = async (e) => {
+    e.preventDefault();
+    if (!selectedFrais) return; // Sécurité
+
+    try{
+      await axios.put(`${API_BASE_URL}/updateFrais/${selectedFrais.idfrais}`,{
+        nomfrais, montant: parseInt(montant, 10) // S'assurer que le montant est un nombre
+      });
+      alert("Modification réussie !");
+      handleClosefrais();
+      await fetchData(); // Mise à jour des données
+    }
+    catch(error) {
+      console.error(error);
+      alert("Erreur lors de la modification des frais !");
+    }
+  }
+  
+  // Correction: Remplir les champs lors de l'ouverture de la modale de modification des Frais
+  const handleSelectFraisForEdit = (frais) => {
+    setSelectedFrais(frais);
+    setIdfrais(frais.idfrais);
+    setNomfrais(frais.nomfrais);
+    setMontant(frais.montant); // Correction: Mettre à jour le montant
+    handleUpdateFrais();
+  }
+
+  // ---------------------------------------------
+  // --- LOGIQUE CRUD pour les Parcours ---
+  // ---------------------------------------------
+
+  const handleSubmitParcours = async (e) => {
+    e.preventDefault();
+
+    if(!code_formation.trim() || !nomformation.trim() || !datedebut) {
+      alert("Veuillez remplir tous les champs !");
+      return;
+    }
+
+    try {
+      const response = await axios.post(`${API_BASE_URL}/addParcours`, {
+        code_formation,
+        nomformation,
+        datedebut,
+      });
+
+      if(response.status === 201 || response.status === 200) {
+        alert("Parcours ajouté avec succès !!!");
+        handleCloseParcours();
+        await fetchData(); // Mise à jour des données
+      }
+    } 
+    catch(error) {
+      console.error("Erreur Axios :", error.response ? error.response.data : error.message);
+      alert("Erreur lors de l'ajout du parcours. Vérifiez le serveur Laravel !");
+    }
+  };
+
+  const handleEditParcours = async (e) => {
+    e.preventDefault();
+    if (!selectedParcours) return; // Sécurité
+    
+    try{
+      await axios.put(`${API_BASE_URL}/updateParcours/${selectedParcours.code_formation}`, {
+        nomformation, datedebut
+      });
+      alert("Modification réussie !");
+      handleCloseparcours();
+      await fetchData(); // Mise à jour des données
+    }
+
+    catch(error){
+      console.error(error);
+      alert("Erreur lors de la modification du parcours !");
+    }
+  }
+  
+  // Correction: Remplir les champs lors de l'ouverture de la modale de modification des Parcours
+  const handleSelectParcoursForEdit = (parcours) => {
+    setSelectedParcours(parcours);
+    setCode_formation(parcours.code_formation);
+    setNomformation(parcours.nomformation);
+    setDatedebut(parcours.datedebut);
+    handleUpdateParcours();
+  }
 
     return (
-        // Utilisation de classes de Tailwind/Bootstrap pour le style
         <Container fluid className="p-4 bg-light min-vh-100">
             <IconButton color='primary' sx={{ background: "blue" }} onClick={retourDash}>
               <ArrowBack sx={{ color: "white", fontSize:"30px", fontWeight:'bold' }}/>
@@ -139,21 +308,21 @@ function SchoolDashboard({retourDash}) {
                                     <tr>
                                         <th>Code Niveau</th>
                                         <th>Nom Niveau</th>
-                                        <th>Effectif</th>
+                                        {/* <th>Effectif</th> */}
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    { niveaux.length > 0 ? niveaux.map((niveaux) => (
-                                        <tr key={niveaux.code_niveau}>
-                                            <td>{niveaux.code_niveau}</td>
-                                            <td>{niveaux.code_niveau}</td>
-                                            <td>{niveaux.nomniveau}</td>
+                                    { niveaux.length > 0 ? niveaux.map((niveau) => (
+                                        <tr key={niveau.code_niveau}>
+                                            <td>{niveau.code_niveau}</td>
+                                            {/* <td>{niveau.code_niveau}</td> */}
+                                            <td>{niveau.nomniveau}</td>
                                             <td>
-                                              <button className="btn btn-primary mx-1">
+                                              <button className="btn btn-primary mx-1" onClick={() => handleSelectNiveauForEdit(niveau)}>
                                                 <FaEdit className='mx-1'/>Modifier
                                               </button>
-                                              <button className="btn btn-danger mx-1">
+                                              <button className="btn btn-danger mx-1" onClick={()=> handleDelete(niveau.code_niveau)}>
                                                 <FaTrash className='mx-1'/>Supprimer
                                               </button>
                                             </td>
@@ -188,13 +357,13 @@ function SchoolDashboard({retourDash}) {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    { frais.length >0 ? frais.map((frais) => (
-                                        <tr key={frais.idfrais}>
-                                            <td>{frais.idfrais}</td>
-                                            <td>{frais.nomfrais}</td>
-                                            <td>{frais.montant}</td>
+                                    { frais.length >0 ? frais.map((fraisItem) => (
+                                        <tr key={fraisItem.idfrais}>
+                                            <td>{fraisItem.idfrais}</td>
+                                            <td>{fraisItem.nomfrais}</td>
+                                            <td>{fraisItem.montant}</td>
                                             <td>
-                                              <button className="btn btn-primary mx-1">
+                                              <button className="btn btn-primary mx-1" onClick={() => handleSelectFraisForEdit(fraisItem)}>
                                                 <FaEdit className='mx-1'/>Modifier
                                               </button>
                                               <button className="btn btn-danger mx-1">
@@ -236,13 +405,13 @@ function SchoolDashboard({retourDash}) {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    { parcours.length > 0 ? parcours.map((parcours) => (
-                                        <tr key={parcours.code_formation}>
-                                            <td>{parcours.code_formation}</td>
-                                            <td>{parcours.nomformation}</td>
-                                            <td>{parcours.datedebut}</td>
+                                    { parcours.length > 0 ? parcours.map((parcoursItem) => (
+                                        <tr key={parcoursItem.code_formation}>
+                                            <td>{parcoursItem.code_formation}</td>
+                                            <td>{parcoursItem.nomformation}</td>
+                                            <td>{parcoursItem.datedebut}</td>
                                             <td>
-                                              <button className="btn btn-primary mx-1">
+                                              <button className="btn btn-primary mx-1" onClick={() => handleSelectParcoursForEdit(parcoursItem)}>
                                                 <FaEdit className='mx-1'/>Modifier
                                               </button>
                                               <button className="btn btn-danger mx-1">
@@ -267,7 +436,7 @@ function SchoolDashboard({retourDash}) {
             {/* Popup pour Ajouter un Niveau (codeniveau, nomniveau, effectif) */}
             <Dialog open={openNiveau} onClose={handleCloseNiveau}>
                 <DialogTitle>Ajouter un Nouveau Niveau</DialogTitle>
-                <form onSubmit={handleSubmit}>
+                <form onSubmit={handleSubmitNiveaux}>
                   <DialogContent>
                     <TextField
                         autoFocus value={code_niveau} onChange={e => setCode_niveau(e.target.value)}
@@ -296,10 +465,66 @@ function SchoolDashboard({retourDash}) {
                 </form>
             </Dialog>
 
+            <Dialog open={modalNiveaux} onClose={handleCloseNiveaux}>
+              <DialogTitle>Modification du nom de classe</DialogTitle>
+                  <form onSubmit={handleEditNiveau}>
+                    <DialogContent>
+                      <TextField autoFocus value={code_niveau} onChange={e => setCode_niveau(e.target.value)} type='text' margin='dense' variant='outlined' required fullWidth label="Code Niveau" sx={{ mb: 2}} disabled={!!selectedNiveaux}/> 
+                      <TextField autoFocus value={nomniveau} onChange={e => setNomniveau(e.target.value)} type='text' margin='dense' variant='outlined' required fullWidth label="Nom Niveau"  sx={{ mb: 2}} />
+                    </DialogContent>
+                    <DialogActions>
+                      <Button onClick={handleCloseNiveaux} variant='secondary'>Annuler</Button>
+                      <Button type='submit' variant='primary'>Modifier</Button>
+                    </DialogActions>
+                  </form>
+            </Dialog>
+
+              <Dialog open={openFrais} onClose={handleCloseFrais}>
+                <DialogTitle>Ajouter un Nouveau Frais à Payer</DialogTitle>
+                <form onSubmit={handleSubmitFrais}>
+                  <DialogContent>
+                    <TextField value={idfrais} onChange={e => setIdfrais(e.target.value)}
+                        autoFocus margin="dense" label="ID Frais" type="text"
+                        fullWidth variant="outlined" required  sx={{ mb: 2 }}
+                    />
+                    <TextField value={nomfrais} onChange={e => setNomfrais(e.target.value)}
+                        margin="dense"
+                        label="Nom du Frais (Ex: Frais de scolarité, Réinscription)"
+                        type="text" fullWidth variant="outlined" required sx={{ mb: 2 }}
+                    />
+                    <TextField value={montant} onChange={e => setMontant(e.target.value)}
+                        margin="dense" label="Montant du Frais ($)" type="number" fullWidth variant="outlined" required inputProps={{ min: 0, step: "0.01" }}
+                    />
+                  </DialogContent>
+                  <DialogActions>
+                      <Button onClick={handleCloseFrais} variant="secondary">Annuler</Button>
+                      <Button type='submit' variant="success">Enregistrer</Button>
+                  </DialogActions>
+                </form>
+              </Dialog>
+              
+              <Dialog open={modalFrais} onClose={handleClosefrais}>
+                <DialogTitle>Modification de frais Scolaires</DialogTitle>
+                <form onSubmit={handleEditFrais}>
+                  <DialogContent>
+                    <TextField autoFocus type='text' value={nomfrais} onChange={e => setNomfrais(e.target.value)} label="Nom Frais Scolaires" variant='outlined' sx={{ mb:2 }} required fullWidth/>
+                    <TextField autoFocus type='number' value={montant} onChange={e => setMontant(e.target.value)} label="Montant Actuel" variant='outlined' sx={{mb:2}} required fullWidth/>
+                  </DialogContent>
+                  <DialogActions>
+                    <Button onClick={handleClosefrais} variant='secondary'>
+                      Annuler
+                    </Button>
+                     <Button type='submit' variant='primary'>
+                      Modifier
+                    </Button>
+                  </DialogActions>
+                </form>
+              </Dialog>
+
             {/* Popup pour Ajouter un Parcours (codeparcours, nomParcours, dureeparcours) */}
             <Dialog open={openParcours} onClose={handleCloseParcours}>
                 <DialogTitle>Ajouter un Nouveau Parcours</DialogTitle>
-                <form onSubmit={0}>
+                <form onSubmit={handleSubmitParcours}>
                   <DialogContent>
                       <TextField autoFocus sx={{ mb:2 }} margin='dense' type='text' value={code_formation} onChange={e => setCode_formation(e.target.value)}
                           label="Code Formation" fullWidth variant='outlined' required />
@@ -319,50 +544,26 @@ function SchoolDashboard({retourDash}) {
                       <Button type='submit' variant="primary">Ajouter</Button>
                   </DialogActions>
                 </form>
-
             </Dialog>
 
-            {/* Popup pour Ajouter un Frais (idfrais, nomfrais, montant frais) */}
-            <Dialog open={openFrais} onClose={handleCloseFrais}>
-                <DialogTitle>Ajouter un Nouveau Frais à Payer</DialogTitle>
+            <Dialog open={modalParcours} onClose={handleCloseparcours}>
+              <DialogTitle>Modifaction de Parcours existants</DialogTitle>
+              <form onSubmit={handleEditParcours}>
                 <DialogContent>
-                    <TextField
-                        autoFocus
-                        margin="dense"
-                        label="ID Frais"
-                        type="text"
-                        fullWidth
-                        variant="outlined"
-                        required
-                        sx={{ mb: 2 }}
-                    />
-                    <TextField
-                        margin="dense"
-                        label="Nom du Frais (Ex: Frais de scolarité, Réinscription)"
-                        type="text"
-                        fullWidth
-                        variant="outlined"
-                        required
-                        sx={{ mb: 2 }}
-                    />
-                    <TextField
-                        margin="dense"
-                        label="Montant du Frais ($)"
-                        type="number"
-                        fullWidth
-                        variant="outlined"
-                        required
-                        inputProps={{ min: 0, step: "0.01" }}
-                    />
+                    <TextField type='text' value={code_formation} label="Code Formation" variant='outlined' sx={{ mb:2 }} fullWidth disabled/>
+                  <TextField type='text' value={nomformation} onChange={e => setNomformation(e.target.value)} 
+                    variant='outlined' label="Nom Formation" sx={{ mb:2 }} autoFocus fullWidth required/>
+                  <TextField type='date' value={datedebut} onChange={e => setDatedebut(e.target.value)} 
+                    variant='outlined' label="Date de début" sx={{ mb:2 }} InputLabelProps={{ shrink: true }} fullWidth required/>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleCloseFrais} variant="secondary">Annuler</Button>
-                    <Button onClick={handleAddFrais} variant="success">Enregistrer</Button>
+                  <Button onClick={handleCloseparcours} variant='secondary'>Annuler</Button>
+                  <Button type='submit' variant='primary'>Modifier</Button>
                 </DialogActions>
+              </form>
             </Dialog>
         </Container>
     );
 }
 
 export default SchoolDashboard;
-

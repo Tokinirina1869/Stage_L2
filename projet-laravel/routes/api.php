@@ -9,6 +9,7 @@ use App\Http\Controllers\InscriptionCompleteController;
 use App\Http\Controllers\ParcoursController;
 use App\Http\Controllers\ControllerNiveau;
 use App\Http\Controllers\ControllerFrais;
+
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
@@ -24,13 +25,20 @@ Route::get('/inscriptions/topParcours', [InscriptionCompleteController::class, '
 //Niveau 
 Route::get('/niveau', [ControllerNiveau::class, 'index']);
 Route::post('/niveaux', [ControllerNiveau::class, 'store']);
+Route::put('/updateNiveaux/{code_niveau}', [ControllerNiveau::class, 'update']);
+Route::delete('/deleteNiveaux/{code_niveau}', [ControllerNiveau::class, 'destroy']);
 
 // Parcours
 Route::get('/parcours', [ParcoursController::class, 'index']);
-Route::post('/ajoutParcours', [ParcoursController::class, 'store']);
+Route::post('/addParcours', [ParcoursController::class, 'store']);
+Route::post('/updateParcours', [ParcoursController::class, 'update']);
+Route::post('/deletearcours', [ParcoursController::class, 'delete']);
 
 //Frais
 Route::get('/frais', [ControllerFrais::class, 'index']);
+Route::post('/addfrais', [ControllerFrais::class, 'store']);
+Route::put('/updateFrais', [ControllerFrais::class, 'update']);
+Route::delete('/deletefrais', [ControllerFrais::class, 'delete']);
 
 Route::get('/inscriptionComplete', [InscriptionCompleteController::class, 'index']);
 Route::post('/inscriptionComplete', [InscriptionCompleteController::class, 'store']);

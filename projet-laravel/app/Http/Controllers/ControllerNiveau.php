@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Niveau;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use App\Models\Niveau;
+use Illuminate\Validation\Rule;
+use Exception;
 
 class ControllerNiveau extends Controller
 {
@@ -64,18 +66,70 @@ class ControllerNiveau extends Controller
     
     }
 
-    public function show(string $id)
+    public function update(Request $request, $code_niveau)
     {
-        //
+        \Log::info('Requête de mise à jour reçue pour le niveau : ' . $code_niveau, $request->all());
+        $rules = [
+            'nomniveau' => 'required|string|max:255',
+            'code_niveau' => [
+                'required',
+                'string',
+                'max:50',
+                Rule::unique('niveaux', 'code_niveau')->ignore($code_niveau, 'code_niveau'),
+            ],
+        ];
+
+        $validator = Validator::make($request->all(), $rules);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status'    => "Erreur de validation",
+                'message'   => 'Données invalides pour la mise à jour.',
+                'errors'    => $validator->errors(),
+            ], 422);
+        }
+
+        $niveau = Niveau::where('code_niveau', $code_niveau)->first();
+
+        if (!$niveau) {
+            return response()->json([
+                'status'    => 'Erreur',
+                'message'   => "Niveau avec le code '{$code_niveau}' introuvable.",
+            ], 404);
+        }
+
+        try {
+            $niveau->update([
+                'code_niveau' => $request->input('code_niveau', $code_niveau), 
+                'nomniveau'   => $request->nomniveau,
+            ]);
+            
+            return response()->json([
+                'status'  => 'Succès',
+                'message' => 'Niveau modifié avec succès.',
+                'data'    => $niveau,
+            ], 200);
+
+        } catch (Exception $e) {
+            \Log::error("Erreur critique lors de la mise à jour du niveau '{$code_niveau}' : " . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+                'request_data' => $request->all()
+            ]);
+
+            return response()->json([
+                'status'  => 'Erreur Interne',
+                'message' => 'Une erreur inattendue est survenue lors de la modification. Veuillez réessayer.',
+            ], 500);
+        }
     }
 
-    public function update(Request $request, string $id)
+    public function destroy(Request $request, $code_niveau)
     {
-        //
+        \Log::info('Requête de suppression reçue pour le niveau : ' . $code_niveau, $request->all());
+        
+        $niveau = Niveau::where('code_niveau', $code_niveau)->firstOrFail();
+        $niveau->delete();
+        return response()->json(['message' => 'Suppression réussie'], 200);
     }
 
-    public function destroy(string $id)
-    {
-        //
-    }
 }

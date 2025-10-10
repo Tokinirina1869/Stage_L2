@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Parcours;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log;
+
 class ParcoursController extends Controller
 {
     public function index()
@@ -14,11 +17,19 @@ class ParcoursController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-           'code_formation' => 'required',
-           'nomformation' => 'required',
-           'datedebut'    => 'required',
+        $validator = Validator::make($request->all(), [
+            'code_formation' => 'required|unique:parcours,code_formation',
+            'nomformation'   => 'required|string',
+            'datedebut'      => 'required|date'
         ]);
+
+        if($validator->fails()){
+            return response()->json([
+                'Status'    => 'Erreur',
+                'Message'   => 'Données invalides',
+                'data'      => $validator->errors(),
+            ], 422);
+        }
 
         $data = Parcours::create([
             'code_formation' => $request->code_formation,
@@ -26,7 +37,11 @@ class ParcoursController extends Controller
             'datedebut'    => $request->datedebut,
         ]);
 
-        return response()->json($data, 200);
+        return response()->json([
+            'Status'    => 'Succès',
+            'Message'   => 'Nouveau Parcours ajouté avec succès',
+            'data'      => $data
+        ], 200);
     }
 
 }
