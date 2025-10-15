@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Modal, Button, Form, Row, Col } from "react-bootstrap";
 import axios from "axios";
 import { FaPlus, FaTrash } from "react-icons/fa";
@@ -30,6 +30,21 @@ const NouvellePersonne = ({ show, handleClose, refreshList }) => {
 
   const [parcoursForm, setParcoursForm] = useState([]);
   const [errors, setErrors] = useState({});
+
+  const [parcoursOption, setParcoursOption] = useState([]);
+
+  useEffect(() =>{
+    const fetchParcours = async () => {
+      try{
+        const response = await axios.get('http://localhost:8000/api/parcours');
+        setParcoursOption(response.data);
+      }
+      catch(err){
+        console.error("Erreur lors du chargement des parcours ", err);
+      }
+    }
+    fetchParcours();
+  }, []);
 
   // Générer années scolaires
   const generateAnnee = () => {
@@ -185,7 +200,11 @@ const NouvellePersonne = ({ show, handleClose, refreshList }) => {
               <Col lg={5}>
                 <Form.Select value={p.nomformation} onChange={e => handleParcoursChange(i, "nomformation", e.target.value)} required>
                   <option value="">-- Choisir formation --</option>
-                  {["Informatique", "Musique", "Langues", "Couture", "Pâtisserie"].map(f => <option key={f} value={f}>{f}</option>)}
+                  {parcoursOption.map((parcours) => 
+                    (<option key={parcours.code_formation} value={parcours.nomformation}>
+                      {parcours.nomformation} ({parcours.datedebut}) 
+                    </option>)
+                  )}
                 </Form.Select>
               </Col>
               <Col lg={5}>

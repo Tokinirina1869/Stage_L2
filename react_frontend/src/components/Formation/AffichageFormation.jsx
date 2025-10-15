@@ -6,8 +6,8 @@ import ModificationInscription from "../modals/ModificationInscription";
 const columns = [
   { headerName: 'N° Matricule', width: 80 },
   { headerName: 'N° Inscription', width: 20 },
-  { headerName: 'Nom', width: 250 },
-  { headerName: 'Prénom', width: 250 },
+  { headerName: 'Noms et Prénoms', width: 400 },
+  // { headerName: 'Prénom', width: 250 },
   { headerName: 'Date de Naissance', width: 140 },
   { headerName: 'Sexe', width: 60 },
   { headerName: 'Adresse Actuelle', width: 220 },
@@ -67,32 +67,32 @@ function AffichageFormation({ formations }) {
               <TableRow key={idx} hover>
                 <TableCell sx={{ width: columns[0].width }}>{liste.matricule}</TableCell>
                 <TableCell sx={{ width: columns[1].width }}>{liste.no_inscrit}</TableCell>
-                <TableCell sx={{ width: columns[2].width }}>{liste.personne?.nom || "---"}</TableCell>
-                <TableCell sx={{ width: columns[3].width }}>{liste.personne?.prenom || "---"}</TableCell>
-                <TableCell sx={{ width: columns[4].width }}>{liste.personne?.naiss || "---"}</TableCell>
-                <TableCell sx={{ width: columns[5].width }}>{liste.personne?.sexe || "---"}</TableCell>
-                <TableCell sx={{ width: columns[6].width }}>{liste.personne?.adresse || "---"}</TableCell>
-                <TableCell sx={{ width: columns[7].width }}>
+                <TableCell sx={{ width: columns[2].width }}> <b>{liste.personne?.nom || "---"}</b> {liste.personne?.prenom || "---"} </TableCell>
+                {/* <TableCell sx={{ width: columns[3].width }}>{liste.personne?.prenom || "---"}</TableCell> */}
+                <TableCell sx={{ width: columns[3].width }}>{liste.personne?.naiss || "---"}</TableCell>
+                <TableCell sx={{ width: columns[4].width }}>{liste.personne?.sexe || "---"}</TableCell>
+                <TableCell sx={{ width: columns[5].width }}>{liste.personne?.adresse || "---"}</TableCell>
+                <TableCell sx={{ width: columns[6].width }}>
                   <img width={40} height={40} src={"http://localhost:8000/storage/" + liste.personne?.photo} alt="photo" className="rounded-circle"/>
                 </TableCell>
-                <TableCell sx={{ width: columns[8].width }}>{liste.personne?.cin || "---"}</TableCell>
+                <TableCell sx={{ width: columns[7].width }}>{liste.personne?.cin || "---"}</TableCell>
+                <TableCell sx={{ width: columns[8].width }}>{liste.personne?.nompere || "---"}</TableCell>
                 <TableCell sx={{ width: columns[9].width }}>{liste.personne?.nompere || "---"}</TableCell>
-                <TableCell sx={{ width: columns[10].width }}>{liste.personne?.nompere || "---"}</TableCell>
-                <TableCell sx={{ width: columns[11].width }}>{liste.personne?.nomtuteur || "---"}</TableCell>
-                <TableCell sx={{ width: columns[12].width }}>{liste.personne?.phoneparent || "---"}</TableCell>
-                <TableCell sx={{ width: columns[13].width }}>{liste.personne?.phonetuteur || "---"}</TableCell>
-                <TableCell sx={{ width: columns[14].width }}>{liste.personne?.adressparent || "---"}</TableCell>
-                <TableCell sx={{ width: columns[15].width }}>{liste.personne?.adresstuteur || "---"}</TableCell>
-                <TableCell sx={{ width: columns[16].width }}>{liste.dateinscrit}</TableCell>
-                <TableCell sx={{ width: columns[17].width }}>{liste.anneesco}</TableCell>
-                <TableCell sx={{ width: columns[18].width }}>
+                <TableCell sx={{ width: columns[10].width }}>{liste.personne?.nomtuteur || "---"}</TableCell>
+                <TableCell sx={{ width: columns[11].width }}>{liste.personne?.phoneparent || "---"}</TableCell>
+                <TableCell sx={{ width: columns[12].width }}>{liste.personne?.phonetuteur || "---"}</TableCell>
+                <TableCell sx={{ width: columns[13].width }}>{liste.personne?.adressparent || "---"}</TableCell>
+                <TableCell sx={{ width: columns[14].width }}>{liste.personne?.adresstuteur || "---"}</TableCell>
+                <TableCell sx={{ width: columns[15].width }}>{liste.dateinscrit}</TableCell>
+                <TableCell sx={{ width: columns[16].width }}>{liste.anneesco}</TableCell>
+                <TableCell sx={{ width: columns[17].width }}>
                   {Array.isArray(liste.inscriptionformations) && liste.inscriptionformations.length > 0
                     ? liste.inscriptionformations[0].type_formation
                     : "---"}
                 </TableCell>
 
-                <TableCell sx={{ width: columns[19].width }}>{liste.parcours?.[0]?.nomformation || "---"}</TableCell>
-                <TableCell sx={{ display: 'flex', justifyContent: 'space-between', minWidth: columns[20].width }}>
+                <TableCell sx={{ width: columns[18].width }}>{liste.parcours?.[0]?.nomformation || "---"}</TableCell>
+                <TableCell sx={{ display: 'flex', justifyContent: 'space-between', minWidth: columns[19].width }}>
                   <Button onClick={() => openModal(liste)} variant="contained" color="primary" sx={{ textTransform:'none',m:1 }} size="large"><FaEdit className="mx-2" /> Modifier</Button>
                   <Button onClick={() => handleDelete(liste.matricule)} variant="contained" sx={{ textTransform:'none',m:1 }} color="error" size="large"><FaTrash className="mx-2"/> Supprimer</Button>
                 </TableCell>

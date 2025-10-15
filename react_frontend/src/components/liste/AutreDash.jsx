@@ -5,8 +5,7 @@ import { FaEdit, FaTrash } from 'react-icons/fa';
 import { ArrowBack } from '@mui/icons-material';
 import axios from 'axios';
 
-// URL de base pour éviter la répétition
-const API_BASE_URL = "http://localhost:8000/api";
+const URL = "http://localhost:8000/api";
 
 function SchoolDashboard({ retourDash }) {
   // --- États pour les données de l'application ---
@@ -37,8 +36,7 @@ function SchoolDashboard({ retourDash }) {
   const [openNiveau, setOpenNiveau] = useState(false);
   const [modalNiveaux, setModalNiveaux] = useState(false);
 
-  // --- Fonctions de gestion des modales (Ouverture/Fermeture) ---
-
+  // (Ouverture/Fermeture des Modals)
   const handleOpenNiveau = () => setOpenNiveau(true);
   const handleCloseNiveau = () => { setOpenNiveau(false); resetNiveauForm(); };
   const handleUpdateNiveaux = () => setModalNiveaux(true);
@@ -78,29 +76,23 @@ function SchoolDashboard({ retourDash }) {
   // --- Fonction centralisée de récupération des données (Optimisation useEffect) ---
   const fetchData = useCallback(async () => {
     try {
-      // Récupération des Parcours
-      const parcoursRes = await axios.get(`${API_BASE_URL}/parcours`);
+      const parcoursRes = await axios.get(`${URL}/parcours`);
       setParcours(parcoursRes.data);
-
-      // Récupération des Niveaux (Gestion de la structure de réponse différente, ex: .data.data)
-      const niveauRes = await axios.get(`${API_BASE_URL}/niveau`);
-      // Utilisation de .data.data si la structure est `{ data: [...] }` sinon .data
+      
+      const niveauRes = await axios.get(`${URL}/niveau`);
       setNiveaux(niveauRes.data.data || niveauRes.data); 
 
-      // Récupération des Frais
-      const fraisRes = await axios.get(`${API_BASE_URL}/frais`);
+      const fraisRes = await axios.get(`${URL}/frais`);
       setFrais(fraisRes.data);
       
     } catch (err) {
       console.error("Erreur lors de la récupération des données initiales: ", err);
-      // Optionnel: Ajouter une alerte utilisateur ici
     }
   }, []);
 
-  // --- useEffect unique pour le montage du composant ---
   useEffect(() => {
     fetchData();
-  }, [fetchData]); // Dépendance à fetchData (stable grâce à useCallback)
+  }, [fetchData]);
 
   const handleSubmitNiveaux = async (e) => {
     e.preventDefault();
@@ -110,7 +102,7 @@ function SchoolDashboard({ retourDash }) {
     }
 
     try {
-      const response = await axios.post(`${API_BASE_URL}/niveaux`, {
+      const response = await axios.post(`${URL}/niveaux`, {
         code_niveau,
         nomniveau,
       });
@@ -118,7 +110,7 @@ function SchoolDashboard({ retourDash }) {
       if (response.status === 201 || response.status === 200) {
         alert("✅ Niveau ajouté avec succès !");
         handleCloseNiveau();
-        await fetchData(); // Mise à jour des données
+        await fetchData(); 
       }
     } 
     catch (error) {
@@ -129,16 +121,16 @@ function SchoolDashboard({ retourDash }) {
 
   const handleEditNiveau = async (e) => {
     e.preventDefault();
-    if (!selectedNiveaux) return; // Sécurité
+    if (!selectedNiveaux) return;
 
     try{
-      await axios.put(`${API_BASE_URL}/updateNiveaux/${selectedNiveaux.code_niveau}`, {
+      await axios.put(`${URL}/updateNiveaux/${selectedNiveaux.code_niveau}`, {
         code_niveau, nomniveau
       });
 
       alert("Niveau modifié avec succès !");
       handleCloseNiveaux();
-      await fetchData(); // Mise à jour des données
+      await fetchData();
     }
     catch(error){
       console.error(error);
@@ -146,7 +138,6 @@ function SchoolDashboard({ retourDash }) {
     }
   }
   
-  // Correction: Remplir les champs lors de l'ouverture de la modale de modification des Niveaux
   const handleSelectNiveauForEdit = (niveau) => {
     setSelectedNiveaux(niveau); 
     setCode_niveau(niveau.code_niveau);
@@ -155,10 +146,10 @@ function SchoolDashboard({ retourDash }) {
   }
 
 
-  const handleDelete = async (code_niveau) => {
+  const handleDeleteNiveau = async (code_niveau) => {
     if (window.confirm("Voulez-vous vraiment supprimer cette personne ?")) {
       try {
-        await axios.delete(`http://localhost:8000/api/deleteNiveaux/${code_niveau}`);
+        await axios.delete(`${URL}/deleteNiveaux/${code_niveau}`);
         setNiveaux(niveaux.filter(p => p.code_niveau !== code_niveau));
         alert("Suppression réussie ✅");
         await fetchData();
@@ -169,10 +160,6 @@ function SchoolDashboard({ retourDash }) {
     }
   };
 
-  // ---------------------------------------------
-  // --- LOGIQUE CRUD pour les Frais ---
-  // ---------------------------------------------
-
   const handleSubmitFrais = async (e) => {
     e.preventDefault();
 
@@ -182,7 +169,7 @@ function SchoolDashboard({ retourDash }) {
     }
 
     try {
-      const response = await axios.post(`${API_BASE_URL}/addfrais`, {
+      const response = await axios.post(`${URL}/addfrais`, {
         idfrais,
         nomfrais,
         montant: parseInt(montant, 10)
@@ -191,7 +178,7 @@ function SchoolDashboard({ retourDash }) {
       if(response.status === 201 || response.status === 200) {
         alert("Frais ajouté avec succès !!!");
         handleCloseFrais();
-        await fetchData(); // Mise à jour des données
+        await fetchData(); 
       }
     } 
     catch(error) {
@@ -202,15 +189,15 @@ function SchoolDashboard({ retourDash }) {
 
   const handleEditFrais = async (e) => {
     e.preventDefault();
-    if (!selectedFrais) return; // Sécurité
+    if (!selectedFrais) return;
 
     try{
-      await axios.put(`${API_BASE_URL}/updateFrais/${selectedFrais.idfrais}`,{
-        nomfrais, montant: parseInt(montant, 10) // S'assurer que le montant est un nombre
+        await axios.put(`${URL}/updateFrais/${selectedFrais.idfrais}`,{
+        nomfrais, montant
       });
       alert("Modification réussie !");
       handleClosefrais();
-      await fetchData(); // Mise à jour des données
+      await fetchData(); 
     }
     catch(error) {
       console.error(error);
@@ -223,13 +210,27 @@ function SchoolDashboard({ retourDash }) {
     setSelectedFrais(frais);
     setIdfrais(frais.idfrais);
     setNomfrais(frais.nomfrais);
-    setMontant(frais.montant); // Correction: Mettre à jour le montant
+    setMontant(frais.montant);
     handleUpdateFrais();
   }
 
-  // ---------------------------------------------
-  // --- LOGIQUE CRUD pour les Parcours ---
-  // ---------------------------------------------
+  const handleDeleteFrais = async (idfrais) =>{
+    if(!idfrais){
+      alert('IdFrais invalide !!!');
+      return;
+    }
+    if(window.confirm("Voulez-vous vraiement supprimer ce frais?")) {
+      try{
+        await axios.delete(`${URL}/deleteFrais/${idfrais}`);
+        alert("Suppression réussie!!!")
+        await fetchData();
+      }
+      catch(err){
+        console.error("Erreur: ", err);
+        alert("Erreur lors de la suppression !!!");
+      }
+    }
+  }
 
   const handleSubmitParcours = async (e) => {
     e.preventDefault();
@@ -240,7 +241,7 @@ function SchoolDashboard({ retourDash }) {
     }
 
     try {
-      const response = await axios.post(`${API_BASE_URL}/addParcours`, {
+      const response = await axios.post(`${URL}/addParcours`, {
         code_formation,
         nomformation,
         datedebut,
@@ -249,7 +250,7 @@ function SchoolDashboard({ retourDash }) {
       if(response.status === 201 || response.status === 200) {
         alert("Parcours ajouté avec succès !!!");
         handleCloseParcours();
-        await fetchData(); // Mise à jour des données
+        await fetchData(); 
       }
     } 
     catch(error) {
@@ -260,15 +261,18 @@ function SchoolDashboard({ retourDash }) {
 
   const handleEditParcours = async (e) => {
     e.preventDefault();
-    if (!selectedParcours) return; // Sécurité
+    if (!selectedParcours) {
+      alert("Aucun parcours sélectionné !");
+      return
+    };
     
     try{
-      await axios.put(`${API_BASE_URL}/updateParcours/${selectedParcours.code_formation}`, {
+      await axios.put(`${URL}/updateParcours/${selectedParcours.code_formation}`, {
         nomformation, datedebut
       });
       alert("Modification réussie !");
       handleCloseparcours();
-      await fetchData(); // Mise à jour des données
+      await fetchData();
     }
 
     catch(error){
@@ -277,12 +281,30 @@ function SchoolDashboard({ retourDash }) {
     }
   }
   
+  const handleDeleteParcours= async (code_formation) =>{
+    if(!code_formation){
+      alert('Code_formation invalide !!!');
+      return;
+    }
+    if(window.confirm("Voulez-vous vraiement supprimer ce parcours?")) {
+      try{
+        await axios.delete(`${URL}/deleteParcours/${code_formation}`);
+        alert("Suppression réussie!!!")
+        await fetchData();
+      }
+      catch(err){
+        console.error("Erreur: ", err);
+        alert("Erreur lors de la suppression !!!");
+      }
+    }
+  }
+
   // Correction: Remplir les champs lors de l'ouverture de la modale de modification des Parcours
   const handleSelectParcoursForEdit = (parcours) => {
     setSelectedParcours(parcours);
     setCode_formation(parcours.code_formation);
-    setNomformation(parcours.nomformation);
-    setDatedebut(parcours.datedebut);
+    setNomformation(parcours.nomformation || "");
+    setDatedebut(parcours.datedebut ? parcours.datedebut.substring(0,10) : "");
     handleUpdateParcours();
   }
 
@@ -322,7 +344,7 @@ function SchoolDashboard({ retourDash }) {
                                               <button className="btn btn-primary mx-1" onClick={() => handleSelectNiveauForEdit(niveau)}>
                                                 <FaEdit className='mx-1'/>Modifier
                                               </button>
-                                              <button className="btn btn-danger mx-1" onClick={()=> handleDelete(niveau.code_niveau)}>
+                                              <button className="btn btn-danger mx-1" onClick={()=> handleDeleteNiveau(niveau.code_niveau)}>
                                                 <FaTrash className='mx-1'/>Supprimer
                                               </button>
                                             </td>
@@ -366,7 +388,7 @@ function SchoolDashboard({ retourDash }) {
                                               <button className="btn btn-primary mx-1" onClick={() => handleSelectFraisForEdit(fraisItem)}>
                                                 <FaEdit className='mx-1'/>Modifier
                                               </button>
-                                              <button className="btn btn-danger mx-1">
+                                              <button className="btn btn-danger mx-1" onClick={() => handleDeleteFrais(fraisItem.idfrais)}>
                                                 <FaTrash className='mx-1'/>Supprimer
                                               </button>
                                             </td>
@@ -414,7 +436,7 @@ function SchoolDashboard({ retourDash }) {
                                               <button className="btn btn-primary mx-1" onClick={() => handleSelectParcoursForEdit(parcoursItem)}>
                                                 <FaEdit className='mx-1'/>Modifier
                                               </button>
-                                              <button className="btn btn-danger mx-1">
+                                              <button className="btn btn-danger mx-1" onClick={() => handleDeleteParcours(parcoursItem.code_formation)}>
                                                 <FaTrash className='mx-1'/>Supprimer
                                               </button>
                                             </td>
@@ -432,8 +454,6 @@ function SchoolDashboard({ retourDash }) {
                 </Col>
             </Row>
 
-
-            {/* Popup pour Ajouter un Niveau (codeniveau, nomniveau, effectif) */}
             <Dialog open={openNiveau} onClose={handleCloseNiveau}>
                 <DialogTitle>Ajouter un Nouveau Niveau</DialogTitle>
                 <form onSubmit={handleSubmitNiveaux}>
