@@ -10,9 +10,12 @@ const NouvellePersonne = ({ show, handleClose, refreshList }) => {
     nom: "",
     prenom: "",
     naiss: "",
+    lieunaiss: "",
     sexe: "",
     adresse: "",
     cin: "",
+    dateDel: "",
+    lieuCin: "",
     nompere: "",
     nommere: "",
     nomtuteur: "",
@@ -159,21 +162,35 @@ const NouvellePersonne = ({ show, handleClose, refreshList }) => {
           {/* INFORMATIONS PERSONNELLES */}
           <h5 className="text-center fw-bold">Informations Personne</h5>
           <Row>
-            <Col lg={4}><Form.Group className="mb-2"><Form.Label>Nom</Form.Label><Form.Control name="nom" value={form.nom} onChange={handleChange} required/></Form.Group></Col>
-            <Col lg={4}><Form.Group className="mb-2"><Form.Label>Prénom</Form.Label><Form.Control name="prenom" value={form.prenom} onChange={handleChange} required/></Form.Group></Col>
-            <Col lg={4}><Form.Group className="mb-2"><Form.Label>Date Naissance</Form.Label><Form.Control type="date" name="naiss" value={form.naiss} onChange={handleChange} max={today}/></Form.Group></Col>
+            <Col lg={4}><Form.Group className="mb-2"><Form.Label>Nom *</Form.Label><Form.Control name="nom" value={form.nom} onChange={handleChange} required/></Form.Group></Col>
+            <Col lg={4}><Form.Group className="mb-2"><Form.Label>Prénoms</Form.Label><Form.Control name="prenom" value={form.prenom} onChange={handleChange} required/></Form.Group></Col>
+            <Col lg={4}><Form.Group className="mb-2"><Form.Label>Date de naissance</Form.Label><Form.Control type="date" name="naiss" value={form.naiss} onChange={handleChange} max={today}/></Form.Group></Col>
+            <Col lg={4}><Form.Group className="mb-2" ><Form.Label>Lieu de naissance</Form.Label><Form.Control type="text" name="lieunaiss" value={form.lieunaiss} onChange={handleChange} /></Form.Group></Col>
             <Col lg={4}><Form.Group className="mb-2"><Form.Label>Sexe</Form.Label><Form.Select name="sexe" value={form.sexe} onChange={handleChange}><option value="">-- Choisir --</option><option>Masculin</option><option>Feminin</option></Form.Select></Form.Group></Col>
-            <Col lg={4}><Form.Group className="mb-2"><Form.Label>Adresse</Form.Label><Form.Control name="adresse" value={form.adresse} onChange={handleChange} /></Form.Group></Col>
-            <Col lg={4}><Form.Group className="mb-2"><Form.Label>CIN</Form.Label><Form.Control name="cin" value={form.cin} onChange={handleChange} />{errors.cin && <small className="text-danger">{errors.cin}</small>}</Form.Group></Col>
+            <Col lg={4}><Form.Group className="mb-2"><Form.Label>Adresse Actuelle</Form.Label><Form.Control name="adresse" value={form.adresse} onChange={handleChange} /></Form.Group></Col>
+            <Col lg={4}><Form.Group className="mb-2"><Form.Label><b>CIN</b> (<b>C</b>arte d'<b>I</b>dentité <b>N</b>ationale)</Form.Label><Form.Control name="cin" value={form.cin} onChange={handleChange} />{errors.cin && <small className="text-danger">{errors.cin}</small>}</Form.Group></Col>
+            <Col lg={4}>
+              <Form.Group className="mb-2">
+                <Form.Label>Délivrée le</Form.Label>
+                <Form.Control type="date"  name="dateDel" value={form.dateDel} onChange={handleChange} disabled={!form.cin} max={today}/>
+              </Form.Group>
+            </Col>
+
+            <Col lg={4}>
+              <Form.Group className="mb-2">
+                <Form.Label>à</Form.Label>
+                <Form.Control type="text"name="lieuCin" value={form.lieuCin} onChange={handleChange} disabled={!form.cin}/>
+              </Form.Group>
+            </Col>
           </Row>
 
           {/* PARENTS */}
           <h5 className="text-center fw-bold mt-3">Informations des Parents</h5>
           <Row>
-            <Col lg={4}><Form.Group className="mb-2"><Form.Label>Nom Père</Form.Label><Form.Control name="nompere" value={form.nompere} onChange={handleChange}/></Form.Group></Col>
-            <Col lg={4}><Form.Group className="mb-2"><Form.Label>Nom Mère</Form.Label><Form.Control name="nommere" value={form.nommere} onChange={handleChange}/></Form.Group></Col>
-            <Col lg={4}><Form.Group className="mb-2"><Form.Label>Adresse Parents</Form.Label><Form.Control name="adressparent" value={form.adressparent} onChange={handleChange}/></Form.Group></Col>
-            <Col lg={6}><Form.Group className="mb-2"><Form.Label>Téléphone Parent</Form.Label><Form.Control name="phoneparent" value={form.phoneparent} onChange={handleChange}/>{errors.phoneparent && <small className="text-danger">{errors.phoneparent}</small>}</Form.Group></Col>
+            <Col lg={4}><Form.Group className="mb-2"><Form.Label>Nom et Prénoms du père</Form.Label><Form.Control name="nompere" value={form.nompere} onChange={handleChange}/></Form.Group></Col>
+            <Col lg={4}><Form.Group className="mb-2"><Form.Label>Nom et Prénoms du mère</Form.Label><Form.Control name="nommere" value={form.nommere} onChange={handleChange}/></Form.Group></Col>
+            <Col lg={4}><Form.Group className="mb-2"><Form.Label>Adresse actuelle Parents</Form.Label><Form.Control name="adressparent" value={form.adressparent} onChange={handleChange}/></Form.Group></Col>
+            <Col lg={6}><Form.Group className="mb-2"><Form.Label>Numéro de téléphone du Parent</Form.Label><Form.Control name="phoneparent" value={form.phoneparent} onChange={handleChange}/>{errors.phoneparent && <small className="text-danger">{errors.phoneparent}</small>}</Form.Group></Col>
           </Row>
 
           {/* TUTEUR */}

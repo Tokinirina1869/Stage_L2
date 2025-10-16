@@ -16,10 +16,13 @@ return new class extends Migration
             $table->string('nom', 255)->nullable();
             $table->string('prenom', 255)->nullable();
             $table->date('naiss')->nullable();
+            $table->string('lieunaiss')->nullable();
             $table->string('sexe', 20)->nullable();
             $table->string('adresse', 255)->nullable();
             $table->string('photo')->nullable();
             $table->string('cin', 20)->nullable();
+            $table->date('datedel', 20)->nullable();
+            $table->string('lieucin', 20)->nullable();
             $table->string('nompere', 255)->nullable();
             $table->string('nommere', 255)->nullable();
             $table->string('nomtuteur', 255)->nullable();

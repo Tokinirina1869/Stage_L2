@@ -9,11 +9,13 @@ use App\Http\Controllers\InscriptionCompleteController;
 use App\Http\Controllers\ParcoursController;
 use App\Http\Controllers\ControllerNiveau;
 use App\Http\Controllers\ControllerFrais;
+use App\Http\Controllers\PaiementController;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
 Route::get('/inscriptions/formation/{nomformation}', [InscriptionCompleteController::class, 'getByFormation']);
+
 Route::get('/inscriptions/count', [InscriptionCompleteController::class, 'countinscription']);
 Route::get('/inscriptions/musique', [InscriptionCompleteController::class, 'countMusique']);
 Route::get('/inscriptions/info', [InscriptionCompleteController::class, 'countInformatique']);
@@ -39,6 +41,16 @@ Route::get('/frais', [ControllerFrais::class, 'index']);
 Route::post('/addfrais', [ControllerFrais::class, 'store']);
 Route::put('/updateFrais/{idfrais}', [ControllerFrais::class, 'update']);
 Route::delete('/deleteFrais/{idfrais}', [ControllerFrais::class, 'destroy']);
+
+
+//Paiements
+Route::get('/listepaiement', [PaiementController::class, 'index']);
+Route::post('/addpaiement', [PaiementController::class, 'store']);
+Route::put('/updatepaiement/{no_paie}', [PaiementController::class, 'update']);
+Route::delete('/deletepaiement/{no_paie}', [PaiementController::class, 'destroy']);
+
+Route::get('/personnes', [InscriptionCompleteController::class, 'show']);
+Route::get('/inscriptions', [InscriptionCompleteController::class, 'show1']);
 
 Route::get('/inscriptionComplete', [InscriptionCompleteController::class, 'index']);
 Route::post('/inscriptionComplete', [InscriptionCompleteController::class, 'store']);

@@ -18,11 +18,21 @@ class InscriptionCompleteController extends Controller
 {
     public function index()
     {
-        // ✅ Charger toutes les relations nécessaires en une seule requête
         $inscriptions = Inscription::with(['personne', 'inscriptionformations', 'parcours'])
             ->get();
         return response()->json($inscriptions);
 
+    }
+
+    public function show()
+    {
+        $personne = Personne::all();
+        return response()->json($personne);
+    }
+    public function show1()
+    {
+        $inscription = Inscription::all();
+        return response()->json($inscription);
     }
 
     public function getByFormation($nomformation)
@@ -100,7 +110,7 @@ class InscriptionCompleteController extends Controller
         try {
             // 1️⃣ Création ou mise à jour de la personne
             $personneData = $request->only([
-                'nom','prenom','naiss','sexe','adresse','cin',
+                'nom','prenom','naiss','lieunaiss','sexe','adresse','cin','datedel','lieucin',
                 'nompere','nommere','nomtuteur','adressparent','adresstuteur',
                 'phoneparent','phonetuteur'
             ]);
@@ -111,7 +121,7 @@ class InscriptionCompleteController extends Controller
             }
 
             $personne = Personne::updateOrCreate(
-                ['cin' => $request->cin], // clé unique pour update
+                ['cin' => $request->cin], 
                 $personneData
             );
 
@@ -165,9 +175,12 @@ class InscriptionCompleteController extends Controller
                 'nom' => 'required|string|max:100',
                 'prenom' => 'required|string|max:100',
                 'naiss' => 'nullable|date',
+                'lieunaiss' => 'nullable|string',
                 'sexe' => 'nullable|string',
                 'adresse' => 'nullable|string|max:255',
                 'cin' => 'nullable|string|max:20',
+                'datedel' => 'nullable|date',
+                'lieucin' => 'nullable|string',
                 'email' => 'nullable|email',
                 'nompere' => 'nullable|string|max:100',
                 'nommere' => 'nullable|string|max:100',
@@ -192,9 +205,9 @@ class InscriptionCompleteController extends Controller
 
             // ✅ Mise à jour de la personne
             $personne->fill($request->only([
-                'nom', 'prenom', 'naiss', 'sexe', 'adresse', 'cin', 'email',
-                'nompere', 'nommere', 'nomtuteur', 'adressparent', 'adresstuteur',
-                'phoneparent', 'phonetuteur'
+                'nom','prenom','naiss','lieunaiss','sexe','adresse','cin','datedel','lieucin',
+                'nompere','nommere','nomtuteur','adressparent','adresstuteur',
+                'phoneparent','phonetuteur'
             ]));
 
             // ✅ Gestion de la photo

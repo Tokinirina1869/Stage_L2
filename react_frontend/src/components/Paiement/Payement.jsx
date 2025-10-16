@@ -1,380 +1,353 @@
-import React, { useState } from 'react';
-import { FaEdit, FaFilePdf, FaMoneyCheckAlt, FaTimes, FaTrash } from 'react-icons/fa';
+import React, { useState, useEffect } from 'react';
 import {
-  Card,
-  CardContent,
-  Typography,
-  Grid,
-  TextField,
-  FormControlLabel,
-  Checkbox,
-  RadioGroup,
-  Radio,
-  Button,
-  Box,
-  Divider, TableContainer,
-  TableHead,
-  TableBody,
-  TableCell,
-  TableRow,
-  Paper,
+  Card, CardContent, Typography, Grid, TextField, FormControlLabel, Checkbox, Button, MenuItem,
+  Box, Divider, TableContainer, TableHead, TableBody, TableCell, TableRow, Paper, Table as MuiTable
 } from '@mui/material';
-import { Table } from 'react-bootstrap';
-
-
-const academicFees = [
-  'Droit d\'inscrit',
-  'Frais generaux',
-  'VRM',
-  'Tenue de fete',
-  'Tenue de sport',
-  'Blouse',
-];
+import { Col, Row, Form } from 'react-bootstrap';
+import { FaEdit, FaMoneyCheckAlt, FaTimes, FaTrash, FaBookOpen } from 'react-icons/fa';
+import axios from 'axios';
 
 const monthOptions = [
-  'Janvier', 'Fevrier', 'Mars', 'Avril', 'Mai', 'Juin',
-  'Juillet', 'Aout', 'Septembre', 'Octobre', 'Novembre', 'Decembre',
+  'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
+  'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre',
 ];
 
-
+const url = 'http://localhost:8000/api';
 
 function PaymentPage() {
-
   const [paymentDetails, setPaymentDetails] = useState({
-      paymentNo: '',
-      inscriptionNo: '',
-      matriculeNo: '',
-      paymentDate: '',
-      paymentMode: '',
-      amountToPay: '',
-      feeType: 'Academique', // 'Academique' or 'Formation'
-      academicChecks: [],
-      formationMonths: [],
-    });
-  
-    const handleChange = (event) => {
-      const { name, value } = event.target;
-      setPaymentDetails(prev => ({ ...prev, [name]: value }));
+    no_paie: '',
+    no_inscrit: '',
+    matricule: '',
+    idfrais: '',
+    datepaie: '',
+    modepaie: '',
+    montantpaie: 0,
+    nomFrais: [],
+    tuitionMonths: [],
+  });
+
+  const [listeFrais, setlisteFrais] = useState([]);
+  const [listepaie, setListepaie] = useState([]);
+
+  const [listeInsc, setListInsc] = useState([]);
+  const [listeMat, setListMat] = useState([]);
+
+  useEffect(() => {
+    const fetchInsc = async () => {
+      try {
+        const res = await axios.get(`${url}/inscriptions`);
+        setListInsc(res.data);
+      } catch (err) {
+        console.error("Erreur lors du chargement des frais :", err);
+      }
     };
-  
-    const handleFeeTypeChange = (event) => {
-      const newFeeType = event.target.value;
-      setPaymentDetails(prev => ({
-        ...prev,
-        feeType: newFeeType,
-        // Reset checks when switching main type
-        academicChecks: [],
-        formationMonths: [],
-      }));
+    fetchInsc();
+  }, []);
+
+  useEffect(() => {
+    const fetchMat = async () => {
+      try {
+        const res = await axios.get(`${url}/personnes`);
+        setListMat(res.data);
+      } catch (err) {
+        console.error("Erreur lors du chargement des frais :", err);
+      }
     };
-  
-    const handleAcademicCheck = (fee) => {
-      setPaymentDetails(prev => {
-        const { academicChecks } = prev;
-        const newChecks = academicChecks.includes(fee)
-          ? academicChecks.filter(item => item !== fee)
-          : [...academicChecks, fee];
-        return { ...prev, academicChecks: newChecks };
-      });
+    fetchMat();
+  }, []);
+
+  useEffect(() => {
+    const fetchFrais = async () => {
+      try {
+        const res = await axios.get(`${url}/frais`);
+        setlisteFrais(res.data);
+      } catch (err) {
+        console.error("Erreur lors du chargement des frais :", err);
+      }
     };
+    fetchFrais();
+  }, []);
+
+  const fetchPaie = async () =>{
+    try{
+      const res = await axios.get(`${url}/listepaiement`);
+      setListepaie(res.data.data);
+    }
+    catch(err){
+      console.error("Erreur losr de l'affichage",err);
+    }
+  }
   
-    const handleFormationMonthCheck = (month) => {
-      setPaymentDetails(prev => {
-        const { formationMonths } = prev;
-        const newChecks = formationMonths.includes(month)
-          ? formationMonths.filter(item => item !== month)
-          : [...formationMonths, month];
-        return { ...prev, formationMonths: newChecks };
-      });
-    };
-  
-    const handleSubmit = (type) => {
-      if (type === 'Payer') {
-        console.log('Paiement soumis:', paymentDetails);
-        alert("Paiement soumis ! Vérifiez la console pour les détails.");
-        // Ici, vous enverriez les données à votre API
+  useEffect(() => {
+    fetchPaie();
+  },[]);
+
+  useEffect(() => {
+    let total = 0;
+
+    paymentDetails.nomFrais.forEach((fraisNom) => {
+      const frais = listeFrais.find(f => f.nomfrais === fraisNom);
+      if (!frais) return;
+
+      if (frais.nomfrais.includes('Ecolage')) {
+        total += (frais.montant || 0) * paymentDetails.tuitionMonths.length;
       } else {
-        console.log('Annulation');
-        alert("Annulation du formulaire.");
-        setPaymentDetails({
-          paymentNo: '',
-          inscriptionNo: '',
-          matriculeNo: '',
-          paymentDate: '',
-          paymentMode: '',
-          amountToPay: '',
-          feeType: 'Academique',
-          academicChecks: [],
-          formationMonths: [],
-        });
-      }
-    };
-  
-    // Style personnalisé pour les boutons
-    const buttonStyle = () => ({
-      padding: '10px 30px',
-      borderRadius: '8px',
-      fontWeight: 'bold',
-      color: '#fff',
-      textTransform: 'none',
-      boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-      transition: 'transform 0.2s',
-      '&:hover': {
-        transform: 'translateY(-2px)',
-        boxShadow: '0 6px 8px rgba(0,0,0,0.15)',
+        total += frais.montant || 0;
       }
     });
-  const [showForm, setShowForm] = useState(false);
+
+    setPaymentDetails(prev => ({ ...prev, montantpaie: total }));
+  }, [paymentDetails.nomFrais, paymentDetails.tuitionMonths, listeFrais]);
+
+  // 🔁 Gestion des champs simples
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setPaymentDetails(prev => ({ ...prev, [name]: value }));
+  };
+
+  // 🔁 Sélection / désélection des frais (multi-select)
+  const handleFraisChange = (e) => {
+    const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
+    setPaymentDetails(prev => ({
+      ...prev,
+      nomFrais: selectedOptions,
+      // Si on retire l’écolage, on vide les mois
+      tuitionMonths: selectedOptions.some(f => f.includes('Ecolage')) ? prev.tuitionMonths : [],
+    }));
+  };
+
+  // 🔁 Sélection / désélection des mois pour l’écolage
+  const handleTuitionMonthCheck = (month) => {
+    setPaymentDetails(prev => {
+      const selected = prev.tuitionMonths.includes(month);
+      const newMonths = selected
+        ? prev.tuitionMonths.filter(m => m !== month)
+        : [...prev.tuitionMonths, month];
+      return { ...prev, tuitionMonths: newMonths };
+    });
+  };
+
+   const handleSubmitPaie = async (e) => {
+    e.preventDefault();
+
+    const fraisSelectionne = listeFrais.find(f => f.nomfrais === paymentDetails.nomFrais[0]);
+    const idfrais = fraisSelectionne ? fraisSelectionne.idfrais : null;
+
+    const dataForm = {
+      no_paie: paymentDetails.no_paie, 
+      no_inscrit: paymentDetails.no_inscrit,
+      idfrais: idfrais,
+      matricule: paymentDetails.matricule,
+      datepaie: paymentDetails.datepaie,
+      modepaie: paymentDetails.modepaie,
+      montantpaie: paymentDetails.montantpaie,
+    };
+
+    console.log("📤 Données envoyées :", dataForm);
+
+    try {
+      await axios.post(`${url}/addpaiement`, dataForm);
+      alert("✅ Nouveau paiement ajouté avec succès !");
+
+      fetchPaie();
+      setPaymentDetails({
+        no_paie: '', no_inscrit: '', matricule: '', idfrais: '', 
+        datepaie: '', modepaie: '', montantpaie: 0, nomFrais: [], tuitionMonths: []
+      });
+    } catch (err) {
+      console.error("Erreur:", err.response?.data || err.message);
+      alert(`❌ Erreur : ${JSON.stringify(err.response?.data?.errors || err.message)}`);
+    }
+  };
+
+  const handleDeletePaie = async () => {
+    try{
+      await axios.delete(`${url}/deletepaiement/`);
+      alert("Suppression avec succès !!!");
+    }
+    catch(err){
+      console.error("Erreur: ", err);
+      alert("Erreur lors de la suppression !!!");
+    }
+  }
+
+  const buttonStyle = (color) => ({
+    padding: '10px 30px',
+    borderRadius: '8px',
+    fontWeight: 'bold',
+    color: '#fff',
+    textTransform: 'none',
+    backgroundColor: color,
+    '&:hover': { transform: 'translateY(-2px)', backgroundColor: color },
+  });
 
   return (
-    <Box sx={{ p: 3}}>
-        <div className="d-flex justify-content-between align-items-center border-bottom pb-3 mb-4">
-            <h2 className="p-3 fw-bold text-success text-center mb-3">
-                Liste de Paiement de droit d'inscription
-            </h2>
-            <button className="btn btn-outline-primary responsive-text" onClick={() => setShowForm( !showForm )}>
-                { 
-                    showForm ? <><FaTimes size={25} className='mx-1' /> Fermer</> :<><FaMoneyCheckAlt size={25} className="mx-1" /> Nouveau Paiement</> 
-                }
-            </button>
-        </div>
+    <Box sx={{ p: 3 }}>
+      <Typography variant='h2' align="center" sx={{ p: 3, fontWeight: 'bold', color: 'green', mb: 3 }}>
+          Liste des Paiements effectués
+      </Typography>
 
-        {showForm && (
-           <Box size='xl' centered sx={{
-                 p: 4,
-                 backgroundColor: '#f4f6f8',
-                 display: 'flex',
-                 justifyContent: 'center',
-                 alignItems: 'center'
-               }}>
-                 <Card  size='xl' centered sx={{ maxWidth: 900, width: '100%', borderRadius: '12px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }}>
-                   <CardContent>
-                     <Typography variant="h5" component="div" gutterBottom sx={{ mb: 3, color: '#1976d2', fontWeight: 600 }}>
-                       Formulaire de Paiement
-                     </Typography>
-           
-                     <Grid container spacing={2}>
-                       <Grid item xs={12} md={4}>
-                         <TextField
-                           fullWidth
-                           label="No. Paiement"
-                           name="paymentNo"
-                           value={paymentDetails.paymentNo}
-                           onChange={handleChange}
-                           margin="normal"
-                           variant="outlined"
-                           size="small"
-                         />
-                        </Grid>
-                        <Grid>
-                         <TextField
-                           fullWidth
-                           label="No. Inscription"
-                           name="inscriptionNo"
-                           value={paymentDetails.inscriptionNo}
-                           onChange={handleChange}
-                           margin="normal"
-                           variant="outlined"
-                           size="small"
-                         />
-                        </Grid>
-                        <Grid>
-                         <TextField
-                           fullWidth
-                           label="No. Matricule"
-                           name="matriculeNo"
-                           value={paymentDetails.matriculeNo}
-                           onChange={handleChange}
-                           margin="normal"
-                           variant="outlined"
-                           size="small"
-                         />
-                       </Grid>
-          
-                       <Grid item xs={12} sm={6}>
-                         <TextField
-                           fullWidth
-                           label="Date de paiement"
-                           name="paymentDate"
-                           type="date"
-                           value={paymentDetails.paymentDate}
-                           onChange={handleChange}
-                           margin="normal"
-                           variant="outlined"
-                           size="small"
-                           InputLabelProps={{ shrink: true }}
-                         />
-                         </Grid>
-                         <Grid>
-                         <TextField
-                           fullWidth
-                           label="Mode de paiement"
-                           name="paymentMode"
-                           value={paymentDetails.paymentMode}
-                           onChange={handleChange}
-                           margin="normal"
-                           variant="outlined"
-                           size="small"
-                         />
-                        </Grid>
-                        <Grid>
-                         <TextField
-                           fullWidth
-                           label="Montant à payer (Ar)"
-                           name="amountToPay"
-                           type="number"
-                           value={paymentDetails.amountToPay}
-                           onChange={handleChange}
-                           margin="normal"
-                           variant="outlined"
-                           size="small"
-                         />
-                       </Grid>
-                     </Grid>
-           
-                     <Divider sx={{ my: 4 }} />
-           
-                      <Typography variant="subtitle1" component="div" sx={{ mb: 2, fontWeight: 500 }}>
-                        Frais à payer
-                      </Typography>
-           
-                      <Box sx={{ border: '1px solid #ccc', borderRadius: '8px', p: 3, backgroundColor: '#f9f9f9' }}>
-                       <Grid container spacing={3}>
-                         {/* Type de Frais (Radio buttons) */}
-                         <Grid item xs={12} sm={4}>
-                           <RadioGroup
-                             name="feeType"
-                             value={paymentDetails.feeType}
-                             onChange={handleFeeTypeChange}
-                             sx={{ display: 'flex', flexDirection: 'column' }}
-                           >
-                             <FormControlLabel
-                               value="Academique"
-                               control={<Radio size="small" />}
-                               label="Academique"
-                             />
-                             <FormControlLabel
-                               value="Formation"
-                               control={<Radio size="small" />}
-                               label="Formation"
-                             />
-                           </RadioGroup>
-                         </Grid>
-           
-                         {/* Checkboxes Gauche (Frais Académiques) */}
-                         <Grid item xs={12} sm={4} sx={{ borderLeft: { sm: '1px solid #eee' }, pl: { sm: 3 } }}>
-                           {paymentDetails.feeType === 'Academique' && (
-                             <>
-                               <Typography variant="body2" sx={{ mb: 1, fontWeight: 600, color: '#555' }}>Frais Académiques</Typography>
-                               {academicFees.map((fee) => (
-                                 <FormControlLabel
-                                   key={fee}
-                                   control={
-                                     <Checkbox
-                                       size="small"
-                                       checked={paymentDetails.academicChecks.includes(fee)}
-                                       onChange={() => handleAcademicCheck(fee)}
-                                       disabled={paymentDetails.feeType !== 'Academique'}
-                                     />
-                                   }
-                                   label={fee}
-                                 />
-                               ))}
-                             </>
-                           )}
-                         </Grid>
-           
-                         {/* Checkboxes Droite (Mois de Formation) */}
-                         <Grid item xs={12} sm={4} sx={{ borderLeft: { sm: '1px solid #eee' }, pl: { sm: 3 } }}>
-                           {paymentDetails.feeType === 'Formation' && (
-                             <>
-                               <Typography variant="body2" sx={{ mb: 1, fontWeight: 600, color: '#555' }}>Mois de Formation</Typography>
-                               <Grid container>
-                                 {monthOptions.map((month) => (
-                                   <Grid item xs={6} key={month}>
-                                     <FormControlLabel
-                                       control={
-                                         <Checkbox
-                                           size="small"
-                                           checked={paymentDetails.formationMonths.includes(month)}
-                                           onChange={() => handleFormationMonthCheck(month)}
-                                           disabled={paymentDetails.feeType !== 'Formation'}
-                                           sx={{ py: 0 }}
-                                         />
-                                       }
-                                       label={month}
-                                     />
-                                   </Grid>
-                                 ))}
-                               </Grid>
-                             </>
-                           )}
-                         </Grid>
-           
-                       </Grid>
+      <Row>
+        <Col lg={5}>
+          <Box sx={{ p: 4, display: 'flex', justifyContent: 'center', height: '820px', overflow: 'auto' }}>
+            <Card sx={{ maxWidth: 900, width: '100%', borderRadius: '12px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }}>
+             <form onSubmit={handleSubmitPaie}>
+                <CardContent>
+                  <Typography variant="h5" sx={{ mb: 3, color: '#1976d2', fontWeight: 600 }}>
+                    Formulaire de Paiement
+                  </Typography>
+
+                  <Row>
+                    <Col lg={6} className='mb-3'>
+                      <TextField fullWidth label="No. Paiement" name="no_paie" value={paymentDetails.no_paie} onChange={handleChange} size="small" required />
+                    </Col>
+                    <Col lg={6} className='mb-3'>
+                      <TextField select fullWidth label="No. Inscription" name='no_inscrit' value={paymentDetails.no_inscrit} onChange={handleChange} size='small' required>
+                        {listeInsc.length > 0 ? listeInsc.map(insc => (
+                          <MenuItem key={insc.no_inscrit} value={insc.no_inscrit}>
+                            {insc.no_inscrit}
+                          </MenuItem>
+                        )): (
+                          <option>Aucune N°matricule selectionnée</option>
+                        )}
+                      </TextField>
+                    </Col>
+                    <Col lg={6} className='mb-3'>
+                       <TextField select fullWidth label="No. Matricule" name="matricule" value={paymentDetails.matricule} onChange={handleChange} size="small" required>
+                        {listeMat.length > 0 ? listeMat.map(mat => (
+                          <MenuItem key={mat.matricule} value={mat.matricule}>
+                            {mat.matricule}
+                          </MenuItem>
+                        )): (
+                          <option>Aucune N°matricule selectionnée</option>
+                        )}
+                      </TextField>
+                    </Col>
+                    <Col lg={6} className='mb-3'>
+                      <TextField select fullWidth label="No. Frais" name='idfrais' value={paymentDetails.idfrais} onChange={handleChange} size='small' required>
+                        {listeFrais.length > 0 ? listeFrais.map(frais => (
+                          <MenuItem key={frais.idfrais} value={frais.idfrais}>
+                            {frais.idfrais}
+                          </MenuItem>
+                        )): (
+                          <option>Aucune N°Frais selectionnée</option>
+                        )}
+                      </TextField>
+                    </Col>
+                    <Col lg={6} className='mb-3'>
+                      <TextField fullWidth label="Date de paiement" name="datepaie" type="date" value={paymentDetails.datepaie} onChange={handleChange} InputLabelProps={{ shrink: true }} size="small" required />
+                    </Col>
+                    <Col lg={6} className='mb-3'>
+                      <TextField select fullWidth label="Mode de paiement" name="modepaie" value={paymentDetails.modepaie} onChange={handleChange} size="small" required>
+                        <MenuItem value="Espèce" >Espèce</MenuItem>
+                        <MenuItem value="Chèque" >Chèque</MenuItem>
+                      </TextField>
+                    </Col>
+                    <Col lg={6} className='mb-3'>
+                      <TextField fullWidth label="Montant à payer (Ar)" name="montantpaie" type="number" value={paymentDetails.montantpaie} onChange={handleChange} size="small" disabled />
+                    </Col>
+                  </Row>
+
+                  <Divider sx={{ my: 3 }} />
+                    <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 500 }}>
+                      Sélection du / des Frais à Payer
+                    </Typography>
+                    <Form.Select multiple value={paymentDetails.nomFrais} onChange={handleFraisChange}>
+                      {listeFrais.map((frais) => (
+                        <option key={frais.idfrais} value={frais.nomfrais}>
+                          {frais.nomfrais}
+                        </option>
+                      ))}
+                    </Form.Select>
+
+                    {paymentDetails.nomFrais.some(f => f.includes('Ecolage')) && (
+                      <Box sx={{ mt: 3, border: '1px solid #ddd', borderRadius: 2, p: 2 }}>
+                        <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
+                          Mois à payer :
+                        </Typography>
+                        {monthOptions.map((month, i) => (
+                          <FormControlLabel
+                            key={i} control={
+                              <Checkbox checked={paymentDetails.tuitionMonths.includes(month)} onChange={() => handleTuitionMonthCheck(month)}/>
+                            }
+                            label={month}
+                          />
+                        ))}
                       </Box>
-           
-                     <Divider sx={{ my: 4 }} />
+                    )}
+                  <Divider sx={{ my: 4 }} />
 
-                     <Box sx={{ display: 'flex', justifyContent: 'center', gap: 3 }}>
-                       <Button
-                         variant="contained"
-                         sx={buttonStyle('#f44336')}
-                         onClick={() => handleSubmit('Annuler')}
-                       >
-                         Annuler
-                       </Button>
-                       <Button
-                         variant="contained"
-                         sx={buttonStyle('#4CAF50')}
-                         onClick={() => handleSubmit('Payer')}
-                       >
-                         Payer
-                       </Button>
-                     </Box>
-                   </CardContent>
-                 </Card>
-               </Box>
-        )}
+                  <Box sx={{ display: 'flex', justifyContent: 'center', gap: 3 }}>
+                    <Button variant="contained" sx={buttonStyle('#f44336')} startIcon={<FaTimes />}>
+                      Annuler
+                    </Button>
+                    <Button variant="contained" type='submit' sx={buttonStyle('#4CAF50')} startIcon={<FaMoneyCheckAlt />}>
+                      Payer
+                    </Button>
+                  </Box>
+                </CardContent>
+             </form>
+            </Card>
+          </Box>
+        </Col>
 
-        <TableContainer component={Paper} sx={{ boxShadow: 5, borderRadius: 1}}>
-          <Table sx={{ mminWidth:1000 }} >
-            <TableHead sx={{ bgcolor: 'primary.light' }}>
-              <TableRow>
-                <TableCell> N° Paiement </TableCell>
-                <TableCell> N° Inscription </TableCell>
-                <TableCell> Nom et Prénom </TableCell>
-                <TableCell> Date de Paiement</TableCell>
-                <TableCell> Montant à payer</TableCell>
-                <TableCell> Reste</TableCell>
-                <TableCell> Ecolage et Frais Payé</TableCell>
-                <TableCell> Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              <TableRow>
-                    <TableCell>PE0002</TableCell>
-                    <TableCell>1869H-F</TableCell>
-                    <TableCell>Tokinirina Jean Robert</TableCell>
-                    <TableCell>26/09/2025</TableCell>
-                    <TableCell>74 000ar</TableCell>
-                    <TableCell>0ar</TableCell>
-                    <TableCell>Septembre, Octobre</TableCell>
-                    <TableCell>
-                      <button type="button" className="btn btn-sm btn-outline-primary mx-2">
-                        <FaEdit size={18} /> Modifer
-                      </button>
-                      <button type="button" className="btn btn-sm btn-outline-danger mx-2">
-                        <FaTrash size={18} /> Supprimer
-                      </button>
-                      <button type="button" className="btn btn-sm btn-outline-success mx-2">
-                        <FaFilePdf size={18} /> Exporter PDF
-                      </button>
+        <Col lg={7}>
+          <Box sx={{ p: 4, display: 'flex', justifyContent: 'center' }}>
+            <TableContainer component={Paper} sx={{ boxShadow: 10, borderRadius: 1, height: '750px', overflow: 'auto' }}>
+              <MuiTable stickyHeader>
+              <TableHead>
+                <TableRow sx={{ position: 'sticky', top: 0,zIndex: 2, bgcolor: 'primary.main'}} >
+                  {[ 'N° Paiement','N° Matricule', 'N° Inscription', 'Nom et Prénom', 'Date de Paiement', 'Montant Payé', 'Reste', 'Frais Payés','Actions',
+                  ].map((title) => (
+                    <TableCell key={title} sx={{ color: 'white', fontWeight: 600, textAlign: 'center', borderBottom: '2px solid rgba(255,255,255,0.3)',backgroundColor: 'primary.main'}}>
+                      {title}
                     </TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-        </TableContainer>
+                  ))}
+                </TableRow>
+              </TableHead>
+
+                <TableBody>
+                  {listepaie.length > 0 ? listepaie.map((liste) => (
+                    <TableRow key={liste.no_paie}>
+                      <TableCell>{liste.no_paie}</TableCell>
+                      <TableCell>{liste.matricule}</TableCell>
+                      <TableCell>{liste.no_inscrit}</TableCell>
+                      <TableCell><b>{liste.personne?.nom}</b> {liste.personne?.prenom}</TableCell>
+                      <TableCell>{liste.datepaie}</TableCell>
+                      <TableCell>{liste.montantpaie}</TableCell>
+                      <TableCell>0 Ar</TableCell>
+                      <TableCell>{liste.frais?.nomfrais || "Aucune"}</TableCell>
+                      <TableCell>
+                        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 1 }}>
+                          <Button variant="contained" color="success" sx={{textTransform: 'none', px: 1, py: 0.8,}}>
+                            <FaEdit style={{ marginRight: 2 }} /> Modifier
+                          </Button>
+
+                          <Button variant="contained" color="error" sx={{ textTransform: 'none', px: 1, py: 0.8}}>
+                            <FaTrash style={{ marginRight: 2 }} /> Supprimer
+                          </Button>
+                          <Button variant="contained" color="primary" sx={{ textTransform: 'none', px: 1, py: 0.8}}>
+                            <FaTrash style={{ marginRight: 2 }} /> Reçu
+                          </Button>
+                        </Box>
+                      </TableCell>
+                    </TableRow>
+                    )) 
+                    :(
+                        <TableRow>
+                          <TableCell colSpan={9} align="center" sx={{ py: 5 }}>
+                            <FaBookOpen size={24} style={{ marginBottom: 10 }} />
+                            <Typography variant="h6">Aucune données trouvées !!!</Typography>
+                          </TableCell>
+                        </TableRow>
+                    )}
+                </TableBody>
+              </MuiTable>
+            </TableContainer>
+          </Box>
+        </Col>
+      </Row>
     </Box>
   );
 }

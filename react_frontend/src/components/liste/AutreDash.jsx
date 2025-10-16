@@ -340,11 +340,11 @@ function SchoolDashboard({ retourDash }) {
                                             <td>{niveau.code_niveau}</td>
                                             {/* <td>{niveau.code_niveau}</td> */}
                                             <td>{niveau.nomniveau}</td>
-                                            <td>
-                                              <button className="btn btn-primary mx-1" onClick={() => handleSelectNiveauForEdit(niveau)}>
+                                            <td style={{ display: 'flex', justifyContent: 'center', alignItems:'center', gap: 1 }}>
+                                              <button className="btn btn-primary px-1 mx-1 py-0.8" onClick={() => handleSelectNiveauForEdit(niveau)}>
                                                 <FaEdit className='mx-1'/>Modifier
                                               </button>
-                                              <button className="btn btn-danger mx-1" onClick={()=> handleDeleteNiveau(niveau.code_niveau)}>
+                                              <button className="btn btn-danger mx-1 px-1 py-0.8" onClick={()=> handleDeleteNiveau(niveau.code_niveau)}>
                                                 <FaTrash className='mx-1'/>Supprimer
                                               </button>
                                             </td>
@@ -384,11 +384,11 @@ function SchoolDashboard({ retourDash }) {
                                             <td>{fraisItem.idfrais}</td>
                                             <td>{fraisItem.nomfrais}</td>
                                             <td>{fraisItem.montant}</td>
-                                            <td>
-                                              <button className="btn btn-primary mx-1" onClick={() => handleSelectFraisForEdit(fraisItem)}>
+                                            <td  style={{ display: 'flex', justifyContent: 'center', alignItems:'center', gap: 1 }}>
+                                              <button className="btn btn-primary px-1 mx-1 py-0.8" onClick={() => handleSelectFraisForEdit(fraisItem)}>
                                                 <FaEdit className='mx-1'/>Modifier
                                               </button>
-                                              <button className="btn btn-danger mx-1" onClick={() => handleDeleteFrais(fraisItem.idfrais)}>
+                                              <button className="btn btn-danger px-1 mx-1 py-0.8" onClick={() => handleDeleteFrais(fraisItem.idfrais)}>
                                                 <FaTrash className='mx-1'/>Supprimer
                                               </button>
                                             </td>
@@ -432,11 +432,11 @@ function SchoolDashboard({ retourDash }) {
                                             <td>{parcoursItem.code_formation}</td>
                                             <td>{parcoursItem.nomformation}</td>
                                             <td>{parcoursItem.datedebut}</td>
-                                            <td>
-                                              <button className="btn btn-primary mx-1" onClick={() => handleSelectParcoursForEdit(parcoursItem)}>
+                                            <td  style={{ display: 'flex', justifyContent: 'center', alignItems:'center', gap: 1 }}>
+                                              <button className="btn btn-primary px-1 mx-1 py-0.8" onClick={() => handleSelectParcoursForEdit(parcoursItem)}>
                                                 <FaEdit className='mx-1'/>Modifier
                                               </button>
-                                              <button className="btn btn-danger mx-1" onClick={() => handleDeleteParcours(parcoursItem.code_formation)}>
+                                              <button className="btn btn-danger px-1 mx-1 py-0.8" onClick={() => handleDeleteParcours(parcoursItem.code_formation)}>
                                                 <FaTrash className='mx-1'/>Supprimer
                                               </button>
                                             </td>
