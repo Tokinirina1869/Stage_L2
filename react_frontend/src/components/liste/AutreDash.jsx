@@ -8,35 +8,30 @@ import axios from 'axios';
 const URL = "http://localhost:8000/api";
 
 function SchoolDashboard({ retourDash }) {
-  // --- États pour les données de l'application ---
   const [parcours, setParcours] = useState([]);
   const [niveaux, setNiveaux] = useState([]);
   const [frais, setFrais] = useState([]);
 
-  // --- États pour les formulaires d'ajout/modification de Parcours ---
   const [code_formation, setCode_formation] = useState("");
   const [datedebut, setDatedebut] = useState("");
   const [nomformation, setNomformation] = useState("");
-  const [selectedParcours, setSelectedParcours] = useState(null); // Pour la modification
+  const [selectedParcours, setSelectedParcours] = useState(null); 
   const [openParcours, setOpenParcours] = useState(false);
   const [modalParcours, setModalParcours] = useState(false);
 
-  // --- États pour les formulaires d'ajout/modification de Frais ---
   const [idfrais, setIdfrais] = useState('');
   const [nomfrais, setNomfrais] = useState("");
   const [montant, setMontant] = useState("");
-  const [selectedFrais, setSelectedFrais] = useState(null); // Pour la modification
+  const [selectedFrais, setSelectedFrais] = useState(null);
   const [openFrais, setOpenFrais] = useState(false);
   const [modalFrais, setModalFrais] = useState(false);
 
-  // --- États pour les formulaires d'ajout/modification de Niveau ---
   const [code_niveau, setCode_niveau] = useState('');
   const [nomniveau, setNomniveau] = useState('');
-  const [selectedNiveaux, setSelectedNiveaux] = useState(null); // Pour la modification
+  const [selectedNiveaux, setSelectedNiveaux] = useState(null); 
   const [openNiveau, setOpenNiveau] = useState(false);
   const [modalNiveaux, setModalNiveaux] = useState(false);
 
-  // (Ouverture/Fermeture des Modals)
   const handleOpenNiveau = () => setOpenNiveau(true);
   const handleCloseNiveau = () => { setOpenNiveau(false); resetNiveauForm(); };
   const handleUpdateNiveaux = () => setModalNiveaux(true);
@@ -52,7 +47,6 @@ function SchoolDashboard({ retourDash }) {
   const handleUpdateFrais = () => setModalFrais(true);
   const handleClosefrais = () => { setModalFrais(false); resetFraisForm(); };
   
-  // --- Fonctions de Réinitialisation des formulaires (Ajouté pour une meilleure UX) ---
   const resetNiveauForm = () => {
     setCode_niveau('');
     setNomniveau('');
@@ -73,7 +67,6 @@ function SchoolDashboard({ retourDash }) {
     setSelectedParcours(null);
   };
 
-  // --- Fonction centralisée de récupération des données (Optimisation useEffect) ---
   const fetchData = useCallback(async () => {
     try {
       const parcoursRes = await axios.get(`${URL}/parcours`);
