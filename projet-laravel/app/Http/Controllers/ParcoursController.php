@@ -20,31 +20,47 @@ class ParcoursController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'code_formation' => 'required|unique:parcours,code_formation',
-            'nomformation'   => 'required|string',
-            'datedebut'      => 'required|date'
+            'code_formation' => 'required|string|max:50|unique:parcours,code_formation',
+            'nomformation'   => 'required|string|max:100',
+            'datedebut'      => 'required|date',
         ]);
 
-        if($validator->fails()){
+        if ($validator->fails()) {
             return response()->json([
-                'Status'    => 'Erreur',
-                'Message'   => 'Données invalides',
-                'data'      => $validator->errors(),
+                'status'  => 'error',
+                'message' => 'Données invalides',
+                'errors'  => $validator->errors(),
             ], 422);
         }
 
-        $data = Parcours::create([
+        // 🔍 Vérifier si un parcours existe déjà avec même nom + date
+        $existe = Parcours::where('nomformation', $request->nomformation)
+                        ->where('datedebut', $request->datedebut)
+                        ->first();
+
+        if ($existe) {
+            // ⚠️ Retourner une alerte claire (pour ton front)
+            return response()->json([
+                'status'  => 'warning',
+                'message' => '⚠️ Ce parcours existe déjà dans la base de données !',
+                'data'    => $existe,
+            ], 409); // HTTP 409 = Conflict
+        }
+
+        // ✅ Création du parcours
+        $parcours = Parcours::create([
             'code_formation' => $request->code_formation,
-            'nomformation' => $request->nomformation,
-            'datedebut'    => $request->datedebut,
+            'nomformation'   => $request->nomformation,
+            'datedebut'      => $request->datedebut,
         ]);
 
         return response()->json([
-            'Status'    => 'Succès',
-            'Message'   => 'Nouveau Parcours ajouté avec succès',
-            'data'      => $data
+            'status'  => 'success',
+            'message' => '✅ Nouveau parcours ajouté avec succès',
+            'data'    => $parcours,
         ], 200);
     }
+
 
     public function update(Request $request, $code_formation)
     {

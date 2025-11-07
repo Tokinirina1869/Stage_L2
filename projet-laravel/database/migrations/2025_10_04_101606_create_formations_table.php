@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('inscrit_formations', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('no_inscrit');
-            $table->integer('duree');
+            $table->string('duree', 10);
             $table->string('type_formation', 11);
 
             $table->timestamps();

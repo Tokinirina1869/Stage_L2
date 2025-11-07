@@ -98,14 +98,14 @@ const NavigationPage = ({ handleMenuChange, onLogout, onProfil, currentUser }) =
     { key: "dashboard", label: "Dashboard", icon: <FaHome size={20} color="primary" /> },
     { key: "eleve", label: "Académique", icon: <FaUserPlus size={20} color="primary" /> },
     { key: "formation", label: "Professionnelle", icon: <FaUserGraduate size={20} color="primary" /> },
-    { key: "paiement", label: "Paiement", icon: <FaMoneyCheckAlt size={20} color="primary" /> },
+    { key: "paiement", label: "Paiement", icon: <MonetizationOn size={20} /> },
   ];
 
   return (
     <>
       <AppBar
         position="fixed" // 🔹 Fixé en haut
-        color={theme === "light" ? "default" : "primary"}
+        color="default"
         elevation={elevate ? 4 : 0} // 🔹 Shadow dynamique
         sx={{
           transition: "all 0.3s ease",
@@ -122,7 +122,7 @@ const NavigationPage = ({ handleMenuChange, onLogout, onProfil, currentUser }) =
 
           <img src={fma} alt="Logo FMA" width={45} style={{ marginRight: 10 }} />
           <Typography variant="h6"
-            sx={{ flexGrow: 1, fontWeight: "bold", cursor: "pointer", color: "blue" }}
+            sx={{ flexGrow: 1, fontWeight: "bold", cursor: "pointer" }}
             onClick={() => handleMenuClick("dashboard")}>
             FMA Anjarasoa Ankofafa
           </Typography>
@@ -141,7 +141,9 @@ const NavigationPage = ({ handleMenuChange, onLogout, onProfil, currentUser }) =
                       fontSize: "18px",
                       px: 3,
                       py: 1.2,
-                      color: isActive ? "primary.main" : "text.primary",
+                      color: isActive
+                      ? theme === "light" ? "primary.main" : "#fff"
+                      : theme === "light" ? "text.primary" : "#fff",
                       borderBottom: isActive ? "3px solid" : "3px solid transparent",
                       borderRadius: 0,
                       transition: "all 0.3s",
@@ -171,12 +173,7 @@ const NavigationPage = ({ handleMenuChange, onLogout, onProfil, currentUser }) =
         </Toolbar>
       </AppBar>
 
-      <Drawer
-        anchor="left"
-        open={mobileOpen}
-        onClose={toggleDrawer}
-        sx={{ display: { md: "none" } }}
-      >
+      <Drawer anchor="left" open={mobileOpen} onClose={toggleDrawer} sx={{ display: { md: "none" } }} >
         {drawer}
       </Drawer>
 
@@ -190,8 +187,6 @@ const NavigationPage = ({ handleMenuChange, onLogout, onProfil, currentUser }) =
           <FaSignOutAlt size={18} className="mx-1" /> Se déconnecter
         </MenuItem>
       </Menu>
-
-      {/* 🔹 Ajoute un padding top pour le contenu */}
       <Box sx={{ pt: "80px" }} />
     </>
   );

@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('inscriptions', function (Blueprint $table) {
             $table->id('no_inscrit');
-            $table->char('matricule',7);
+            $table->string('matricule',8);
             $table->date('dateinscrit');
             $table->string('anneesco',20);
             $table->timestamps();

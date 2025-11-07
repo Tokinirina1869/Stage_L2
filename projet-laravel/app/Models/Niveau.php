@@ -14,4 +14,11 @@ class Niveau extends Model
     public $incrementing = false;
     protected $keyType = 'string';
     protected $fillable = ['code_niveau', 'nomniveau'];
+
+    //Un niveau a plusieurs InscriptionAcademie
+    public function inscriptionAcademies()
+    {
+        return $this->hasMany(InscriptionAcademie::class, 'code_niveau', 'code_niveau');
+    }
 }
+

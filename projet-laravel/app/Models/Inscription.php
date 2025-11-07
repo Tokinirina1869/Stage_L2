@@ -22,15 +22,19 @@ class Inscription extends Model
         $this->attributes['matricule'] = trim($value);
     }
 
-    // Relation vers la personne
+    public function inscriptionformation()
+    {
+        return $this->hasOne(FormationModel::class, 'no_inscrit', 'no_inscrit');
+    }
+
+    public function inscriptionacademique()
+    {
+        return $this->hasOne(InscriptionAcademie::class, 'no_inscrit', 'no_inscrit');
+    }
+
     public function personne()
     {
         return $this->belongsTo(Personne::class, 'matricule', 'matricule');
-    }
-
-    public function inscriptionformations()
-    {
-        return $this->hasMany(FormationModel::class, 'no_inscrit', 'no_inscrit');
     }
 
     public function parcours()
@@ -41,7 +45,13 @@ class Inscription extends Model
             'no_inscrit',
             'code_formation',
             'no_inscrit',
-            'code_formation'
+            'code_formation',
         );
     }
+
+    public function niveau()
+    {
+        return $this->belongsTo(Niveau::class, 'code_niveau', 'code_niveau');
+    }
+    
 }

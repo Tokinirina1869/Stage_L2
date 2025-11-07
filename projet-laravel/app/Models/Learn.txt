@@ -181,3 +181,81 @@ export default ListeInscriptions;
 
 👉 Tu veux que je t’écrive aussi l’exemple **inverse** (charger une personne avec toutes ses inscriptions → `Personne::with('inscriptions')`), pour voir la différence ?
 
+
+
+
+
+
+
+// HistogramSalaireStats.js
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+import {PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer} from 'recharts';
+
+const HistogramSalaireStats = () => {
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    axios.get('http://localhost/vue-js/api/index.php?stats=1')
+      .then(res => {
+        setStats(res.data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error("Erreur lors du chargement des stats :", err);
+      });
+  }, []);
+
+  if (loading || !stats) return <p>Chargement...</p>;
+
+  const data = [
+    { name: 'Minimum ', value: parseFloat(stats.salaire_min) },
+    { name: 'Maximum ', value: parseFloat(stats.salaire_max) },
+    { name: 'Total ', value: parseFloat(stats.salaire_total) },
+  ];
+
+
+  const colors = ['#cd2929ff', '#dbb417ff', '#0cb012ff'];
+
+
+  return (
+    <div style={{ marginTop: '10%' }} className='row'>
+
+      <div className='col-md-12'>
+        <h3 style={{ textAlign: 'center' }} className='text-white'>Répartition des Salaires en PieChart</h3>
+        <ResponsiveContainer width="100%" height={400}>
+          <PieChart>
+            <Pie data={data} dataKey="value" nameKey="name" cx="50%" cy="50%"  outerRadius={window.innerWidth > 768 ? 180 : 120}fill="#8884d8" label >
+              {data.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
+              ))}
+            </Pie>
+            <Tooltip />
+            <Legend />
+          </PieChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+};
+
+export default HistogramSalaireStats;
+
+
+
+
+import { BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } from "recharts";
+
+const EffectifsTrimestriels = ({ data }) => (
+  <ResponsiveContainer width="100%" height={300}>
+    <BarChart data={data}>
+      <CartesianGrid strokeDasharray="3 3" />
+      <XAxis dataKey={(d) => `${d.annee} - ${d.trimestre}`} />
+      <YAxis />
+      <Tooltip />
+      <Bar dataKey="total" fill="#4F46E5" />
+    </BarChart>
+  </ResponsiveContainer>
+);
+

@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import cfp from '../FMA/cfp.jpg';
 import lycee from '../FMA/lycee.jpg';
@@ -10,325 +10,328 @@ import patisserie from "../FMA/Form/Patisserie.jpg";
 import { FaCheck, FaPen } from 'react-icons/fa';
 import Headers from './Header';
 
+function Accueil() {
+    const [isSticky, setIsSticky] = useState(false);
 
-class Accueil extends Component {
+    useEffect(() => {
+        const handleScroll = () => {
+            if (window.scrollY > 50) {
+                setIsSticky(true);
+            } else {
+                setIsSticky(false);
+            }
+        };
 
-    constructor(props) {
-        super(props);
-        this.state = {
-            isSticky: false,
-        }
-    };
-    componentDidMount() {
-        window.addEventListener('scroll', this.handleScroll);
-    }
-    componentWillUnmount() {
-        window.removeEventListener('scroll', this.handleScroll);
-    }
+        window.addEventListener('scroll', handleScroll);
 
-    handleScroll = () => {
-        if(window.scrollY > 50) {
-            this.setState({ isSticky: true });
-        }
-        else {
-            this.setState({ isSticky: false });
-        }
-    }
+        return () => {
+            window.removeEventListener('scroll', handleScroll);
+        };
+    }, []); 
 
-    render() {
     return (
         <div>
-            <header className={`navbar navbar-expand-lg py-3 px-4 shadow ${
-                this.state.isSticky ? 'fixed-top bg-secondary shadow ' : 'bg-default'
-                }`}
-                style={{ transition: 'all 2s ease-in-out',}}>
+            <header className={`py-4 px-6 shadow-lg transition-all duration-300 ease-in-out ${
+                isSticky ? 'fixed top-0 left-0 right-0 z-50 bg-white' : 'bg-transparent'
+            }`}>
                 <Headers propos="#propos" service="#service" contact="#contact" cfp="#cfp" lycee="#lycee" />
+
             </header>
             
-            <div className='container-fluid p-5 shadow mt-1 pt-5' id='cfp'>
-                <h2 className="text-center text-primary fw-bold position-relative mt-5">
-                    Centre de Formation Professionnelle (CFP) Laura Vicuna Anjarasoa Ankofafa Fianarantosa
-                    <span style={{ display: 'block', width: '220px',      
-                        borderBottom: '4px solid #0d6efd', margin: '0 auto', marginTop: '5px'}}
-                    ></span>
+            <div className='container mx-auto px-4 sm:px-6 lg:px-8 py-16 mt-16 lg:mt-0 shadow-xl' id='cfp'>
+                <h2 className="text-center text-blue-600 text-3xl lg:text-4xl font-extrabold relative mb-12 pt-8">
+                    Centre de Formation Professionnelle (CFP) Laura Vicuna Anjarasoa Ankofafa Fianarantsoa
+                    <span className="block w-56 h-1 bg-blue-600 mx-auto mt-2"></span>
                 </h2>
-                <div className="row mt-5 container-fluid shadow p-4">
-                    <div className="col-lg-8 mb-3 p-3 rounded-3" id='propos'>
-                        <h3 className="text-center text-primary fw-bold border-primary border-3 mt-1">
-                            A propos
+                
+                <div className="flex flex-wrap items-center bg-gray-50 p-6 lg:p-10 rounded-xl shadow-lg mb-12">
+                    <div className="w-full lg:w-8/12 mb-6 lg:mb-0 lg:pr-10" id='propos'>
+                        <h3 className="text-center text-blue-600 text-2xl font-bold border-b-4 border-blue-600 pb-2 mb-6 inline-block">
+                            À propos
                         </h3>
-                        <p className='mt-5 ps-2' style={{ textAlign: "justify"}}>
+                        <p className='mt-5 text-lg text-gray-700 leading-relaxed text-justify'>
                             Un centre de formation Professionelle qui favorise l'intégration socio-économique et socio-
                             professionnelle des jeunes et de femmes vulnérables au niveau zonal en leur offrant une formation
                             professionnelle de qualité, en les accompagnant dans l'entrepreneuriat durable et en mettant en 
                             place un mécanisme d'auto-financement pérenne. 
                         </p>
-                        <p className="text-indent ps-2" style={{ textAlign: "justify"}}>
-                            Centre de Formation Professionnelle (CFP) Laura Vicuna Madagascar, Profince de Fianarantsoa, District de Fianarantsoa,
+                        <p className="text-lg text-gray-700 leading-relaxed mt-4 text-justify">
+                            Centre de Formation Professionnelle (CFP) Laura Vicuna Madagascar, Province de Fianarantsoa, District de Fianarantsoa,
                             Arrondissement Manolafaka ANJARASOA ANKOFAFA. 
                         </p>
-                        <Link to="/login">
-                            <button className="btn text-white btn-primary btn-lg rounded-pull" style={{marginLeft: "40%"}}>
-                                Se Connecter
-                            </button>
-                        </Link>
-                    </div>
-                    <div className="col-lg-4">
-                        <img src={cfp} alt="FMA" className="img-fluid rounded" />
-                    </div>
-                </div>
-                <div className="row container-fluid shadow g-4">
-                    <h2 className="text-primary fw-bold text-center mt-5 card-text">Formation trois mois (ou Formation à court terme) pour tout le monde</h2>
-                    <div className="col-lg-4 mb-4 p-4">
-                        <div className="card">
-                            <div className="card-body shadow-lg">
-                                <div className="text-center mb-3">
-                                    <img src={info} className="rounded-circle" alt="Informatique" width={200} height={200} style={{border: "5px solid white"}} />
-                                    <h2 className='p-2 fw-bold text-success'>Informatique</h2>
-                                </div>
-                                <ul className='list-unstyled mt-3' style={{ marginLeft: "25%" }}>
-                                    <li className='fw-bold d-flex align-items-center mb-3'>
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather fw-bold text-success mx-1 feather-check"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                                        <button className='btn btn-primary w-50 fw-bold'>WORD</button>
-                                    </li>
-                                    <li className='fw-bold d-flex align-items-center mb-3'>
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather fw-bold text-success mx-1  feather-check"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                                        <button className="btn btn-success w-50 fw-bold">EXCEL</button>
-                                    </li>
-                                    <li className='fw-bold d-flex align-items-center mb-3'>
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather fw-bold text-success mx-1  feather-check"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                                        <button className="btn btn-danger w-50 fw-bold">POWERPOINT</button>
-                                    </li>
-                                </ul>
-                                <p className="text-center mt-3 mb-0">
-                                    <span className="fw-bold text-default">Droit:</span> <span className="fs-2 fw-bold text-success">10 000Ar</span>
-                                    <br />
-                                    <span className="fw-bold mt-2 text-default">Ecolage:</span> <span className="fs-2 fw-bold text-success">15 000Ar</span>
-                                </p>
-                            </div>
+                        <div className="text-center mt-8">
+                            <Link to="/login">
+                                <button className="px-8 py-3 bg-blue-600 text-white font-semibold text-lg rounded-full shadow-lg hover:bg-blue-700 transition duration-300">
+                                    Se Connecter
+                                </button>
+                            </Link>
                         </div>
                     </div>
-                    <div className="col-lg-4 mb-4 p-4">
-                        <div className="card">
-                            <div className="card-body shadow-lg">
-                                <div className="mb-3 text-center">
-                                    <img src={coupe} alt="Langue"  className='rounded-circle' width={200} height={200} style={{ border: "5px solid white" }}/>
-                                    <h2 className="p-2 fw-bold text-success">Langue</h2>
-                                </div>
-                                <ul className='list-unstyled mt-3' style={{ marginLeft: "25%" }} >
-                                    <li className='fw-bold d-flex align-items-center mb-3'>
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather fw-bold text-success mx-1 feather-check"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                                        <button className='btn btn-primary w-50 fw-bold'>FRANCAISE</button>
-                                    </li>
-                                    <li className='fw-bold d-flex align-items-center mb-3'>
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather fw-bold text-success mx-1  feather-check"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                                        <button className="btn btn-success w-50 fw-bold">ANGLAISE</button>
-                                    </li>
-                                    <li className='fw-bold d-flex align-items-center mb-3'>
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather fw-bold text-success mx-1  feather-check"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                                        <button className="btn btn-danger w-50 fw-bold">ITALIENNE</button>
-                                    </li>
-                                </ul>
-                                <p className="text-center mt-3 mb-0" style={{ textAlign: "justify" }}>
-                                    <span className="fw-bold text-default">Droit:</span> <span className="fs-2 fw-bold text-success">10 000Ar</span>
-                                    <br />
-                                    <span className="fw-bold mt-2 text-default">Ecolage:</span> <span className="fs-2 fw-bold text-success">10 000Ar</span>
-                                </p>
+                    <div className="w-full lg:w-4/12">
+                        <img src={cfp} alt="CFP Laura Vicuna" className="w-full h-auto rounded-xl shadow-2xl" />
+                    </div>
+                </div>
+                
+                <h2 className="text-blue-600 text-3xl font-extrabold text-center mt-16 mb-8">
+                    Formation de trois mois (ou Formation à court terme) pour tout le monde
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {/* Carte Informatique */}
+                    <div className="p-4">
+                        <div className="bg-white p-6 rounded-xl shadow-2xl hover:shadow-blue-300 transition duration-300 transform hover:scale-[1.02]">
+                            <div className="text-center mb-5">
+                                <img src={info} alt="Informatique" className="rounded-full w-48 h-48 object-cover mx-auto ring-4 ring-blue-600/50" />
+                                <h3 className='text-2xl font-bold text-green-600 mt-4'>Informatique</h3>
                             </div>
+                            <ul className='list-none space-y-4 px-4'>
+                                <li className='font-semibold flex items-center justify-between'>
+                                    <FaCheck size={20} className='text-green-600 mr-2' />
+                                    <span className='w-full text-left'>Traitement de texte **WORD**</span>
+                                </li>
+                                <li className='font-semibold flex items-center justify-between'>
+                                    <FaCheck size={20} className='text-green-600 mr-2' />
+                                    <span className='w-full text-left'>Tableur **EXCEL**</span>
+                                </li>
+                                <li className='font-semibold flex items-center justify-between'>
+                                    <FaCheck size={20} className='text-green-600 mr-2' />
+                                    <span className='w-full text-left'>Présentation **POWERPOINT**</span>
+                                </li>
+                            </ul>
+                            <p className="text-center mt-6 pt-4 border-t border-gray-200">
+                                <span className="font-bold text-gray-700 block">Droit: <span className="text-3xl font-extrabold text-green-600">10 000Ar</span></span>
+                                <span className="font-bold text-gray-700 block mt-2">Ecolage: <span className="text-3xl font-extrabold text-green-600">15 000Ar</span></span>
+                            </p>
+                        </div>
+                    </div>
+                    
+                    {/* Carte Langue */}
+                    <div className="p-4">
+                        <div className="bg-white p-6 rounded-xl shadow-2xl hover:shadow-blue-300 transition duration-300 transform hover:scale-[1.02]">
+                            <div className="text-center mb-5">
+                                <img src={coupe} alt="Langues" className='rounded-full w-48 h-48 object-cover mx-auto ring-4 ring-blue-600/50' />
+                                <h3 className="text-2xl font-bold text-green-600 mt-4">Langue</h3>
+                            </div>
+                            <ul className='list-none space-y-4 px-4'>
+                                <li className='font-semibold flex items-center justify-between'>
+                                    <FaCheck size={20} className='text-green-600 mr-2' />
+                                    <span className='w-full text-left'>Langue **FRANÇAISE**</span>
+                                </li>
+                                <li className='font-semibold flex items-center justify-between'>
+                                    <FaCheck size={20} className='text-green-600 mr-2' />
+                                    <span className='w-full text-left'>Langue **ANGLAISE**</span>
+                                </li>
+                                <li className='font-semibold flex items-center justify-between'>
+                                    <FaCheck size={20} className='text-green-600 mr-2' />
+                                    <span className='w-full text-left'>Langue **ITALIENNE**</span>
+                                </li>
+                            </ul>
+                            <p className="text-center mt-6 pt-4 border-t border-gray-200">
+                                <span className="font-bold text-gray-700 block">Droit: <span className="text-3xl font-extrabold text-green-600">10 000Ar</span></span>
+                                <span className="font-bold text-gray-700 block mt-2">Ecolage: <span className="text-3xl font-extrabold text-green-600">10 000Ar</span></span>
+                            </p>
                         </div>
                     </div>
 
-                    <div className="col-lg-4 mb-4 p-4">
-                        <div className="card">
-                            <div className="card-body shadow-lg">
-                                <div className="text-center mb-3">
-                                    <img src={patisserie} alt="Pattisserie" className='rounded-circle' width={200} height={200} style={{ border: "5px solid white" }} />
-                                    <h2 className="p-2 fw-bold text-success">Pâtisserie</h2>
-                                </div>
-                                <ul className='list-unstyled mt-3' style={{ marginLeft: "25%" }}>
-                                    <li className='fw-bold d-flex align-items-center mb-3'>
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather fw-bold text-success mx-1 feather-check"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                                        <button className='btn btn-primary w-50 fw-bold'>PETIT FOUR</button>
-                                    </li>
-                                    <li className='fw-bold d-flex align-items-center mb-3'>
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather fw-bold text-success mx-1  feather-check"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                                        <button className="btn btn-success w-50 fw-bold">FAST FOOD</button>
-                                    </li>
-                                    <li className='fw-bold d-flex align-items-center mb-3'>
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather fw-bold text-success mx-1  feather-check"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                                        <button className="btn btn-danger w-50 fw-bold">GATEAU</button>
-                                    </li>
-                                </ul>
-                                <p className="text-center mt-3 mb-0">
-                                    <span className="fw-bold text-default">Droit:</span> <span className="fs-2 fw-bold text-success">10 000Ar</span>
-                                    <br />
-                                    <span className="fw-bold mt-2 text-default">Ecolage:</span> <span className="fs-2 fw-bold text-success">15 000Ar</span>
-                                </p>
+                    {/* Carte Pâtisserie */}
+                    <div className="p-4">
+                        <div className="bg-white p-6 rounded-xl shadow-2xl hover:shadow-blue-300 transition duration-300 transform hover:scale-[1.02]">
+                            <div className="text-center mb-5">
+                                <img src={patisserie} alt="Pâtisserie" className='rounded-full w-48 h-48 object-cover mx-auto ring-4 ring-blue-600/50' />
+                                <h3 className="text-2xl font-bold text-green-600 mt-4">Pâtisserie</h3>
                             </div>
+                            <ul className='list-none space-y-4 px-4'>
+                                <li className='font-semibold flex items-center justify-between'>
+                                    <FaCheck size={20} className='text-green-600 mr-2' />
+                                    <span className='w-full text-left'>**PETIT FOUR**</span>
+                                </li>
+                                <li className='font-semibold flex items-center justify-between'>
+                                    <FaCheck size={20} className='text-green-600 mr-2' />
+                                    <span className='w-full text-left'>**FAST FOOD**</span>
+                                </li>
+                                <li className='font-semibold flex items-center justify-between'>
+                                    <FaCheck size={20} className='text-green-600 mr-2' />
+                                    <span className='w-full text-left'>**GÂTEAU**</span>
+                                </li>
+                            </ul>
+                            <p className="text-center mt-6 pt-4 border-t border-gray-200">
+                                <span className="font-bold text-gray-700 block">Droit: <span className="text-3xl font-extrabold text-green-600">10 000Ar</span></span>
+                                <span className="font-bold text-gray-700 block mt-2">Ecolage: <span className="text-3xl font-extrabold text-green-600">15 000Ar</span></span>
+                            </p>
                         </div>
                     </div>
-                    <h2 className="text-primary fw-bold text-center card-text">Formation de 2ans (ou Formation à long terme) + Cours de Perfectionnement ciblé pour l'âge de 15 à 25 ans</h2>
-                    <div className="col-lg-4 mb-4 p-4">
-                        <div className="card">
-                            <div className="card-body">
-                                <div className="text-center mb-3">
-                                    <img src={music} alt="Musique" className="rounded-circle" width={200} height={200} style={{ border: "5px solid white" }} />
-                                    <h2 className="p-1 fw-bold text-success">Musique</h2>
-                                </div>
-                                <ul className='list-unstyled mt-3' style={{ marginLeft: "25%" }}>
-                                    <li className='fw-bold d-flex align-items-center mb-3'>
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather fw-bold text-success mx-1 feather-check"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                                        <button className='btn btn-primary w-50 fw-bold'>PIANO-CLAVIER</button>
-                                    </li>
-                                    <li className='fw-bold d-flex align-items-center mb-3'>
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather fw-bold text-success mx-1  feather-check"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                                        <button className="btn btn-success w-50 fw-bold">GUITARE-DANSE</button>
-                                    </li>
-                                    <li className='fw-bold d-flex align-items-center mb-3'>
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className ="feather fw-bold text-success mx-1  feather-check"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                                        <button className="btn btn-danger w-50 fw-bold">FLUITE-BATTERIE</button>
-                                    </li>
-                                </ul>
-                                <p className="text-center mt-3 mb-0">
-                                    <span className="fw-bold text-default">Droit:</span> <span className="fs-2 fw-bold text-success">10 000Ar</span>
-                                    <br />
-                                    <span className="fw-bold mt-2 text-default">Ecolage:</span> <span className="fs-2 fw-bold text-success">15 000Ar</span>
-                                </p>
+                </div>
+
+                {/* --- Formations (Long Terme) --- */}
+                <h2 className="text-blue-600 text-3xl font-extrabold text-center mt-16 mb-8">
+                    Formation de 2 ans (ou Formation à long terme) + Cours de Perfectionnement ciblé pour l'âge de 15 à 25 ans
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {/* Carte Musique */}
+                    <div className="p-4">
+                        <div className="bg-white p-6 rounded-xl shadow-2xl hover:shadow-blue-300 transition duration-300 transform hover:scale-[1.02]">
+                            <div className="text-center mb-5">
+                                <img src={music} alt="Musique" className="rounded-full w-48 h-48 object-cover mx-auto ring-4 ring-blue-600/50" />
+                                <h3 className="text-2xl font-bold text-green-600 mt-4">Musique</h3>
                             </div>
+                            <ul className='list-none space-y-4 px-4'>
+                                <li className='font-semibold flex items-center justify-between'>
+                                    <FaCheck size={20} className='text-green-600 mr-2' />
+                                    <span className='w-full text-left'>**PIANO-CLAVIER**</span>
+                                </li>
+                                <li className='font-semibold flex items-center justify-between'>
+                                    <FaCheck size={20} className='text-green-600 mr-2' />
+                                    <span className='w-full text-left'>**GUITARE-DANSE**</span>
+                                </li>
+                                <li className='font-semibold flex items-center justify-between'>
+                                    <FaCheck size={20} className='text-green-600 mr-2' />
+                                    <span className='w-full text-left'>**FLÛTE-BATTERIE**</span>
+                                </li>
+                            </ul>
+                            <p className="text-center mt-6 pt-4 border-t border-gray-200">
+                                <span className="font-bold text-gray-700 block">Droit: <span className="text-3xl font-extrabold text-green-600">10 000Ar</span></span>
+                                <span className="font-bold text-gray-700 block mt-2">Ecolage: <span className="text-3xl font-extrabold text-green-600">15 000Ar</span></span>
+                            </p>
                         </div>
                     </div>
-                    <div className="col-lg-4 mb-4 p-4">
-                        <div className="card">
-                            <div className="card-body">
-                                <div className="text-center mb-3">
-                                    <img src={langue} alt="Coupe" className="rounded-circle" width={200} height={200} style={{ border: "5px solid white" }} />
-                                    <h2 className="p-1 fw-bold text-success">Coupe et Couture</h2>
-                                </div>
-                                <ul className='list-unstyled mt-3' style={{ marginLeft: "25%" }}>
-                                    <li className='fw-bold d-flex align-items-center mb-3'>
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather fw-bold text-success mx-1 feather-check"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                                        <button className='btn btn-primary w-50 fw-bold'>PATALON-CHEMISE</button>
-                                    </li>
-                                    <li className='fw-bold d-flex align-items-center mb-3'>
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather fw-bold text-success mx-1  feather-check"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                                        <button className="btn btn-success w-50 fw-bold">VESTE-BLOUSE</button>
-                                    </li>
-                                    <li className='fw-bold d-flex align-items-center mb-3'>
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather fw-bold text-success mx-1  feather-check"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                                        <button className="btn btn-danger w-50 fw-bold">ROBE - COSTARD ...</button>
-                                    </li>
-                                </ul>
-                                <p className="text-center mt-3 mb-0">
-                                    <span className="fw-bold text-default">Droit:</span> <span className="fs-2 fw-bold text-success">10 000Ar</span>
-                                    <br />
-                                    <span className="fw-bold mt-2 text-default">Ecolage:</span> <span className="fs-2 fw-bold text-success">15 000Ar</span>
-                                </p>
+
+                    {/* Carte Coupe et Couture 1 */}
+                    <div className="p-4">
+                        <div className="bg-white p-6 rounded-xl shadow-2xl hover:shadow-blue-300 transition duration-300 transform hover:scale-[1.02]">
+                            <div className="text-center mb-5">
+                                <img src={langue} alt="Coupe et Couture" className="rounded-full w-48 h-48 object-cover mx-auto ring-4 ring-blue-600/50" />
+                                <h3 className="text-2xl font-bold text-green-600 mt-4">Coupe et Couture</h3>
                             </div>
+                            <ul className='list-none space-y-4 px-4'>
+                                <li className='font-semibold flex items-center justify-between'>
+                                    <FaCheck size={20} className='text-green-600 mr-2' />
+                                    <span className='w-full text-left'>**PANTALON-CHEMISE**</span>
+                                </li>
+                                <li className='font-semibold flex items-center justify-between'>
+                                    <FaCheck size={20} className='text-green-600 mr-2' />
+                                    <span className='w-full text-left'>**VESTE-BLOUSE**</span>
+                                </li>
+                                <li className='font-semibold flex items-center justify-between'>
+                                    <FaCheck size={20} className='text-green-600 mr-2' />
+                                    <span className='w-full text-left'>**ROBE - COSTARD ...**</span>
+                                </li>
+                            </ul>
+                            <p className="text-center mt-6 pt-4 border-t border-gray-200">
+                                <span className="font-bold text-gray-700 block">Droit: <span className="text-3xl font-extrabold text-green-600">10 000Ar</span></span>
+                                <span className="font-bold text-gray-700 block mt-2">Ecolage: <span className="text-3xl font-extrabold text-green-600">15 000Ar</span></span>
+                            </p>
                         </div>
                     </div>
-                    <div className="col-lg-4 mb-4 p-4">
-                        <div className="card">
-                            <div className="card-body">
-                                <div className="text-center mb-3">
-                                    <img src={langue} alt="Coupe" className="rounded-circle" width={200} height={200} style={{ border: "5px solid white" }} />
-                                    <h2 className="p-1 fw-bold text-success">Coupe et Couture</h2>
-                                </div>
-                                <p className="text-secondary text-center">
-                                    Le CFP Laura Vicuña s'est progressivement structuré à côté de la
-                                    communauté, devenant un pilier de l'éducation professionnelle dans la région.
-                                </p>
+                    
+                    {/* Carte Coupe et Couture 2 (Duplication - laissé tel quel) */}
+                    <div className="p-4">
+                        <div className="bg-white p-6 rounded-xl shadow-2xl hover:shadow-blue-300 transition duration-300 transform hover:scale-[1.02] h-full flex flex-col justify-center">
+                            <div className="text-center mb-5">
+                                <img src={langue} alt="Coupe et Couture" className="rounded-full w-48 h-48 object-cover mx-auto ring-4 ring-blue-600/50" />
+                                <h3 className="text-2xl font-bold text-green-600 mt-4">Coupe et Couture</h3>
                             </div>
+                            <p className="text-gray-500 text-center text-lg mt-4">
+                                Le CFP Laura Vicuña s'est progressivement structuré à côté de la
+                                communauté, devenant un pilier de l'éducation professionnelle dans la région.
+                            </p>
                         </div>
                     </div>
                 </div>
             </div>
-            <div className="container-fluid p-5 shadow mt-3 pt-5">
-                <div className="row container-fluid shadow p-4" id='lycee'>
-                    <h2 className="text-primary text-center position-relative fw-bold mb-5">
-                        Lycée Catholique Laura Vicuna Anjarasoa
-                        <span style={{ display: "block", borderBottom: '4px solid #0d6efd', 
-                            width: '220px', margin: '0 auto', marginTop: '5px' }}></span>
-                    </h2>
-                    <div className="col-12 col-lg-4">
-                        <img src={lycee} height={50} alt="FMA" className="img-fluid rounded" />
+
+            {/* --- Section Lycée --- */}
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16 mt-12 shadow-xl bg-blue-50" id='lycee'>
+                <h2 className="text-blue-800 text-3xl lg:text-4xl font-extrabold text-center relative mb-12">
+                    Lycée Catholique Laura Vicuna Anjarasoa
+                    <span className="block w-64 h-1 bg-blue-800 mx-auto mt-2"></span>
+                </h2>
+                
+                <div className="flex flex-wrap items-center mb-10">
+                    <div className="w-full lg:w-4/12 mb-6 lg:mb-0">
+                        <img src={lycee} alt="Lycée Laura Vicuna" className="w-full h-auto rounded-xl shadow-2xl" />
                     </div>
-                    <div className="col-12 col-lg-8 mb-3">
-                        <p className='mt-5 ps-2 p-4' style={{ textAlign: "justify"}}>
-                        Au Lycee Laura Vicuna, le lycée se divise en trois niveaux. D'abord, il y a la classe de seconde <strong >2<sup>nde</sup></strong>,
-                        qui marque l'entrée au lycée après le collège. C'est une année de transition et de détermination du parcours. Ensuite, on passe en première <strong >1<sup>ère</sup> L et S</strong>. 
-                        C'est une année cruciale où les élèves choisissent des spécialités et commencent à préparer le baccalauréat. Finalement, la classe de terminale <strong >T<sup>le</sup> A, D et C </strong>
-                        est la dernière année du lycée, consacrée à l'obtention du diplôme du baccalauréat, qui ouvre les portes de l'enseignement supérieur
+                    <div className="w-full lg:w-8/12 lg:pl-10">
+                        <p className='mt-5 text-lg text-gray-700 leading-relaxed p-4 bg-white rounded-lg shadow-md text-justify'>
+                        Au Lycee Laura Vicuna, le lycée se divise en trois niveaux. D'abord, il y a la classe de **seconde (2<sup>nde</sup>)**,
+                        qui marque l'entrée au lycée après le collège. C'est une année de transition et de détermination du parcours. Ensuite, on passe en **première (1<sup>ère</sup> L et S)**. 
+                        C'est une année cruciale où les élèves choisissent des spécialités et commencent à préparer le baccalauréat. Finalement, la classe de **terminale (T<sup>le</sup> A, D et C)**
+                        est la dernière année du lycée, consacrée à l'obtention du diplôme du baccalauréat, qui ouvre les portes de l'enseignement supérieur.
                         </p>
                     </div>
+                </div>
 
-                    <div className="col-lg-4 mt-5 p-2" >
-                        <div className="card card-body">
-                            <h2 className="text-primary text-center fw-bold"> <FaPen size={24} className='mx-1 text-danger' />Classe de Seconde(2<sup>nde</sup>)</h2>
-                            <div className="mb-3 text-center">
-                                <ul className='list-unstyled mt-3' style={{ marginLeft: "25%" }}>
-                                    <li className='fw-bold d-flex align-items-center mb-3'>
-                                        <FaCheck size={24} className='mx-1 btn btn-warning' /> Droit d'Inscription:<h2 className='fw-bold text-success' style={{ marginLeft: '10%'}}>15 000Ar</h2>
-                                    </li>
-                                    <li className='fw-bold d-flex align-items-center mb-3'>
-                                        <FaCheck size={24} className='mx-1 btn btn-warning' /> Frais Scolaires: <h2 className='fw-bold text-success' style={{ marginLeft: '20%'}}>74 000Ar</h2>
-                                    </li>
-                                    <li className='fw-bold d-flex align-items-center mb-3'>
-                                        <FaCheck size={24} className='mx-1 btn btn-warning' /> VRM: <h2 className='fw-bold text-success' style={{ marginLeft: '40%'}}> 6 000Ar</h2>
-                                    </li>
-                                    <li className='fw-bold d-flex align-items-center mb-3'>
-                                        <FaCheck size={24} className='mx-1 btn btn-warning' /> Ecolage par mois: <h2 className='fw-bold text-success' style={{ marginLeft: '13%'}}>28 500Ar </h2>
-                                    </li>
-                                </ul>
-                            </div>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-12">
+                    {/* Carte Seconde */}
+                    <div className="p-4">
+                        <div className="bg-white p-6 rounded-xl shadow-2xl border-t-4 border-red-500">
+                            <h3 className="text-blue-600 text-2xl font-bold text-center mb-6 flex items-center justify-center">
+                                <FaPen size={24} className='mr-2 text-red-500' /> Classe de Seconde (2<sup>nde</sup>)
+                            </h3>
+                            <ul className='list-none space-y-4 px-4'>
+                                <li className='font-semibold flex items-center justify-between border-b pb-2'>
+                                    <FaCheck size={20} className='text-yellow-500 mr-2' /> Droit d'Inscription: <span className='font-extrabold text-2xl text-green-600'>15 000Ar</span>
+                                </li>
+                                <li className='font-semibold flex items-center justify-between border-b pb-2'>
+                                    <FaCheck size={20} className='text-yellow-500 mr-2' /> Frais Scolaires: <span className='font-extrabold text-2xl text-green-600'>74 000Ar</span>
+                                </li>
+                                <li className='font-semibold flex items-center justify-between border-b pb-2'>
+                                    <FaCheck size={20} className='text-yellow-500 mr-2' /> VRM: <span className='font-extrabold text-2xl text-green-600'>6 000Ar</span>
+                                </li>
+                                <li className='font-semibold flex items-center justify-between pt-2'>
+                                    <FaCheck size={20} className='text-yellow-500 mr-2' /> Ecolage par mois: <span className='font-extrabold text-2xl text-green-600'>28 500Ar</span>
+                                </li>
+                            </ul>
                         </div>
                     </div>
-                    <div className="col-lg-4 mt-5 p-2">
-                        <div className="card card-body">
-                            <h2 className="text-primary text-center fw-bold"> <FaPen size={24} className='mx-1 text-danger' /> Classe de Première(1<sup>ère</sup>)</h2>
-                            <div className="mb-3 text-center">
-                                <ul className='list-unstyled mt-3' style={{ marginLeft: "25%" }}>
-                                    <li className='fw-bold d-flex align-items-center mb-3'>
-                                        <FaCheck size={24} className='mx-1 btn btn-warning' /> Droit d'Inscription:<h2 className='fw-bold text-success' style={{ marginLeft: '10%'}}>15 000Ar</h2>
-                                    </li>
-                                    <li className='fw-bold d-flex align-items-center mb-3'>
-                                        <FaCheck size={24} className='mx-1 btn btn-warning' /> Frais Scolaires: <h2 className='fw-bold text-success' style={{ marginLeft: '20%'}}>74 000Ar</h2>
-                                    </li>
-                                    <li className='fw-bold d-flex align-items-center mb-3'>
-                                        <FaCheck size={24} className='mx-1 btn btn-warning' /> VRM: <h2 className='fw-bold text-success' style={{ marginLeft: '40%'}}> 6 000Ar</h2>
-                                    </li>
-                                    <li className='fw-bold d-flex align-items-center mb-3'>
-                                        <FaCheck size={24} className='mx-1 btn btn-warning' /> Ecolage par mois: <h2 className='fw-bold text-success' style={{ marginLeft: '13%'}}>29 000Ar </h2>
-                                    </li>
-                                </ul>
-                            </div>
+                    
+                    {/* Carte Première */}
+                    <div className="p-4">
+                        <div className="bg-white p-6 rounded-xl shadow-2xl border-t-4 border-red-500">
+                            <h3 className="text-blue-600 text-2xl font-bold text-center mb-6 flex items-center justify-center">
+                                <FaPen size={24} className='mr-2 text-red-500' /> Classe de Première (1<sup>ère</sup>)
+                            </h3>
+                            <ul className='list-none space-y-4 px-4'>
+                                <li className='font-semibold flex items-center justify-between border-b pb-2'>
+                                    <FaCheck size={20} className='text-yellow-500 mr-2' /> Droit d'Inscription: <span className='font-extrabold text-2xl text-green-600'>15 000Ar</span>
+                                </li>
+                                <li className='font-semibold flex items-center justify-between border-b pb-2'>
+                                    <FaCheck size={20} className='text-yellow-500 mr-2' /> Frais Scolaires: <span className='font-extrabold text-2xl text-green-600'>74 000Ar</span>
+                                </li>
+                                <li className='font-semibold flex items-center justify-between border-b pb-2'>
+                                    <FaCheck size={20} className='text-yellow-500 mr-2' /> VRM: <span className='font-extrabold text-2xl text-green-600'>6 000Ar</span>
+                                </li>
+                                <li className='font-semibold flex items-center justify-between pt-2'>
+                                    <FaCheck size={20} className='text-yellow-500 mr-2' /> Ecolage par mois: <span className='font-extrabold text-2xl text-green-600'>29 000Ar</span>
+                                </li>
+                            </ul>
                         </div>
                     </div>
-                    <div className="col-lg-4 mt-5 p-2">
-                        <div className="card card-body">
-                            <h2 className="text-primary text-center fw-bold"> <FaPen size={24} className='mx-1 text-danger' /> Classe de Terminale(T<sup>le</sup>)</h2>
-                            <div className="mb-3 text-center">
-                                <ul className='list-unstyled mt-3' style={{ marginLeft: "25%" }}>
-                                    <li className='fw-bold d-flex align-items-center mb-3'>
-                                        <FaCheck size={24} className='mx-1 btn btn-warning' /> Droit d'Inscription:<h2 className='fw-bold text-success' style={{ marginLeft: '10%'}}>15 000Ar</h2>
-                                    </li>
-                                    <li className='fw-bold d-flex align-items-center mb-3'>
-                                        <FaCheck size={24} className='mx-1 btn btn-warning' /> Frais Scolaires: <h2 className='fw-bold text-success' style={{ marginLeft: '20%'}}>74 000Ar</h2>
-                                    </li>
-                                    <li className='fw-bold d-flex align-items-center mb-3'>
-                                        <FaCheck size={24} className='mx-1 btn btn-warning' /> VRM: <h2 className='fw-bold text-success' style={{ marginLeft: '40%'}}> 6 000Ar</h2>
-                                    </li>
-                                    <li className='fw-bold d-flex align-items-center mb-3'>
-                                        <FaCheck size={24} className='mx-1 btn btn-warning' /> Ecolage par mois: <h2 className='fw-bold text-success' style={{ marginLeft: '13%'}}>30 000Ar </h2>
-                                    </li>
-                                </ul>
-                            </div>
+
+                    {/* Carte Terminale */}
+                    <div className="p-4">
+                        <div className="bg-white p-6 rounded-xl shadow-2xl border-t-4 border-red-500">
+                            <h3 className="text-blue-600 text-2xl font-bold text-center mb-6 flex items-center justify-center">
+                                <FaPen size={24} className='mr-2 text-red-500' /> Classe de Terminale (T<sup>le</sup>)
+                            </h3>
+                            <ul className='list-none space-y-4 px-4'>
+                                <li className='font-semibold flex items-center justify-between border-b pb-2'>
+                                    <FaCheck size={20} className='text-yellow-500 mr-2' /> Droit d'Inscription: <span className='font-extrabold text-2xl text-green-600'>15 000Ar</span>
+                                </li>
+                                <li className='font-semibold flex items-center justify-between border-b pb-2'>
+                                    <FaCheck size={20} className='text-yellow-500 mr-2' /> Frais Scolaires: <span className='font-extrabold text-2xl text-green-600'>74 000Ar</span>
+                                </li>
+                                <li className='font-semibold flex items-center justify-between border-b pb-2'>
+                                    <FaCheck size={20} className='text-yellow-500 mr-2' /> VRM: <span className='font-extrabold text-2xl text-green-600'>6 000Ar</span>
+                                </li>
+                                <li className='font-semibold flex items-center justify-between pt-2'>
+                                    <FaCheck size={20} className='text-yellow-500 mr-2' /> Ecolage par mois: <span className='font-extrabold text-2xl text-green-600'>30 000Ar</span>
+                                </li>
+                            </ul>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     );
-  }
 }
 
 export default Accueil;

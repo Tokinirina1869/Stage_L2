@@ -20,29 +20,29 @@ class Parcours extends Model
         'datedebut',
     ];
 
-    /**
-     * Relation plusieurs parcours ↔ inscriptions (table pivot: suivres)
-     */
+
     public function inscriptions()
     {
         return $this->belongsToMany(
             Inscription::class,
             'suivres',
-            'code_formation', // clé étrangère sur suivres pointant vers parcours
-            'no_inscrit'      // clé étrangère sur suivres pointant vers inscription
+            'code_formation',
+            'no_inscrit'  
         );
     }
 
-    /**
-     * Génère automatiquement un code_formation unique avant insertion
-     */
+    // Parcours.php
+    public function personnes()
+    {
+        return $this->belongsToMany(Personne::class, 'suivres', 'code_formation', 'no_inscrit');
+    }
+
     protected static function boot()
     {
         parent::boot();
 
         static::creating(function ($parcours) {
             if (empty($parcours->code_formation)) {
-                // Exemple: CF20251006113000A1B2C3
                 $parcours->code_formation = 'CF' . strtoupper(uniqid());
             }
         });

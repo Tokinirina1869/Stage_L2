@@ -13,6 +13,7 @@
     "dependencies": {
         "formik": "^2.4.6",
         "react-hook-form": "^7.64.0",
+        "recharts": "^3.3.0",
         "yup": "^1.7.1"
     }
 }
