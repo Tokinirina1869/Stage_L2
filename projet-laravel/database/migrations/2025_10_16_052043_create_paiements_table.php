@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('paiements', function (Blueprint $table) {
-            $table->string('no_paie',7)->primary();
+            $table->string('no_paie',50)->primary();
             $table->string('idfrais', 255);
             $table->unsignedBigInteger('no_inscrit');
             $table->string('matricule', 8);

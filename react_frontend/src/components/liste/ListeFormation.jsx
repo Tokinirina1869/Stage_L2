@@ -49,12 +49,12 @@ const ListeFormation = ({ onViewDashPro }) => {
 
       <div className="shadow p-4 md:p-6 flex items-center justify-between">
         <button onClick={onViewDashPro} className="p-2 rounded-full hover:bg-gray-100">
-          <ArrowLeft className="w-6 h-6 text-indigo-600" />
+          <ArrowLeft className="w-8 h-8 text-indigo-600" />
         </button>
 
         <div className="flex items-center text-xl md:text-2xl font-bold space-x-3 mb-6 text-gray-900">
           <FaGraduationCap className="w-8 h-8 text-indigo-600" />
-          <h1 className="text-3xl font-bold text-gray-900"> Liste des inscrits au Centre de la Formation Professionnelle</h1>
+          <h5 className="font-bold text-gray-900">Centre de la Formation Professionnelle FMA Laura Vicuna Anjarasoa Ankofafa</h5>
         </div>
 
         <button onClick={openNewPersonne} className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-full hover:bg-indigo-700">
@@ -72,14 +72,12 @@ const ListeFormation = ({ onViewDashPro }) => {
         show={showModification} 
         handleClose={closeModification} 
         personneData={selectedPersonne} 
-        // 🎯 Passer la fonction de rafraîchissement au composant Modification
         refreshList={fetchFormations}
       />
 
       <NouvellePersonne 
         show={showPersonne}  
         handleClose={closeNewPersonne}
-        // 🎯 Passer la fonction de rafraîchissement au composant d'ajout
         refreshList={fetchFormations} 
       />
     </div>

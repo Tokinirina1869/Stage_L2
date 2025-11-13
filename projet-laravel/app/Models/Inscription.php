@@ -16,12 +16,6 @@ class Inscription extends Model
 
     protected $fillable = ['matricule', 'dateinscrit', 'anneesco'];
 
-    // Nettoie le matricule avant l’enregistrement
-    public function setMatriculeAttribute($value)
-    {
-        $this->attributes['matricule'] = trim($value);
-    }
-
     public function inscriptionformation()
     {
         return $this->hasOne(FormationModel::class, 'no_inscrit', 'no_inscrit');
@@ -32,6 +26,11 @@ class Inscription extends Model
         return $this->hasOne(InscriptionAcademie::class, 'no_inscrit', 'no_inscrit');
     }
 
+    public function getNoInscritAttribute($value)
+    {
+        // Doit retourner la valeur de la colonne no_inscrit (l'ID numérique)
+        return $value; 
+    }
     public function personne()
     {
         return $this->belongsTo(Personne::class, 'matricule', 'matricule');

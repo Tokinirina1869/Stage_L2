@@ -54,21 +54,6 @@ class InscriptionCompleteController extends Controller
             'data' => $data,
         ]);
     }
-
-    // public function listeFormation()
-    // {
-    //     $data = FormationModel::with(['inscription.personne', 'parcours'])
-    //         ->whereHas('inscription', function ($query) {
-    //             $query->whereDoesntHave('inscriptionacademique'); 
-    //         })
-    //         ->get();
-
-    //     return response()->json([
-    //         'Status'  => 'Succès',
-    //         'Message' => 'Liste des personnes inscrites à une formation uniquement',
-    //         'data'    => $data,
-    //     ]);
-    // }
     
     public function listeFormation()
     {
@@ -126,7 +111,7 @@ class InscriptionCompleteController extends Controller
         ]);
     }
     public function countinscription(){
-        $totalInscrit = Inscription::count();
+        $totalInscrit = FormationModel::count();
         return response()->json(['total' => $totalInscrit]);
     }
 
@@ -298,9 +283,12 @@ class InscriptionCompleteController extends Controller
 
         return response()->json($inscription);
     }
+
     public function store(Request $request)
     {
-        // Validation des champs principaux
+        // ----------------------------
+        // 1️⃣ Validation
+        // ----------------------------
         $request->validate([
             'nom'            => 'required|string|max:255',
             'prenom'         => 'nullable|string|max:255',
@@ -309,141 +297,129 @@ class InscriptionCompleteController extends Controller
             'adresse'        => 'required|string|max:200',
             'dateinscrit'    => 'required|date',
             'anneesco'       => 'required|string|max:20',
-            // 'matricule_code' est le préfixe de la formation (e.g., 'INF', 'LAN')
-            'matricule_code' => 'required|string|size:3', 
+            'duree'          => 'required|string|max:50',
+            'type_formation' => 'required|string|max:100',
             'parcours'       => 'required|array',
-            'cin'            => 'nullable|string|max:12', 
-            'photo'          => 'nullable|file|mimes:jpeg,png,jpg,gif|max:2048',
+            'email'          => 'nullable|email',
+            'cin'            => 'nullable|string|max:12',
+            'photo'          => 'nullable|file|mimes:jpeg,png,jpg,gif',
         ]);
 
         DB::beginTransaction();
 
         try {
-            // 1. Récupération et nettoyage des données pour la table Personne
-            $personneData = $request->only([
-                'nom','prenom','naiss','lieunaiss','sexe','adresse','cin','datedel','lieucin',
-                'nompere','nommere','nomtuteur','adressparent','adresstuteur',
-                'phoneparent','phonetuteur'
-            ]);
-            
-            // Nettoyage: Supprimer les clés vides ou nulles
-            $personneData = array_filter($personneData, function($value) {
-                return !is_null($value) && $value !== '';
-            });
-
-            $cin_present = !empty($request->cin);
+            $annee = date('y'); // ex: 25
             $personne = null;
-            $matricule = null;
-            
-            // 2. LOGIQUE DE GESTION DE LA PERSONNE ET DU MATRICULE
-            if ($cin_present) {
+
+            // ----------------------------
+            // 2️⃣ Vérifier si la personne existe (via CIN)
+            // ----------------------------
+            if (!empty($request->cin)) {
                 $personne = Personne::where('cin', $request->cin)->first();
             }
 
+            // ----------------------------
+            // 3️⃣ Déterminer le numéro unique global
+            // ----------------------------
             if ($personne) {
-                // Cas A : Personne EXISTE (Mise à jour et réutilisation du matricule)
-                $matricule = $personne->matricule;
-                
-                // Gestion de la photo lors de la mise à jour
-                if ($request->hasFile('photo')) {
-                    $path = $request->file('photo')->store('photos', 'public');
-                    $personneData['photo'] = $path;
-                }
-                
-                $personne->update($personneData);
-                
-            } 
-            else {
-                // Cas B : Nouvelle Personne (CIN manquant ou nouveau CIN). Génération du matricule.
-
-                $codeFormation = strtoupper($request->input('matricule_code'));
-                
-                // 3. Génération du NOUVEAU matricule (Format: XXX00001)
-                
-                // 🎯 CORRECTION : Récupérer le dernier matricule GLOBAL
-                $dernierMatriculeGlobal = Personne::orderBy('matricule', 'desc')->first();
-
-                $numero = 1;
-                if ($dernierMatriculeGlobal) {
-                    // Extraire le numéro séquentiel (les 5 derniers caractères)
-                    $numeroSequence = (int) substr($dernierMatriculeGlobal->matricule, -5); 
-                    
-                    // Incrémentation du numéro séquentiel global
-                    $numero = $numeroSequence + 1;
-                }
-                
-                // Combinaison: Préfixe de la formation + Numéro séquentiel global
-                $matricule = $codeFormation . str_pad($numero, 5, '0', STR_PAD_LEFT);
-                
-                // 4. Création de la nouvelle Personne
-                $personneData['matricule'] = $matricule;
-                
-                // Gestion de la photo
-                if ($request->hasFile('photo')) {
-                    $path = $request->file('photo')->store('photos', 'public');
-                    $personneData['photo'] = $path;
+                // Personne existante → récupérer le numéro existant
+                if (preg_match('/\/(\d+)$/', $personne->matricule, $matches)) {
+                    $numero = (int)$matches[1];
                 } else {
-                    unset($personneData['photo']);
+                    $numero = 1;
                 }
-                
-                $personne = Personne::create($personneData);
+            } else {
+                // Nouvelle personne → incrémente le dernier numéro global
+                $dernier = Personne::orderByRaw("CAST(SPLIT_PART(matricule, '/', 3) AS INTEGER) DESC")->first();
+                if ($dernier && preg_match('/\/(\d+)$/', $dernier->matricule, $matches)) {
+                    $numero = (int)$matches[1] + 1;
+                } else {
+                    $numero = 1;
+                }
+            }
 
-                if (!$personne || !$personne->exists) {
-                    throw new \Exception("Échec de la création de l'enregistrement Personne. Vérifiez \$fillable du modèle.");
-                }
-            } 
-            
-            // 5. CRÉATION DE L'INSCRIPTION
+            // ----------------------------
+            // 4️⃣ Gérer la photo si présente
+            // ----------------------------
+            $personneData = array_filter($request->only([
+                'nom','prenom','naiss','lieunaiss','sexe','adresse','cin','email','datedel','lieucin',
+                'nompere','nommere','nomtuteur','adressparent','adresstuteur',
+                'phoneparent','phonetuteur'
+            ]), fn($v) => !is_null($v) && $v !== '');
+
+            if ($request->hasFile('photo')) {
+                $path = $request->file('photo')->store('photos', 'public');
+                $personneData['photo'] = $path;
+            }
+
+            // ----------------------------
+            // 5️⃣ Création ou mise à jour de la personne
+            // ----------------------------
+            if ($personne) {
+                $personne->update($personneData);
+            } else {
+                // Générer le matricule pour le premier parcours
+                $firstNomFormation = $request->input('parcours')[0]['nomformation'] ?? null;
+                $parcours = Parcours::where('nomformation', $firstNomFormation)->first();
+                $codeFormation = $parcours ? $parcours->code_formation : 'XXX';
+                $matricule = "{$annee}/{$codeFormation}/" . str_pad($numero, 2, '0', STR_PAD_LEFT);
+
+                $personneData['matricule'] = $matricule;
+                $personne = Personne::create($personneData);
+            }
+
+            // ----------------------------
+            // 6️⃣ Création de l'inscription principale
+            // ----------------------------
             $inscription = Inscription::create([
-                'matricule'      => $matricule, 
+                'matricule'      => $personne->matricule, // numéro global avec code formation du premier parcours
                 'dateinscrit'    => $request->dateinscrit,
                 'anneesco'       => $request->anneesco,
                 'duree'          => $request->duree ?? null,
                 'type_formation' => $request->type_formation,
             ]);
-            
-            // 6. CRÉATION DE LA FORMATION
+
+              // 6️⃣ FORMATION
             FormationModel::create([
                 'no_inscrit'     => $inscription->no_inscrit,
                 'duree'          => $request->duree ?? null,
                 'type_formation' => $request->type_formation,
             ]);
+            // ----------------------------
+            // 7️⃣ Enregistrer tous les parcours choisis
+            // ----------------------------
+            foreach ($request->parcours as $p) {
+                if (!empty($p['nomformation'])) {
+                    $formation = Parcours::firstOrCreate(
+                        ['nomformation' => $p['nomformation']],
+                        ['datedebut' => $p['datedebut'] ?? null]
+                    );
 
-            // 7. GESTION DES PARCOURS ASSOCIÉS (Table pivot)
-            if ($request->has('parcours') && is_array($request->parcours)) {
-                foreach ($request->parcours as $p) {
-                    if (!empty($p['nomformation'])) {
-                        // Trouver ou créer le parcours dans la table 'parcours'
-                        $formation = Parcours::firstOrCreate(
-                            ['nomformation' => $p['nomformation']], // Conditions de recherche
-                            [ // Données de création si non trouvé
-                                'code_formation' => 'CF' . strtoupper(uniqid()), 
-                                'datedebut' => $p['datedebut'] ?? null,
-                            ]
-                        );
+                    // Générer le matricule spécifique à ce parcours
+                    $matriculeParcours = "{$annee}/{$formation->code_formation}/" . str_pad($numero, 2, '0', STR_PAD_LEFT);
 
-                        // Attacher l'inscription au parcours
-                        $inscription->parcours()->syncWithoutDetaching([$formation->code_formation]);
-                    }
+                    // On peut stocker ce matricule spécifique pour le parcours si besoin
+                    $inscription->parcours()->syncWithoutDetaching([$formation->code_formation]);
                 }
             }
 
             DB::commit();
+
             return response()->json([
                 'status' => 'success',
-                'message' => 'Inscription complète enregistrée'
+                'message' => '✅ Inscription complète enregistrée avec succès.',
+                'numero_global' => $numero
             ]);
 
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
                 'status' => 'error',
-                'message' => "Erreur Ligne {$e->getLine()} : " . $e->getMessage(),
-                'line' => $e->getLine(),
-                'input' => $request->all()
+                'message' => "❌ Erreur ligne {$e->getLine()} : " . $e->getMessage(),
             ], 500);
         }
     }
+
 
 
     public function update(Request $request, $matricule)
@@ -483,7 +459,7 @@ class InscriptionCompleteController extends Controller
             $inscription = Inscription::where('matricule', $matricule)->firstOrFail();
 
             $personne->fill($request->only([
-                'nom','prenom','naiss','lieunaiss','sexe','adresse','cin','datedel','lieucin',
+                'nom','prenom','naiss','lieunaiss','sexe','adresse','cin','email','datedel','lieucin',
                 'nompere','nommere','nomtuteur','adressparent','adresstuteur',
                 'phoneparent','phonetuteur'
             ]));
@@ -548,7 +524,7 @@ class InscriptionCompleteController extends Controller
     }
 
 
-   public function destroy($matricule)
+    public function destroy($matricule)
     {
         try {
             $personne = Personne::where('matricule', $matricule)->first();

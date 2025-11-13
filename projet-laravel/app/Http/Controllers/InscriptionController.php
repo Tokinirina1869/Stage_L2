@@ -263,20 +263,19 @@ class InscriptionController extends Controller
 
             // Vérifier si la personne existe déjà
             $personne = Personne::where('matricule', $request->matricule)->first();
-            
-            if (!$personne) {
-                $prefix = 'FMA';
-                $dernierMat = Personne::where('matricule', 'like', $prefix . "%")
-                    ->orderBy('matricule', 'desc')->first();
+            $annee = date('y');
 
-                if($dernierMat && preg_match('/^' . $prefix . '(\d{5})$/', $dernierMat->matricule, $matches)) 
-                {
-                    $numero = (int) $matches[1] + 1;
+            if (!$personne) {
+                $prefix = 'LYC';
+                $dernier = Personne::orderByRaw("CAST(SPLIT_PART(matricule, '/', 3) AS INTEGER) DESC")->first();
+                $numero = 1;
+
+                if ($dernier && preg_match('/\/(\d+)$/', $dernier->matricule, $m)) {
+                    $numero = ((int)$m[1]) + 1;
                 }
-                else{
-                    $numero = 1;
-                }
-                $matricule = $prefix . str_pad($numero, 5, '0', STR_PAD_LEFT);
+
+                $matricule = "{$annee}/{$prefix}/" . str_pad($numero, 2, '0', STR_PAD_LEFT);
+
 
                 $personne = new Personne();
                 $personne->matricule = $matricule;

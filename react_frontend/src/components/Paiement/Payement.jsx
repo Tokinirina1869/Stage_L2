@@ -11,7 +11,9 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import CarteEcolage from './CarteEcolage';
 import { Calendar, Search } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
+// Import framer-motion
 jsPDF.API.autoTable = autoTable;
 
 const monthOptions = [
@@ -22,6 +24,48 @@ const url = 'http://localhost:8000/api';
 const initialPayment = {
   no_paie: '', no_inscrit: '', matricule: '', idfrais: '',nomfraispayés:'',
   datepaie: '', modepaie: '', montantpaie: 0, nomFrais: [], tuitionMonths: []
+};
+
+// Animations
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.5
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 2
+    }
+  }
+};
+
+const tableRowVariants = {
+  hidden: { opacity: 0, x: -20 },
+  visible: {
+    opacity: 1,
+    x: 0,
+    transition: {
+      duration: 2
+    }
+  }
+};
+
+const buttonHover = {
+  scale: 1.02,
+  transition: { duration: 2 }
+};
+
+const buttonTap = {
+  scale: 0.98
 };
 
 function PaymentPage() {
@@ -91,6 +135,7 @@ function PaymentPage() {
       updatePayment({ no_inscrit: '' });
     }
   }, [paymentDetails.matricule, listeInsc, paymentDetails.no_inscrit]);
+
   // ---------------- Frais / Mois ----------------
   const handleFraisChange = (e) => {
     const selected = Array.from(e.target.selectedOptions, opt => opt.value);
@@ -138,7 +183,6 @@ function PaymentPage() {
   const handleSubmitPaie = async (e) => {
     e.preventDefault();
 
-    // --- Vérifications de base ---
     if (!paymentDetails.nomFrais.length)
       return alert("⚠️ Veuillez sélectionner au moins un frais !");
 
@@ -154,12 +198,10 @@ function PaymentPage() {
       f.toLowerCase().includes('ecolage')
     );
 
-    // --- Vérifier si l'élève a déjà payé un autre écolage différent ---
     if (paymentDetails.nomFrais.some(f => f.toLowerCase().includes('ecolage'))) {
       const matricule = paymentDetails.matricule;
       const fraisEcolageActuel = paymentDetails.nomFrais.find(f => f.toLowerCase().includes('ecolage'));
 
-      // Trouver tous les paiements de cet élève liés à un écolage
       const paiementsEcolageExistants = listePaie.filter(p =>
         p.matricule === matricule &&
         p.nomfraispayés &&
@@ -167,7 +209,6 @@ function PaymentPage() {
       );
 
       if (paiementsEcolageExistants.length > 0) {
-        // Extraire le(s) nom(s) d'écolage(s) déjà payés
         const ecolagesExistants = paiementsEcolageExistants
           .map(p => {
             const match = p.nomfraispayés.match(/Ecolage\s+([A-Za-zéèêîôûïëç ]+)/);
@@ -175,7 +216,6 @@ function PaymentPage() {
           })
           .filter(Boolean);
 
-        // Comparer avec celui que l'élève veut payer maintenant
         const niveauActuel = fraisEcolageActuel.toLowerCase().replace("écolage", "").trim();
         const conflit = ecolagesExistants.some(e => !niveauActuel.includes(e.toLowerCase()));
 
@@ -190,13 +230,11 @@ function PaymentPage() {
             color: 'white',
             confirmButtonColor: '#d33'
           });
-          return; // ⛔ Bloquer le paiement
+          return;
         }
       }
     }
 
-
-    // --- 2️⃣ Vérifier si les mois sélectionnés sont déjà payés ---
     if (fraisEcolage) {
       const paiementsEcolage = listePaie.filter(p =>
         p.matricule === matricule &&
@@ -224,7 +262,6 @@ function PaymentPage() {
       }
     }
 
-    // --- 3️⃣ Envoi du paiement ---
     try {
       const monthOrder = [
         'Janvier','Février','Mars','Avril','Mai','Juin',
@@ -296,7 +333,6 @@ function PaymentPage() {
     }
 
     try {
-      // --- Même logique de tri des mois que dans l'ajout ---
       const monthOrder = [
         'Janvier','Février','Mars','Avril','Mai','Juin',
         'Juillet','Août','Septembre','Octobre','Novembre','Décembre'
@@ -396,33 +432,25 @@ function PaymentPage() {
     openModal();
   };
 
-// S'assurer que les valeurs sont numériques
-  
+  const safeNumber = (v) => (typeof v === 'number' && !isNaN(v) ? v : 0);
+
   const calculateReste = (paiement) => {
-      // ---------------- CAS 1 : Affichage dans le TABLEAU (listePaie) ----------------
       if (paiement.frais_associes && Array.isArray(paiement.frais_associes)) {
           
           let totalFraisDues = 0;
-          
-          // 1. Détermination du nombre de mois pour l'écolage (si présent)
           let monthsCount = Array.isArray(paiement.mois_paies) ? paiement.mois_paies.length : 0;
 
           if (monthsCount === 0 && paiement.nomfraispayés) {
-              // Si la liste mois_paies est vide, on extrait le compte depuis la chaîne nomfraispayés
               const matchMonths = paiement.nomfraispayés.match(/\(([^)]+)\)/);
               if (matchMonths && matchMonths[1]) {
-                  // Compte le nombre d'éléments séparés par des virgules dans la parenthèse
                   monthsCount = matchMonths[1].split(',').length;
               }
           }
           
-          // 2. Calcul du Montant Total Dû pour la transaction
           totalFraisDues = paiement.frais_associes.reduce((sum, f) => {
               const nomFrais = f.nomfrais || '';
               const isTuition = nomFrais.toLowerCase().includes('écolage') || nomFrais.toLowerCase().includes('ecolage');
-              const amount = safeNumber(f.montant); // Montant unitaire du frais
-
-              // Si c'est l'écolage, on multiplie par le nombre de mois trouvé, sinon c'est un montant unitaire
+              const amount = safeNumber(f.montant);
               return sum + (isTuition ? amount * monthsCount : amount); 
           }, 0);
 
@@ -434,7 +462,6 @@ function PaymentPage() {
           return resteCalcule;
       }
       
-      // ---------------- CAS 2 : Dans le FORMULAIRE (paymentDetails) ----------------
       const fraisAssociesNoms = paiement.nomFrais || [];
       if (!fraisAssociesNoms.length) return 0;
 
@@ -473,14 +500,10 @@ function PaymentPage() {
     { title: 'Actions', width: 300 },
   ];
 
- // place ceci dans ton composant (remplace les anciennes implementations)
-  const safeNumber = (v) => (typeof v === 'number' && !isNaN(v) ? v : 0);
-
   const generateReceipt = (paiement) => {
     try {
       console.log('[generateReceipt] paiement reçu:', paiement);
 
-      // calculer le reste en appelant ta fonction (déjà définie dans le composant)
       let reste = 0;
       try {
         reste = Math.max(safeNumber(calculateReste(paiement)), 0);
@@ -496,16 +519,14 @@ function PaymentPage() {
       const lineHeight = 8;
       let currentY = 20;
 
-      // Logo (try/catch car addImage peut échouer si le fichier introuvable)
       try {
         const logo = new Image();
-        logo.src = "/cfp.png"; //        margin:R&L, Top, Width, Height
+        logo.src = "/cfp.png";
         doc.addImage(logo, "PNG", pageWidth / 2 - 30, 15, 60, 40); 
       } catch (e) {
         console.warn("Logo non trouvé, ignoré.", e);
       }
 
-      // Titre & infos
       currentY += 40;
       doc.setFont("helvetica", "bold"); doc.setFontSize(18); doc.setTextColor(0, 102, 204);
       doc.text("Reçu de Paiement", pageWidth / 2, currentY, { align: "center" });
@@ -515,7 +536,6 @@ function PaymentPage() {
       doc.text("Adresse : Ankofafa, Fianarantsoa - Madagascar", pageWidth / 2, currentY + 14, { align: "center" });
       doc.text("Contact : +261 32 439 51 | Adresse-mail: cfplv@gmail.com", pageWidth / 2, currentY + 20, { align: "center" });
 
-      // Détails paiement
       currentY += 35;
       doc.setFontSize(13); doc.setFont("helvetica", "bold");
       doc.text("Détails du Paiement :", margin, currentY);
@@ -534,34 +554,26 @@ function PaymentPage() {
 
       let monthsText = '';
       if (paiement.nomfraispayés) {
-          // Expression régulière pour trouver le contenu entre parenthèses
           const matchMonths = paiement.nomfraispayés.match(/\(([^)]+)\)/);
           if (matchMonths && matchMonths[1]) {
               monthsText = matchMonths[1];
           }
       }
 
-      // Afficher les mois si trouvés
       if (monthsText) {
             currentY += lineHeight;
             doc.setFont("helvetica", "bold");
             doc.text(`Mois Payé(s) :`, margin, currentY);
             
             doc.setFont("helvetica", "normal");
-            const startXValue = margin + 35; // Décalage pour commencer après le titre "Mois Payé(s) :" (env. 35mm)
-            const availableWidth = pageWidth - startXValue - margin; // Largeur restante disponible
+            const startXValue = margin + 35;
+            const availableWidth = pageWidth - startXValue - margin;
 
-            // Utiliser splitTextToSize pour gérer les sauts de ligne si la liste est longue
             const splitText = doc.splitTextToSize(monthsText, availableWidth);
-            
-            // Afficher le texte splitté, en ajustant currentY si plusieurs lignes sont nécessaires
             doc.text(splitText, startXValue, currentY); 
-            
-            // Mettre à jour currentY pour tenir compte des lignes ajoutées
-            currentY += (splitText.length - 1) * 4; // Ajustement basé sur la taille de police (chaque ligne fait env. 4mm)
+            currentY += (splitText.length - 1) * 4;
       }
       
-      // Tableau frais
       const fraisAssocies = Array.isArray(paiement.frais_associes) ? paiement.frais_associes : [];
       console.log('[generateReceipt] fraisAssocies:', fraisAssocies);
 
@@ -585,25 +597,20 @@ function PaymentPage() {
 
       const afterTableY = doc.lastAutoTable?.finalY || currentY + 30;
 
-      // Total et Reste
       doc.setFont("helvetica", "bold"); doc.setFontSize(13);
       doc.text(`Total Payé : ${safeNumber(paiement.montantpaie).toLocaleString()} Ar`, pageWidth - margin, afterTableY + 10, { align: "right" });
 
-      // afficher le reste (toujours une valeur numérique)
       doc.setFont("helvetica", "normal"); doc.setFontSize(12);
       doc.text(`Reste à payer : ${safeNumber(reste).toLocaleString()} Ar`, pageWidth - margin, afterTableY + 18, { align: "right" });
 
-      // Signature
       doc.setFont("helvetica", "italic"); doc.setFontSize(11);
       doc.text("Signature du comptable :", margin, afterTableY + 30);
       doc.setDrawColor(0, 0, 0); doc.setLineWidth(0.2);
       doc.line(margin + 43, afterTableY + 32, margin + 80, afterTableY + 32);
 
-
       doc.setFont("helvetica"); doc.setFontSize(12);
       doc.text("Opération effectuée. Merci pour votre confiance!", pageWidth / 2 , afterTableY + 100, { align: "center" });
       
-      // Save + notification
       doc.save(`${paiement.personne?.nom || 'client'}_${paiement.personne?.prenom || ''}_Reçu_${paiement.no_paie || ''}.pdf`);
 
     } 
@@ -613,13 +620,11 @@ function PaymentPage() {
     }
   };
 
-
   const generateDailyReceiptsPDF = () => {
     try {
       const today = new Date();
       const todayStr = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0');
 
-      // Filtrer en utilisant la même logique que fetch (s'assurer que listePaie est à jour)
       const todaysPayments = listePaie.filter(p => (p.datepaie === todayStr));
       console.log('[generateDailyReceiptsPDF] todayStr=', todayStr, 'found=', todaysPayments.length);
 
@@ -638,7 +643,6 @@ function PaymentPage() {
       todaysPayments.forEach((paiement, index) => {
         if (index > 0) doc.addPage();
 
-        // on réutilise le même contenu que generateReceipt, mais inline ici
         const pageWidth = doc.internal.pageSize.getWidth();
         const margin = 15;
         const lineHeight = 8;
@@ -677,31 +681,24 @@ function PaymentPage() {
 
         let monthsText = '';
         if (paiement.nomfraispayés) {
-            // Expression régulière pour trouver le contenu entre parenthèses
             const matchMonths = paiement.nomfraispayés.match(/\(([^)]+)\)/);
             if (matchMonths && matchMonths[1]) {
                 monthsText = matchMonths[1];
             }
         }
 
-        // Afficher les mois si trouvés
         if (monthsText) {
              currentY += lineHeight;
              doc.setFont("helvetica", "bold");
              doc.text(`Mois Payé(s) :`, margin, currentY);
              
              doc.setFont("helvetica", "normal");
-             const startXValue = margin + 35; // Décalage pour commencer après le titre "Mois Payé(s) :" (env. 35mm)
-             const availableWidth = pageWidth - startXValue - margin; // Largeur restante disponible
+             const startXValue = margin + 35;
+             const availableWidth = pageWidth - startXValue - margin;
 
-             // Utiliser splitTextToSize pour gérer les sauts de ligne si la liste est longue
              const splitText = doc.splitTextToSize(monthsText, availableWidth);
-             
-             // Afficher le texte splitté, en ajustant currentY si plusieurs lignes sont nécessaires
              doc.text(splitText, startXValue, currentY); 
-             
-             // Mettre à jour currentY pour tenir compte des lignes ajoutées
-             currentY += (splitText.length - 1) * 4; // Ajustement basé sur la taille de police (chaque ligne fait env. 4mm)
+             currentY += (splitText.length - 1) * 4;
         }
 
         const fraisAssocies = Array.isArray(paiement.frais_associes) ? paiement.frais_associes : [];
@@ -724,14 +721,12 @@ function PaymentPage() {
         doc.setFont("helvetica","bold"); doc.setFontSize(13);
         doc.text(`Total Payé : ${safeNumber(paiement.montantpaie).toLocaleString()} Ar`, pageWidth - margin, afterTableY + 10, { align: "right" });
 
-        // calc reste et afficher
         let reste = 0;
         try { reste = safeNumber(calculateReste(paiement)); } 
         catch{ reste = 0; }
         doc.setFont("helvetica","normal"); doc.setFontSize(12);
         doc.text(`Reste à payer : ${safeNumber(reste).toLocaleString()} Ar`, pageWidth - margin, afterTableY + 18, { align: "right" });
 
-        // signature
         doc.setFont("helvetica","italic"); doc.setFontSize(11);
         doc.text("Signature du comptable :", margin, afterTableY + 30);
         doc.setDrawColor(0,0,0); doc.setLineWidth(0.2);
@@ -775,36 +770,31 @@ function PaymentPage() {
 
     setCurrentPage(1);
   }
+
   const filterPaiements = useMemo(() => {
     let filtered = listePaie;
 
-    // 🚩 Correction de la recherche textuelle 
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
 
       filtered = filtered.filter(p => {
-        // Crée le nom complet pour la recherche
         const nomComplet = `${p.personne?.nom || ''} ${p.personne?.prenom || ''}`.toLowerCase();
         
-        // Vérifie la recherche dans les champs pertinents
         return (
           String(p.no_paie || '').toLowerCase().includes(q) ||
           String(p.matricule || '').toLowerCase().includes(q) ||
           String(p.no_inscrit || '').toLowerCase().includes(q) ||
           String(p.datepaie || '').toLowerCase().includes(q) ||
-          // Chercher dans les frais payés
           String(p.nomfraispayés || '').toLowerCase().includes(q) || 
-          // Chercher dans le nom/prénom
           nomComplet.includes(q)
         );
       });
     }
     
-    // Filtrage par date (gardé tel quel car il était fonctionnel)
     if(appliedDateFilter.start && appliedDateFilter.end){
       const start = new Date(appliedDateFilter.start);
       const end = new Date(appliedDateFilter.end);
-      end.setDate(end.getDate() + 1); // Pour inclure la date de fin
+      end.setDate(end.getDate() + 1);
 
       filtered = filtered.filter(p => {
         if(!p.datepaie) return false;
@@ -816,463 +806,575 @@ function PaymentPage() {
     return filtered;
   }, [listePaie, searchQuery, appliedDateFilter]);
 
-
   const totalPages = Math.ceil(filterPaiements.length / ITEMS_PER_PAGE);
   const currentData = filterPaiements.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
   const goToPage = (page) => {
     if(page >=1 && page <= totalPages) setCurrentPage(page);
   }
+
   return (
-    <Box sx={{ p: 3 }}>
-      <Box
-        sx={{ display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center', mb: 4, flexWrap: 'wrap', gap: 2,}}>
-        <div className="flex items-center">
-          <MonetizationOn className="w-8 h-8 mr-3 text-indigo-600" />
-          <Typography variant="h6" fontWeight="bold">
-            Gestion des Paiements au Centre de Formation Professionnelle
-          </Typography>
-        </div>
-
-        <button className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow transition-all"
-          onClick={generateDailyReceiptsPDF}
-        >
-          <FaFileInvoice className="w-4 h-4" />
-          Réçu du Jour
-        </button>
-      </Box>
-
-      {/* === Section de recherche === */}
-      <Box className="p-5 rounded-xl bg-white shadow-md mb-8 border border-indigo-100">
-        <div className="flex items-center text-indigo-600 mb-5 border-b pb-3">
-          <FaPen className="w-6 h-6 mr-3" />
-          <h3 className="text-lg font-semibold">
-            Technique de recherche des paiements effectués
-          </h3>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Champ de recherche global */}
-          <div className="relative">
-            <Search className="absolute left-3 top-3 text-gray-500 w-5 h-5" />
-            <input
-              type="text"
-              placeholder="Rechercher par matricule, nom, date, etc."
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-            />
-          </div>
-
-          {/* Filtrage par date */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-            <div className="flex items-center gap-2">
-              <Calendar className="w-5 h-5 text-indigo-600" />
-              <label className="hidden sm:block text-gray-700 font-medium">Du :</label>
-              <input
-                type="date"
-                value={dateRange.start}
-                onChange={(e) =>
-                  setDateRange((prev) => ({ ...prev, start: e.target.value }))
-                }
-                className="border border-gray-300 rounded-lg p-2 focus:ring-indigo-500 focus:border-indigo-500"
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <label className="hidden sm:block text-gray-700 font-medium">Au :</label>
-              <input
-                type="date"
-                value={dateRange.end}
-                onChange={(e) =>
-                  setDateRange((prev) => ({ ...prev, end: e.target.value }))
-                }
-                className="border border-gray-300 rounded-lg p-2 focus:ring-indigo-500 focus:border-indigo-500"
-              />
-            </div>
-
-            <button
-              onClick={handleDateSearch}
-              className="px-4 py-2 bg-indigo-600 text-white rounded-lg shadow hover:bg-indigo-700 transition"
-            >
-              Chercher
-            </button>
-          </div>
-        </div>
-      </Box>
-      <Row>
-        <Col lg={4} className="p-2">
+    <motion.div
+      initial="hidden"
+      animate="visible"
+      variants={containerVariants}
+    >
+      <Box sx={{ p: 3 }}>
+        {/* Header avec animation */}
+        <motion.div variants={itemVariants}>
           <Box
-            sx={{
-              p: 3,
-              borderRadius: 3,
-              boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-              bgcolor: 'white',
+            sx={{ 
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center', 
+              mb: 4, 
+              flexWrap: 'wrap', 
+              gap: 2,
             }}
           >
-            <form onSubmit={handleSubmitPaie}>
-              <div className="flex items-center mb-4">
-                <FaMoneyCheckAlt className="w-6 h-6 mr-3 text-indigo-600" />
-                <Typography variant="h6" sx={{ color: '#1976d2', fontWeight: 600 }}>
-                  Formulaire de Paiement
-                </Typography>
+            <div className="flex items-center">
+              <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                <MonetizationOn className="w-8 h-8 mr-3 text-indigo-600" />
+              </motion.div>
+              <Typography variant="h6" fontWeight="bold">
+                Gestion des Paiements au Centre de Formation Professionnelle
+              </Typography>
+            </div>
+
+            <motion.button 
+              whileHover={buttonHover}
+              whileTap={buttonTap}
+              className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow transition-all"
+              onClick={generateDailyReceiptsPDF}
+            >
+              <FaFileInvoice className="w-4 h-4" />
+              Réçu du Jour
+            </motion.button>
+          </Box>
+        </motion.div>
+
+        {/* Section de recherche avec animation */}
+        <motion.div variants={itemVariants}>
+          <Box className="p-5 rounded-xl bg-white shadow-md mb-8 border border-indigo-100">
+            <div className="flex items-center text-indigo-600 mb-5 border-b pb-3">
+              <motion.div whileHover={{ rotate: 15 }}>
+                <FaPen className="w-6 h-6 mr-3" />
+              </motion.div>
+              <h3 className="text-lg font-semibold">
+                Technique de recherche des paiements effectués
+              </h3>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="relative">
+                <Search className="absolute left-3 top-3 text-gray-500 w-5 h-5" />
+                <motion.input
+                  whileFocus={{ scale: 1.02 }}
+                  type="text"
+                  placeholder="Rechercher par matricule, nom, date, etc."
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                />
               </div>
 
-              <Row>
-                <Col lg={6} className="mb-3">
-                  <TextField
-                    fullWidth
-                    label="No. Paiement"
-                    name="no_paie"
-                    value={paymentDetails.no_paie || ''}
-                    onChange={(e) => updatePayment({ no_paie: e.target.value })}
-                    size="small"
-                    disabled
-                    required
-                  />
-                </Col>
-
-                <Col lg={6} className="mb-3">
-                  <TextField
-                    select
-                    fullWidth
-                    label="No. Matricule"
-                    name="matricule"
-                    value={paymentDetails.matricule}
-                    onChange={(e) =>
-                      updatePayment({ matricule: e.target.value, no_inscrit: '' })
-                    }
-                    size="small"
-                    required
-                  >
-                    {[...new Set(listeInsc.map((i) => i.matricule))].map((mat) => (
-                      <MenuItem key={mat} value={mat}>
-                        {mat}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                </Col>
-
-                <Col lg={6} className="mb-3">
-                  <TextField
-                    select
-                    fullWidth
-                    label="No. Inscription"
-                    name="no_inscrit"
-                    value={paymentDetails.no_inscrit}
-                    onChange={(e) => updatePayment({ no_inscrit: e.target.value })}
-                    size="small"
-                    disabled={!paymentDetails.matricule}
-                    required
-                  >
-                    {listeInsc
-                      .filter((i) => i.matricule === paymentDetails.matricule)
-                      .map((insc) => (
-                        <MenuItem key={insc.no_inscrit} value={insc.no_inscrit}>
-                          {insc.no_inscrit}
-                        </MenuItem>
-                      ))}
-                  </TextField>
-                </Col>
-
-                <Col lg={6} className="mb-3">
-                  <TextField
-                    fullWidth
-                    label="Date de paiement"
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-5 h-5 text-indigo-600" />
+                  <label className="hidden sm:block text-gray-700 font-medium">Du :</label>
+                  <input
                     type="date"
-                    value={paymentDetails.datepaie}
-                    onChange={(e) => updatePayment({ datepaie: e.target.value })}
-                    InputLabelProps={{ shrink: true }}
-                    size="small"
-                    required
+                    value={dateRange.start}
+                    onChange={(e) =>
+                      setDateRange((prev) => ({ ...prev, start: e.target.value }))
+                    }
+                    className="border border-gray-300 rounded-lg p-2 focus:ring-indigo-500 focus:border-indigo-500"
                   />
-                </Col>
-
-                <Col lg={6} className="mb-3">
-                  <TextField
-                    fullWidth
-                    label="Montant à payer (Ar)"
-                    type="number"
-                    value={paymentDetails.montantpaie}
-                    size="small"
-                    onChange={(e) => {
-                      const montant = Number(e.target.value);
-                      setPaymentDetails((prev) => ({
-                        ...prev,
-                        montantpaie: montant,
-                        reste: calculateResteSafe({
-                          ...prev,
-                          montantpaie: montant,
-                        }),
-                      }));
-                    }}
+                </div>
+                <div className="flex items-center gap-2">
+                  <label className="hidden sm:block text-gray-700 font-medium">Au :</label>
+                  <input
+                    type="date"
+                    value={dateRange.end}
+                    onChange={(e) =>
+                      setDateRange((prev) => ({ ...prev, end: e.target.value }))
+                    }
+                    className="border border-gray-300 rounded-lg p-2 focus:ring-indigo-500 focus:border-indigo-500"
                   />
-                </Col>
+                </div>
 
-                <Col lg={6} className="mb-3">
-                  <TextField
-                    select
-                    fullWidth
-                    label="Mode de paiement"
-                    value={paymentDetails.modepaie}
-                    onChange={(e) => updatePayment({ modepaie: e.target.value })}
-                    size="small"
-                    required
-                  >
-                    <MenuItem value="Espèce">Espèce</MenuItem>
-                    <MenuItem value="Chèque">Chèque</MenuItem>
-                  </TextField>
-                </Col>
-              </Row>
-
-              <Divider sx={{ my: 3 }} />
-              <Typography
-                variant="subtitle1"
-                sx={{ mb: 2, fontWeight: 500, textAlign: 'center' }}
-              >
-                Sélection du / des Frais à Payer
-              </Typography>
-
-              <Form.Select
-                multiple
-                value={paymentDetails.nomFrais}
-                onChange={handleFraisChange}
-                className="rounded-md border-indigo-300"
-              >
-                {listeFrais.map((f) => (
-                  <option key={f.idfrais} value={f.nomfrais}>
-                    {f.nomfrais}
-                  </option>
-                ))}
-              </Form.Select>
-
-              {paymentDetails.nomFrais.some((f) => f.includes('Ecolage')) && (
-                <Box
-                  sx={{
-                    mt: 3,
-                    border: '1px solid #e0e0e0',
-                    borderRadius: 2,
-                    p: 2,
-                    bgcolor: 'gray.50',
-                  }}
+                <motion.button
+                  whileHover={buttonHover}
+                  whileTap={buttonTap}
+                  onClick={handleDateSearch}
+                  className="px-4 py-2 bg-indigo-600 text-white rounded-lg shadow hover:bg-indigo-700 transition"
                 >
-                  <Typography
-                    variant="body2"
-                    sx={{ fontWeight: 600, mb: 1, textAlign: 'center' }}
-                  >
-                    Mois à payer :
-                  </Typography>
-                  <Box
-                    sx={{
-                      mt: 2,
-                      display: 'grid',
-                      gridTemplateColumns: 'repeat(3, 1fr)',
-                      gap: 1,
-                    }}
-                  >
-                    {monthOptions.map((month, i) => (
-                      <FormControlLabel
-                        key={i}
-                        control={
-                          <Checkbox
-                            checked={paymentDetails.tuitionMonths.includes(month)}
-                            onChange={() => handleTuitionMonthCheck(month)}
-                          />
-                        }
-                        label={month}
-                      />
-                    ))}
-                  </Box>
-                </Box>
-              )}
+                  Chercher
+                </motion.button>
+              </div>
+            </div>
+          </Box>
+        </motion.div>
 
-              <Divider sx={{ my: 4 }} />
+        <Row>
+          {/* Formulaire avec animations */}
+          <Col lg={4} className="p-2">
+            <motion.div variants={itemVariants}>
               <Box
                 sx={{
-                  display: 'flex',
-                  justifyContent: 'center',
-                  gap: 2,
-                  flexWrap: 'wrap',
+                  p: 3,
+                  borderRadius: 3,
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+                  bgcolor: 'white',
                 }}
               >
-                <Button
-                  variant="contained"
-                  sx={buttonStyle('#f44336')}
-                  startIcon={<FaTimes />}
-                  onClick={resetForm}
-                >
-                  Annuler
-                </Button>
-                <Button
-                  variant="contained"
-                  type="submit"
-                  sx={buttonStyle('#4CAF50')}
-                  startIcon={<FaMoneyCheckAlt />}
-                >
-                  Payer
-                </Button>
-              </Box>
-            </form>
-          </Box>
-        </Col>
+                <form onSubmit={handleSubmitPaie}>
+                  <div className="flex items-center mb-4">
+                    <motion.div whileHover={{ scale: 1.1 }}>
+                      <FaMoneyCheckAlt className="w-6 h-6 mr-3 text-indigo-600" />
+                    </motion.div>
+                    <Typography variant="h6" sx={{ color: '#1976d2', fontWeight: 600 }}>
+                      Formulaire de Paiement
+                    </Typography>
+                  </div>
 
-        <Col lg={8} className="p-2">
-          <Box
-            sx={{
-              p: 3,
-              bgcolor: 'white',
-              borderRadius: 3,
-              boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-            }}
-          >
-            <Typography variant="h6" sx={{ mb: 2, color: 'indigo.700', fontWeight: 600 }}>
-              Liste des Paiements
-            </Typography>
-            <TableContainer component={Paper} sx={{ boxShadow: 10, borderRadius: 1, height: '750px', overflow: 'auto', }}>
-              <MuiTable stickyHeader sx={{ tableLayout: 'fixed', width: '100%' }}>
-                <TableHead>
-                  <TableRow sx={{ position: 'sticky', top: 0, zIndex: 2, bgcolor: 'primary.main',}}>
-                    {tableHeaders.map((col) => (
-                      <TableCell key={col.title} sx={{ color: 'white', fontWeight: 600, textAlign: 'center', borderBottom: '2px solid rgba(255,255,255,0.3)', backgroundColor: 'primary.main', width: col.width,
-                          whiteSpace:col.title === 'Frais Payés' ? 'normal' : 'nowrap',
-                          wordWrap:col.title === 'Frais Payés' ? 'break-word' : 'normal',}}>
-                        {col.title}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                </TableHead>
+                  <motion.div variants={containerVariants}>
+                    <Row>
+                      {[
+                        { lg: 6, field: (
+                          <TextField
+                            fullWidth
+                            label="No. Paiement"
+                            name="no_paie"
+                            value={paymentDetails.no_paie || ''}
+                            onChange={(e) => updatePayment({ no_paie: e.target.value })}
+                            size="small"
+                            disabled
+                            required
+                          />
+                        )},
+                        { lg: 6, field: (
+                          <TextField
+                            select
+                            fullWidth
+                            label="No. Matricule"
+                            name="matricule"
+                            value={paymentDetails.matricule}
+                            onChange={(e) =>
+                              updatePayment({ matricule: e.target.value, no_inscrit: '' })
+                            }
+                            size="small"
+                            required
+                          >
+                            {[...new Set(listeInsc.map((i) => i.matricule))].map((mat) => (
+                              <MenuItem key={mat} value={mat}>
+                                {mat}
+                              </MenuItem>
+                            ))}
+                          </TextField>
+                        )},
+                        { lg: 6, field: (
+                          <TextField
+                            select
+                            fullWidth
+                            label="No. Inscription"
+                            name="no_inscrit"
+                            value={paymentDetails.no_inscrit}
+                            onChange={(e) => updatePayment({ no_inscrit: e.target.value })}
+                            size="small"
+                            disabled={!paymentDetails.matricule}
+                            required
+                          >
+                            {listeInsc
+                              .filter((i) => i.matricule === paymentDetails.matricule)
+                              .map((insc) => (
+                                <MenuItem key={insc.no_inscrit} value={insc.no_inscrit}>
+                                  {insc.no_inscrit}
+                                </MenuItem>
+                              ))}
+                          </TextField>
+                        )},
+                        { lg: 6, field: (
+                          <TextField
+                            fullWidth
+                            label="Date de paiement"
+                            type="date"
+                            value={paymentDetails.datepaie}
+                            onChange={(e) => updatePayment({ datepaie: e.target.value })}
+                            InputLabelProps={{ shrink: true }}
+                            size="small"
+                            required
+                          />
+                        )},
+                        { lg: 6, field: (
+                          <TextField
+                            fullWidth
+                            label="Montant à payer (Ar)"
+                            type="number"
+                            value={paymentDetails.montantpaie}
+                            size="small"
+                            onChange={(e) => {
+                              const montant = Number(e.target.value);
+                              setPaymentDetails((prev) => ({
+                                ...prev,
+                                montantpaie: montant,
+                                reste: calculateResteSafe({
+                                  ...prev,
+                                  montantpaie: montant,
+                                }),
+                              }));
+                            }}
+                          />
+                        )},
+                        { lg: 6, field: (
+                          <TextField
+                            select
+                            fullWidth
+                            label="Mode de paiement"
+                            value={paymentDetails.modepaie}
+                            onChange={(e) => updatePayment({ modepaie: e.target.value })}
+                            size="small"
+                            required
+                          >
+                            <MenuItem value="Espèce">Espèce</MenuItem>
+                            <MenuItem value="Chèque">Chèque</MenuItem>
+                            <MenuItem value="Virement">Virement</MenuItem>
+                          </TextField>
+                        )}
+                      ].map((col, index) => (
+                        <Col key={index} lg={col.lg} className="mb-3">
+                          <motion.div variants={itemVariants}>
+                            {col.field}
+                          </motion.div>
+                        </Col>
+                      ))}
+                    </Row>
+                  </motion.div>
 
-                <TableBody>
-                  {currentData.length > 0 ? (
-                    currentData.map((liste) => (
-                      <TableRow key={liste.no_paie}>
-                        <TableCell sx={{textAlign:'center'}} >{liste.no_paie}</TableCell>
-                        <TableCell sx={{textAlign:'center'}} >{liste.matricule}</TableCell>
-                        <TableCell sx={{textAlign:'center'}} >{liste.no_inscrit}</TableCell>
-                        <TableCell sx={{textAlign:'center'}}>
-                          <b>{liste.personne?.nom}</b> {liste.personne?.prenom}
-                        </TableCell>
-                        <TableCell sx={{textAlign:'center'}}>{liste.datepaie}</TableCell>
-                        <TableCell sx={{textAlign:'center'}}>{liste.montantpaie}</TableCell>
-                        <TableCell sx={{ color: calculateResteSafe(liste) > 0 ? 'red' : 'green', fontWeight: 'bold' }}>
-                          {calculateResteSafe(liste).toLocaleString()} Ar
-                        </TableCell>
-                        <TableCell sx={{textAlign: 'center'}}>{liste.modepaie}</TableCell>
-                        <TableCell sx={{ whiteSpace: 'normal', wordWrap: 'break-word',}}>
-                          {liste.nomfraispayés || (
-                            Array.isArray(liste.frais_associes) &&
-                            liste.frais_associes.length > 0
-                              ? liste.frais_associes.map((f) => f.nomfrais).join(', ')
-                              : 'Aucune'
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <Box sx={{display: 'flex', justifyContent: 'center', gap: 1, flexWrap: 'wrap',}}>
-                            <button className="flex items-center text-white bg-indigo-600 text-white p-2 rounded" onClick={() => handleSelectedPaie(liste)}>
-                              <FaEdit className='mx-1'/>Modifier
-                            </button>
-                             <button className="flex items-center text-white bg-red-600 text-white p-2 rounded" onClick={() => handleDeletePaie(liste.no_paie)}>
-                              <FaTrash className='mx-1'/>Supprimer
-                            </button>
-                             <button className="flex items-center text-white bg-green-600 text-white p-2 rounded" onClick={() => generateReceipt(liste)}>
-                              <FaFileInvoice className='mx-1'/>Facture
-                            </button>
-                            <button onClick={() => openCarte(liste.matricule)} className="flex items-center text-white bg-indigo-600 text-white p-2 rounded">
-                              <FaIdCard className='mx-1' /> Voir Carte
-                            </button>
-                          </Box>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={9} align="center" sx={{ py: 5 }}>
-                        <Typography variant="h6">
-                          Aucun paiement trouvé pour cette recherche.
+                  <Divider sx={{ my: 3 }} />
+                  <Typography
+                    variant="subtitle1"
+                    sx={{ mb: 2, fontWeight: 500, textAlign: 'center' }}
+                  >
+                    Sélection du / des Frais à Payer
+                  </Typography>
+
+                  <motion.div whileFocus={{ scale: 1.02 }}>
+                    <Form.Select
+                      multiple
+                      value={paymentDetails.nomFrais}
+                      onChange={handleFraisChange}
+                      className="rounded-md border-indigo-300"
+                    >
+                      {listeFrais.map((f) => (
+                        <option key={f.idfrais} value={f.nomfrais}>
+                          {f.nomfrais}
+                        </option>
+                      ))}
+                    </Form.Select>
+                  </motion.div>
+
+                  {paymentDetails.nomFrais.some((f) => f.includes('Ecolage')) && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <Box
+                        sx={{
+                          mt: 3,
+                          border: '1px solid #e0e0e0',
+                          borderRadius: 2,
+                          p: 2,
+                          bgcolor: 'gray.50',
+                        }}
+                      >
+                        <Typography
+                          variant="body2"
+                          sx={{ fontWeight: 600, mb: 1, textAlign: 'center' }}
+                        >
+                          Mois à payer :
                         </Typography>
-                      </TableCell>
-                    </TableRow>
+                        <Box
+                          sx={{
+                            mt: 2,
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(3, 1fr)',
+                            gap: 1,
+                          }}
+                        >
+                          {monthOptions.map((month, i) => (
+                            <motion.div
+                              key={i}
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                            >
+                              <FormControlLabel
+                                control={
+                                  <Checkbox
+                                    checked={paymentDetails.tuitionMonths.includes(month)}
+                                    onChange={() => handleTuitionMonthCheck(month)}
+                                  />
+                                }
+                                label={month}
+                              />
+                            </motion.div>
+                          ))}
+                        </Box>
+                      </Box>
+                    </motion.div>
                   )}
-                </TableBody>
-              </MuiTable>
-            </TableContainer>
-          </Box>
 
-          {totalPages > 1 && (
-              <div className="flex justify-between items-center px-4 py-3 bg-gray-50 border-t mt-4">
-                <button onClick={() => goToPage(currentPage - 1)} disabled={currentPage === 1}
-                  className="flex items-center gap-2 px-3 py-1 bg-indigo-800 text-white fw-bold border rounded-lg text-gray-700 hover:bg-blue-100 disabled:opacity-50">
-                  Précédent
-                </button>
-                <span className="text-sm text-gray-600">Page {currentPage} sur {totalPages}</span>
-                <button  onClick={() => goToPage(currentPage + 1)} disabled={currentPage === totalPages}
-                  className="flex items-center gap-2 px-3 py-1 bg-indigo-800 text-white fw-bold border rounded-lg text-gray-700 hover:bg-blue-100 disabled:opacity-50">
-                  Suivant
-                </button>
-              </div>
-            )}
-        </Col>
-
-      </Row>
-
-      <Dialog open={modalPaie} onClose={closeModal}>
-        <DialogTitle>Modification de Paiement</DialogTitle>
-        <form onSubmit={handleEditPaie}>
-          <DialogContent>
-            <TextField fullWidth label="No. Matricule" value={paymentDetails.matricule} size="small" sx={{ mb: 3 }} disabled InputProps={{ readOnly: true }} />
-            <TextField type="date" label="Date de Paiement" value={paymentDetails.datepaie} onChange={e => updatePayment({ datepaie: e.target.value })} fullWidth sx={{ mb: 3 }} InputLabelProps={{ shrink: true }} required/>
-
-            <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 500 }}>Sélection du / des Frais à Modifier</Typography>
-            <Form.Select multiple value={paymentDetails.nomFrais} onChange={handleFraisChange} style={{ marginBottom: 10 }}>
-              {listeFrais.map(f => <option key={f.idfrais} value={f.nomfrais}>{f.nomfrais}</option>)}
-            </Form.Select>
-
-            {paymentDetails.nomFrais.some(f => f.includes('Ecolage')) && (
-              <Box sx={{ mt: 2 }}>
-                <Typography variant="body2" sx={{ fontWeight: 600 }}>Mois à payer :</Typography>
-                <Box sx={{mt: 2, display: 'grid', 
-                  gridTemplateColumns: 'repeat(3, 1fr)',gap: 1}}>
-                  {monthOptions.map((month, i) => (
-                    <FormControlLabel 
-                      key={i} control={
-                        <Checkbox checked={paymentDetails.tuitionMonths.includes(month)}
-                          onChange={() => handleTuitionMonthCheck(month)} 
-                        />} 
-                      label={month} 
-                    />
-                  ))}
-                </Box>
+                  <Divider sx={{ my: 4 }} />
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'center',
+                      gap: 2,
+                      flexWrap: 'wrap',
+                    }}
+                  >
+                    <motion.div whileHover={buttonHover} whileTap={buttonTap}>
+                      <Button
+                        variant="contained"
+                        sx={buttonStyle('#f44336')}
+                        startIcon={<FaTimes />}
+                        onClick={resetForm}
+                      >
+                        Annuler
+                      </Button>
+                    </motion.div>
+                    <motion.div whileHover={buttonHover} whileTap={buttonTap}>
+                      <Button
+                        variant="contained"
+                        type="submit"
+                        sx={buttonStyle('#4CAF50')}
+                        startIcon={<FaMoneyCheckAlt />}
+                      >
+                        Payer
+                      </Button>
+                    </motion.div>
+                  </Box>
+                </form>
               </Box>
+            </motion.div>
+          </Col>
+
+          {/* Tableau avec animations */}
+          <Col lg={8} className="p-2">
+            <motion.div variants={itemVariants}>
+              <Box
+                sx={{
+                  p: 3,
+                  bgcolor: 'white',
+                  borderRadius: 3,
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+                }}
+              >
+                <Typography variant="h6" sx={{ mb: 2, color: 'indigo.700', fontWeight: 600 }}>
+                  Liste des Paiements
+                </Typography>
+                <TableContainer component={Paper} sx={{ boxShadow: 10, borderRadius: 1, height: '750px', overflow: 'auto', }}>
+                  <MuiTable stickyHeader sx={{ tableLayout: 'fixed', width: '100%' }}>
+                    <TableHead>
+                      <TableRow sx={{ position: 'sticky', top: 0, zIndex: 2, bgcolor: 'primary.main',}}>
+                        {tableHeaders.map((col) => (
+                          <TableCell key={col.title} sx={{ color: 'white', fontWeight: 600, textAlign: 'center', borderBottom: '2px solid rgba(255,255,255,0.3)', backgroundColor: 'primary.main', width: col.width,
+                              whiteSpace:col.title === 'Frais Payés' ? 'normal' : 'nowrap',
+                              wordWrap:col.title === 'Frais Payés' ? 'break-word' : 'normal',}}>
+                            {col.title}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    </TableHead>
+
+                    <TableBody>
+                      <AnimatePresence>
+                        {currentData.length > 0 ? (
+                          currentData.map((liste, index) => (
+                            <motion.tr
+                              key={liste.no_paie}
+                              variants={tableRowVariants}
+                              initial="hidden"
+                              animate="visible"
+                              exit="hidden"
+                              custom={index}
+                              whileHover={{ backgroundColor: '#f5f5f5' }}
+                              transition={{ delay: index * 0.1 }}
+                            >
+                              <TableCell sx={{textAlign:'center'}} >{liste.no_paie}</TableCell>
+                              <TableCell sx={{textAlign:'center'}} >{liste.matricule}</TableCell>
+                              <TableCell sx={{textAlign:'center'}} >{liste.no_inscrit}</TableCell>
+                              <TableCell sx={{textAlign:'center'}}>
+                                <b>{liste.personne?.nom}</b> {liste.personne?.prenom}
+                              </TableCell>
+                              <TableCell sx={{textAlign:'center'}}>{liste.datepaie}</TableCell>
+                              <TableCell sx={{textAlign:'center'}}>{liste.montantpaie}</TableCell>
+                              <TableCell sx={{ color: calculateResteSafe(liste) > 0 ? 'red' : 'green', fontWeight: 'bold' }}>
+                                {calculateResteSafe(liste).toLocaleString()} Ar
+                              </TableCell>
+                              <TableCell sx={{textAlign: 'center'}}>{liste.modepaie}</TableCell>
+                              <TableCell sx={{ whiteSpace: 'normal', wordWrap: 'break-word',}}>
+                                {liste.nomfraispayés || (
+                                  Array.isArray(liste.frais_associes) &&
+                                  liste.frais_associes.length > 0
+                                    ? liste.frais_associes.map((f) => f.nomfrais).join(', ')
+                                    : 'Aucune'
+                                )}
+                              </TableCell>
+                              <TableCell>
+                                <Box sx={{display: 'flex', justifyContent: 'center', gap: 1, flexWrap: 'wrap',}}>
+                                  {[
+                                    { icon: FaEdit, label: 'Modifier', color: 'indigo', action: () => handleSelectedPaie(liste) },
+                                    { icon: FaTrash, label: 'Supprimer', color: 'red', action: () => handleDeletePaie(liste.no_paie) },
+                                    { icon: FaFileInvoice, label: 'Facture', color: 'green', action: () => generateReceipt(liste) },
+                                    { icon: FaIdCard, label: 'Voir Carte', color: 'indigo', action: () => openCarte(liste.matricule) }
+                                  ].map((btn, btnIndex) => (
+                                    <motion.button
+                                      key={btnIndex}
+                                      whileHover={{ scale: 1.05 }}
+                                      whileTap={{ scale: 0.95 }}
+                                      className={`flex items-center text-white bg-${btn.color}-600 text-white p-2 rounded`}
+                                      onClick={btn.action}
+                                    >
+                                      <btn.icon className='mx-1'/>{btn.label}
+                                    </motion.button>
+                                  ))}
+                                </Box>
+                              </TableCell>
+                            </motion.tr>
+                          ))
+                        ) : (
+                          <TableRow>
+                            <TableCell colSpan={9} align="center" sx={{ py: 5 }}>
+                              <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ duration: 0.5 }}
+                              >
+                                <Typography variant="h6">
+                                  Aucun paiement trouvé pour cette recherche.
+                                </Typography>
+                              </motion.div>
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </AnimatePresence>
+                    </TableBody>
+                  </MuiTable>
+                </TableContainer>
+              </Box>
+            </motion.div>
+
+            {/* Pagination avec animation */}
+            {totalPages > 1 && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+              >
+                <div className="flex justify-between items-center px-4 py-3 bg-gray-50 border-t mt-4">
+                  <motion.button 
+                    whileHover={buttonHover}
+                    whileTap={buttonTap}
+                    onClick={() => goToPage(currentPage - 1)} 
+                    disabled={currentPage === 1}
+                    className="flex items-center gap-2 px-3 py-1 bg-indigo-800 text-white fw-bold border rounded-lg text-gray-700 hover:bg-blue-100 disabled:opacity-50"
+                  >
+                    Précédent
+                  </motion.button>
+                  <span className="text-sm text-gray-600">Page {currentPage} sur {totalPages}</span>
+                  <motion.button 
+                    whileHover={buttonHover}
+                    whileTap={buttonTap}
+                    onClick={() => goToPage(currentPage + 1)} 
+                    disabled={currentPage === totalPages}
+                    className="flex items-center gap-2 px-3 py-1 bg-indigo-800 text-white fw-bold border rounded-lg text-gray-700 hover:bg-blue-100 disabled:opacity-50"
+                  >
+                    Suivant
+                  </motion.button>
+                </div>
+              </motion.div>
             )}
+          </Col>
+        </Row>
 
-            <TextField fullWidth label="Montant à payer (Ar)" type="number" value={paymentDetails.montantpaie} size="small"
-              onChange={(e) => { 
-                const montant = safeNumber(e.target.value);
-                setPaymentDetails(prev => ({
-                    ...prev,
-                    montantpaie: montant,
-                }));
-              }}/>
+        {/* Modal avec animation */}
+        <AnimatePresence>
+          {modalPaie && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              <Dialog open={modalPaie} onClose={closeModal}>
+                <motion.div
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                >
+                  <DialogTitle>Modification de Paiement</DialogTitle>
+                  <form onSubmit={handleEditPaie}>
+                    <DialogContent>
+                      <TextField fullWidth label="No. Matricule" value={paymentDetails.matricule} size="small" sx={{ mb: 3 }} disabled InputProps={{ readOnly: true }} />
+                      <TextField type="date" label="Date de Paiement" value={paymentDetails.datepaie} onChange={e => updatePayment({ datepaie: e.target.value })} fullWidth sx={{ mb: 3 }} InputLabelProps={{ shrink: true }} required/>
 
-            <TextField select fullWidth label="Mode de Paiement" value={paymentDetails.modepaie} onChange={e => updatePayment({ modepaie: e.target.value })} sx={{ mt: 3 }}>
-              <MenuItem value="Espèce">Espèce</MenuItem>
-              <MenuItem value="Chèque">Chèque</MenuItem>
-            </TextField>
-          </DialogContent>
+                      <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 500 }}>Sélection du / des Frais à Modifier</Typography>
+                      <Form.Select multiple value={paymentDetails.nomFrais} onChange={handleFraisChange} style={{ marginBottom: 10 }}>
+                        {listeFrais.map(f => <option key={f.idfrais} value={f.nomfrais}>{f.nomfrais}</option>)}
+                      </Form.Select>
 
-          <DialogActions>
-            <Button onClick={closeModal} variant='contained' color="error" sx={{textTransform: 'none'}} >Annuler</Button>
-            <Button type="submit" variant="contained" sx={{textTransform: 'none'}} color="primary">Enregistrer</Button>
-          </DialogActions>
-        </form>
-      </Dialog>
+                      {paymentDetails.nomFrais.some(f => f.includes('Ecolage')) && (
+                        <Box sx={{ mt: 2 }}>
+                          <Typography variant="body2" sx={{ fontWeight: 600 }}>Mois à payer :</Typography>
+                          <Box sx={{mt: 2, display: 'grid', 
+                            gridTemplateColumns: 'repeat(3, 1fr)',gap: 1}}>
+                            {monthOptions.map((month, i) => (
+                              <FormControlLabel 
+                                key={i} control={
+                                  <Checkbox checked={paymentDetails.tuitionMonths.includes(month)}
+                                    onChange={() => handleTuitionMonthCheck(month)} 
+                                  />} 
+                                label={month} 
+                              />
+                            ))}
+                          </Box>
+                        </Box>
+                      )}
 
-      <CarteEcolage matricule={selectedMatricule} open={modalCarteOpen} handleClose={closeCarte} />
-    </Box>
+                      <TextField fullWidth label="Montant à payer (Ar)" type="number" value={paymentDetails.montantpaie} size="small"
+                        onChange={(e) => { 
+                          const montant = safeNumber(e.target.value);
+                          setPaymentDetails(prev => ({
+                              ...prev,
+                              montantpaie: montant,
+                          }));
+                        }}/>
+
+                      <TextField select fullWidth label="Mode de Paiement" value={paymentDetails.modepaie} onChange={e => updatePayment({ modepaie: e.target.value })} sx={{ mt: 3 }}>
+                        <MenuItem value="Espèce">Espèce</MenuItem>
+                        <MenuItem value="Chèque">Chèque</MenuItem>
+                        <MenuItem value="Virement">Virement</MenuItem>
+                      </TextField>
+                    </DialogContent>
+
+                    <DialogActions>
+                      <Button onClick={closeModal} variant='contained' color="error" sx={{textTransform: 'none'}} >Annuler</Button>
+                      <Button type="submit" variant="contained" sx={{textTransform: 'none'}} color="primary">Enregistrer</Button>
+                    </DialogActions>
+                  </form>
+                </motion.div>
+              </Dialog>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <CarteEcolage matricule={selectedMatricule} open={modalCarteOpen} handleClose={closeCarte} />
+      </Box>
+    </motion.div>
   );
 }
 

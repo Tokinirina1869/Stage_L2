@@ -48,6 +48,13 @@ Route::delete('/deleteFrais/{idfrais}', [ControllerFrais::class, 'destroy']);
 Route::get('/mineurs', [PersonneController::class, 'mineurs']);
 Route::get('/majeurs', [PersonneController::class, 'majeurs']);
 Route::get('/statistique', [PersonneController::class, 'statistiqueMineurMajeur']);
+Route::get('/majeursFormation', [PersonneController::class, 'majeursFormation']);
+Route::get('/mineursFormation', [PersonneController::class, 'mineursFormation']);
+Route::get('/FormationParSexe', [PersonneController::class, 'FormationParSexe']);
+Route::get('/LyceeParSexe', [PersonneController::class, 'LyceeParSexe']);
+Route::get('/ApprenantParSexe', [PersonneController::class, 'ApprenantParSexe']);
+Route::get('/CfpMineurMajeur', [PersonneController::class, 'CfpMineurMajeur']);
+Route::get('/LyceeMineurMajeur', [PersonneController::class, 'LyceeMineurMajeur']);
 
 //Paiements
 Route::get('/listepaiement', [PaiementController::class, 'index']);
@@ -55,7 +62,7 @@ Route::get('/no_paiement', [PaiementController::class, 'getNextNoPaie']);
 Route::post('/addpaiement', [PaiementController::class, 'store']);
 Route::put('/updatepaiement/{no_paie}', [PaiementController::class, 'update']);
 Route::delete('/deletepaiement/{no_paie}', [PaiementController::class, 'destroy']);
-Route::get('/ecolage/{matricule}', [PaiementController::class, 'getEcolage']);
+Route::get('/ecolage/{matricule}', [PaiementController::class, 'getEcolage'])->where('matricule', '.*');
 Route::get('/paiementEffectue', [PaiementController::class, 'countPaie']);
 Route::get('/paiementParMois', [PaiementController::class, 'paiementParMois']);
 Route::get('/paiementParSemaine', [PaiementController::class, 'paiementParSemaine']);
@@ -74,9 +81,8 @@ Route::get('/inscriptions/filter', [InscriptionCompleteController::class, 'filte
 Route::get('/inscriptionComplete', [InscriptionCompleteController::class, 'listeFormation']);
 Route::get('/searchFormation/{classe}', [InscriptionCompleteController::class, 'searchFormation']);
 Route::post('/inscriptionComplete', [InscriptionCompleteController::class, 'store']);
-Route::match(['put', 'patch'], '/inscriptionComplete/{matricule}', [InscriptionCompleteController::class, 'update']);
-Route::delete('/inscriptionComplete/{matricule}', [InscriptionCompleteController::class, 'destroy']);
-
+Route::match(['put', 'patch'], '/inscriptionComplete/{matricule}', [InscriptionCompleteController::class, 'update'])->where('matricule', '.*');
+Route::delete('/inscriptionComplete/{matricule}', [InscriptionCompleteController::class, 'destroy'])->where('matricule', '.*');
 
 // Academique
 Route::get('/filterDate', [InscriptionController::class, 'index']);

@@ -121,7 +121,7 @@ class PaiementController extends Controller
         // --- 1. Validation ---
         $validator = Validator::make($request->all(), [
             'no_inscrit'    => 'required|integer',
-            'matricule'     => 'required|string|max:8',
+            'matricule'     => 'required|string|max:50',
             'idfrais'       => 'required|string', // Chaîne d'IDs séparés par des virgules (ex: "EC1,DRINS")
             'nomfraispayés' => 'required|string', // Chaîne complète du libellé des frais (ex: "Écolage..., Droit...")
             'datepaie'      => 'required|date',

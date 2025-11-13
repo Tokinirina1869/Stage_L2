@@ -95,9 +95,9 @@ const NavigationPage = ({ handleMenuChange, onLogout, onProfil, currentUser }) =
   );
 
   const desktopMenus = [
-    { key: "dashboard", label: "Dashboard", icon: <FaHome size={20} color="primary" /> },
-    { key: "eleve", label: "Académique", icon: <FaUserPlus size={20} color="primary" /> },
-    { key: "formation", label: "Professionnelle", icon: <FaUserGraduate size={20} color="primary" /> },
+    { key: "dashboard", label: "Tableau de Bord", icon: <FaHome size={20} color="primary" /> },
+    { key: "eleve", label: "Inscription Académique", icon: <FaUserPlus size={20} color="primary" /> },
+    { key: "formation", label: "Inscription Professionnelle", icon: <FaUserGraduate size={20} color="primary" /> },
     { key: "paiement", label: "Paiement", icon: <MonetizationOn size={20} /> },
   ];
 
@@ -108,7 +108,7 @@ const NavigationPage = ({ handleMenuChange, onLogout, onProfil, currentUser }) =
         color="default"
         elevation={elevate ? 4 : 0} // 🔹 Shadow dynamique
         sx={{
-          transition: "all 0.3s ease",
+          transition: "all 2s ease",
           p: 2, boxShadow: 3,
           backgroundColor: theme === "light" ? "#fff" : "#1e1e2f",
           color: theme === "light" ? "#000" : "#fff",

@@ -1,12 +1,37 @@
-import React, { useState, useEffect } from "react";
-import { FaBookOpen, FaEdit, FaListAlt, FaPen, FaTrash,FaSearch } from "react-icons/fa";
-import { Search, Calendar } from "lucide-react";
+import React, { useState, useEffect, useMemo, useContext } from "react";
+import { 
+  FaBookOpen, 
+  FaEdit, 
+  FaListAlt, 
+  FaPen, 
+  FaSearch, 
+  FaTrash, 
+  FaEye, 
+  FaIdCard, 
+  FaUser, 
+  FaBirthdayCake, 
+  FaMapMarkerAlt, 
+  FaVenusMars, 
+  FaHome, 
+  FaPhone, 
+  FaUserTie, 
+  FaUserFriends, 
+  FaCalendarAlt, 
+  FaGraduationCap, 
+  FaClock, 
+  FaCamera, 
+  FaTimes,
+  FaSchool,
+  FaChalkboardTeacher
+} from "react-icons/fa";
+import { Search, Calendar, RefreshCw, XCircle } from "lucide-react";
 import ModificationAcademique from "../modals/ModificationAcademique";
 import NouvelleInscription from "../modals/NouvelleInscription";
 import Swal from "sweetalert2";
 import axios from "axios";
+import { ThemeContext } from "../ThemeContext";
 
-const categories = ["Tous", "Seconde A", "Seconde B", "Première L", "Première S", "Terminal A", "Terminal C", "Terminal D" ];
+const categories = ["Tous", "Seconde A", "Seconde B", "Première L", "Première S", "Terminal A", "Terminal C", "Terminal D"];
 const url = 'http://localhost:8000/api';
 
 function AffichageEleve() {
@@ -16,11 +41,26 @@ function AffichageEleve() {
     const [showInscription, setShowInscription] = useState(false);
     const [loading, setLoading] = useState(true);
     const [searchPersonne, setSearchPersonne] = useState(null);
+    const [modalDetails, setModalDetails] = useState(false);
 
     const [selectedImage, setSelectedImage] = useState(null);
     const [currentPage, setCurrentPage] = useState(1);
     const [searchMat, setSearchMat] = useState("");
+    const [searchQuery, setSearchQuery] = useState("");
+    const [activeCategory, setActiveCategory] = useState('Tous');
+    const [dateDebut, setDateDebut] = useState("");
+    const [dateFin, setDateFin] = useState("");
+
     const ITEMS_PER_PAGE = 10;
+    const { theme } = useContext(ThemeContext);
+    
+    // Couleurs du Thème
+    const isDark = theme === 'dark';
+    const bgColor = isDark ? 'bg-gray-800' : 'bg-gray-50';
+    const cardColor = isDark ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200';
+    const textColor = isDark ? 'text-gray-100' : 'text-gray-800';
+    const lightTextColor = isDark ? 'text-gray-400' : 'text-gray-600';
+    const inputBg = isDark ? 'bg-gray-700 text-white border-gray-600' : 'bg-white text-gray-900 border-gray-300';
 
     const openIncription = (pers = null) => { setSearchPersonne(pers); setShowInscription(true); };
     const closeIncription = () => { setShowInscription(false); setSearchPersonne(null); };
@@ -33,46 +73,66 @@ function AffichageEleve() {
         setModalUpdate(false);
         setSelectedPersonne(null);
     }
-    const [activeCategory, setActiveCategory] = useState('Tous');
 
+    const openDetailsModal = (p) => { setSelectedPersonne(p); setModalDetails(true); };
+    const closeDetailsModal = () => { setModalDetails(false); setSelectedPersonne(null); };
 
     const fetchNiveaux = async () => {
         try{
             const response = await axios.get(`${url}/academique`);
             setNiveaux(response.data.data);
+            setLoading(false);
         }
         catch(err){
             console.error("Erreur lors de l'affichage: ", err);
+            setLoading(false);
         }
     }
+
     useEffect(() => {
         fetchNiveaux();
     }, []);
 
-    const [dateDebut, setDateDebut] = useState("");
-    const [dateFin, setDateFin] = useState("");
-
     const handleSearchByDate = async () => {
         if (!dateDebut || !dateFin) {
             Swal.fire({
-            icon: 'warning',
-            title: 'Attention',
-            text: 'Veuillez sélectionner les deux dates pour filtrer.',
+                icon: 'warning',
+                title: 'Attention',
+                text: 'Veuillez sélectionner les deux dates pour filtrer.',
+                customClass: { popup: isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-800' }
             });
             return;
         }
 
+        setLoading(true);
         try {
             const response = await axios.get(`${url}/filterDate`, {
-            params: { date_debut: dateDebut, date_fin: dateFin },
+                params: { date_debut: dateDebut, date_fin: dateFin },
             });
             setNiveaux(response.data.data);
             setCurrentPage(1);
-            setDateDebut("");
-            setDateFin("");
+            setActiveCategory("Tous");
+            
+            Swal.fire({
+                icon: 'success',
+                title: 'Succès',
+                text: `Filtrage effectué : ${response.data.data?.length || 0} résultats.`,
+                background: isDark ? '#1e1e2f' : '#fff',
+                color: isDark ? 'white' : 'black',
+                timer: 2000,
+                showConfirmButton: false,
+                position: "bottom-end",
+            });
         } catch (error) {
             console.error("Erreur de recherche:", error);
-            Swal.fire('Erreur', 'Impossible de filtrer les données.', 'error');
+            Swal.fire({
+                title: 'Erreur',
+                text: 'Impossible de filtrer les données.',
+                icon: 'error',
+                customClass: { popup: isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-800' }
+            });
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -85,25 +145,46 @@ function AffichageEleve() {
             confirmButtonColor: '#3085d6',
             cancelButtonColor: '#d33',
             confirmButtonText: 'Oui, supprimer !',
-            cancelButtonText: 'Annuler'
+            cancelButtonText: 'Annuler',
+            customClass: {
+                popup: isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-800',
+                confirmButton: 'bg-indigo-600',
+                cancelButton: 'bg-red-600',
+            }
         }).then((result) => {
             if (result.isConfirmed) {
-            axios.delete(`${url}/deleteacademique/${inscrit.no_inscrit}`)
-                .then(() => {
-                Swal.fire('Supprimé !', 'L\'élève a été supprimé.', 'success');
-                // Mettre à jour la liste localement
-                setNiveaux(prev => prev.filter(n => n.no_inscrit !== inscrit.no_inscrit));
-                })
-                .catch(err => {
-                console.error(err);
-                Swal.fire('Erreur !', 'Impossible de supprimer cet élève.', 'error');
-                });
+                axios.delete(`${url}/deleteacademique/${inscrit.no_inscrit}`)
+                    .then(() => {
+                        Swal.fire({
+                            title: 'Supprimé !',
+                            text: 'L\'élève a été supprimé.',
+                            icon: 'success',
+                            background: isDark ? '#1e1e2f' : '#fff',
+                            color: isDark ? 'white' : 'black',
+                        });
+                        setNiveaux(prev => prev.filter(n => n.no_inscrit !== inscrit.no_inscrit));
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        Swal.fire({
+                            title: 'Erreur !',
+                            text: 'Impossible de supprimer cet élève.',
+                            icon: 'error',
+                            customClass: { popup: isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-800' }
+                        });
+                    });
             }
         });
     };
 
     const handleSearchClass = async (classe) => {
         setActiveCategory(classe);
+        setCurrentPage(1);
+
+        if (classe === "Tous") {
+            fetchNiveaux();
+            return;
+        }
 
         try{
             const res = await axios.get(`${url}/searchClasse/${classe}`);
@@ -111,271 +192,622 @@ function AffichageEleve() {
         }
         catch (err) {
             console.error("Erreur lors du filtrage par classe:", err);
-            Swal.fire('Erreur', 'Impossible de filtrer par classe.', 'error');
+            Swal.fire({
+                title: 'Erreur',
+                text: 'Impossible de filtrer par classe.',
+                icon: 'error',
+                customClass: { popup: isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-800' }
+            });
         }
     }
 
     const handleSearchMat = async () => {
         if(!searchMat.trim()){
-          Swal.fire('Attention', 'Veuillez entrer un matricule pour la recherche.', 'warning');
-          return;
+            Swal.fire({
+                title: 'Attention',
+                text: 'Veuillez entrer un matricule pour la recherche.',
+                icon: 'warning',
+                customClass: { popup: isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-800' }
+            });
+            return;
         }
     
         const urlMat = `${url}/personne/matricule/${searchMat.trim()}`;
         setLoading(true);
     
         try{
-          const res = await axios.get(urlMat);
-          const personneData = res.data;
+            const res = await axios.get(urlMat);
+            const personneData = res.data;
     
-          if(personneData && Object.keys(personneData).length > 0) {
-            openIncription(personneData);
+            if(personneData && Object.keys(personneData).length > 0) {
+                openIncription(personneData);
     
-            Swal.fire({
-              icon: 'success',
-              text: `Matricule trouvé : ${personneData.personne?.nom} ${personneData.personne?.prenom}. Les données sont prêtes.`,
-              background: '#1e1e2f',
-              color: 'white',
-              timer: 3000,
-              position: "center",
-              showConfirmButton: false,
-            });
-          }
-          else {
-            Swal.fire('Introuvable', `Aucune personne trouvée avec le matricule ${searchMat}.`, 'error');
-          }
+                Swal.fire({
+                    icon: 'success',
+                    text: `Matricule trouvé : ${personneData.personne?.nom} ${personneData.personne?.prenom}. Les données sont prêtes.`,
+                    background: isDark ? '#1e1e2f' : '#fff',
+                    color: isDark ? 'white' : 'black',
+                    timer: 3000,
+                    position: "center",
+                    showConfirmButton: false,
+                });
+            }
+            else {
+                Swal.fire({
+                    title: 'Introuvable',
+                    text: `Aucune personne trouvée avec le matricule ${searchMat}.`,
+                    icon: 'error',
+                    customClass: { popup: isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-800' }
+                });
+            }
     
         } 
         catch (error) {
-          console.error("Erreur de recherche par matricule:", error);
-          Swal.fire('Erreur', 'Impossible de récupérer les données pour ce matricule.', 'error');
+            console.error("Erreur de recherche par matricule:", error);
+            Swal.fire({
+                title: 'Erreur',
+                text: 'Impossible de récupérer les données pour ce matricule.',
+                icon: 'error',
+                customClass: { popup: isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-800' }
+            });
         } 
         finally {
-          setLoading(false);
-          setSearchMat(""); // Réinitialiser le champ
+            setLoading(false);
+            setSearchMat("");
         }
-      }
+    }
 
-    const totalPages = Math.ceil(niveaux.length / ITEMS_PER_PAGE);
+    const resetFilters = () => {
+        fetchNiveaux();
+        setSearchQuery("");
+        setActiveCategory("Tous");
+        setDateDebut("");
+        setDateFin("");
+        setSearchMat("");
+        setCurrentPage(1);
+        Swal.fire({
+            icon:'info', 
+            title:'Réinitialisation', 
+            text: 'Filtres effacés', 
+            timer:1500, 
+            showConfirmButton:false,
+            background: isDark ? '#1e1e2f' : '#fff',
+            color: isDark ? 'white' : 'black',
+            position: "bottom-end",
+        });
+    };
+
+    const filterEleves = (elevesList, query, category) => {
+        return elevesList.filter(eleve => {
+            const q = query.toLowerCase().trim();
+            
+            const matchText = !q || 
+                (String(eleve.inscription?.personne?.matricule || '').toLowerCase().includes(q)) ||
+                (String(eleve.inscription?.personne?.nom || '').toLowerCase().includes(q)) ||
+                (String(eleve.inscription?.personne?.prenom || '').toLowerCase().includes(q)) ||
+                (String(eleve.inscription?.personne?.cin || '').toLowerCase().includes(q)) ||
+                (String(eleve.no_inscrit || '').toLowerCase().includes(q));
+
+            if (!matchText) return false;
+
+            if (category && category !== "Tous") {
+                const hasMatchingClasse = eleve.niveau?.nomniveau === category;
+                if (!hasMatchingClasse) return false;
+            }
+
+            return true;
+        });
+    };
+
+    const filteredEleves = useMemo(() => {
+        return filterEleves(niveaux, searchQuery, activeCategory);
+    }, [niveaux, searchQuery, activeCategory]);
+
+    // Pagination
+    const totalPages = Math.ceil(filteredEleves.length / ITEMS_PER_PAGE);
+    const currentData = filteredEleves.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+
     const goToPage = (page) => {
         if (page >= 1 && page <= totalPages) setCurrentPage(page);
     };
-    
+
     return (
-        <div className="p-4 sm:p-6 bg-gray-50 min-h-screen">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-3">
-            <div className="flex items-center mb-6 border-b pb-4 border-indigo-100">
-            <FaListAlt className="w-6 h-6 text-indigo-600 mr-3" />
-            <h2 className="text-2xl text-default text-center font-bold "> {} Personnes inscrits</h2>
-            </div>
-            <div className="flex flex-wrap mb-6 border-b pb-4 gap-2">
-                {categories.map(key => (
-                    <button key={key} onClick={() => handleSearchClass(key)}
-                        className={`px-3 py-2 rounded-lg font-medium text-medium fw-bold 
-                        ${activeCategory === key ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-600'}`}>
-                        {key}
-                    </button>
-                ))}
-            </div>
-        </div>
-
-        <div className="p-5 rounded-xl shadow-md mb-6 ring-1 ring-gray-200">
-            <div className="flex items-center text-indigo-600 mb-6 border-b pb-4 border-indigo-100 justify-between">
-                <div className="flex items-stretch gap-2">
-                    <FaPen className="w-6 h-6 mr-3" />
-                    <h3 className="text-lg text-center font-semibold text-gray-700">Technique de recherche les élèves!</h3>
-                </div>
-                <div className="flex items-stretch gap-2">
-                    <input type="text" placeholder="Rechercher par Matricule (Autofill)" value={searchMat} 
-                    onChange={(e) => setSearchMat(e.target.value)}
-                    className="flex-grow pl-4 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"/>
-                    <button onClick={handleSearchMat} className={`px-4 py-2 text-white rounded-lg shadow ${loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'}`}>
-                        <FaSearch className="w-5 h-5" />
-                    </button>
-                </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="relative">
-                <Search className="absolute left-3 top-3 text-gray-400 w-5 h-5" />
-                <input type="text"  placeholder="Rechercher par nom, matricule, CIN..." 
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"/>
-            </div>
-
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                <div className="flex items-center gap-2">
-                    <Calendar className="w-5 h-5 text-gray-500" />
-                    <label className="text-sm font-medium text-gray-700 hidden sm:block">Du :</label>
-                    <input type="date" value={dateDebut} onChange={(e) => setDateDebut(e.target.value)}
-                    className="border border-gray-300 rounded-lg p-2 focus:ring-indigo-500 focus:border-indigo-500"/>
-                </div>
-
-                <div className="flex items-center gap-2">
-                    <label className="text-sm font-medium text-gray-700 hidden sm:block">Au :</label>
-                    <input type="date" value={dateFin} onChange={(e) => setDateFin(e.target.value)} className="border border-gray-300 rounded-lg p-2 focus:ring-indigo-500 focus:border-indigo-500"/>
-                </div>
-
+        <div className={`p-4 sm:p-8 min-h-screen ${bgColor} ${textColor}`}>
+            
+            {/* --- EN-TÊTE ET STATISTIQUES --- */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 pb-4 border-b border-indigo-200/50">
                 <div className="flex items-center">
-                    <button onClick={handleSearchByDate} className="px-4 py-2 mx-2 bg-indigo-600 text-white rounded-lg shadow hover:bg-indigo-700">
-                        Chercher
-                    </button>
-                    <button onClick={fetchNiveaux} className="px-4 py-2 bg-red-500 text-white rounded-lg shadow hover:bg-red-600">
-                        Actualiser
-                    </button>
+                    <FaListAlt className="w-8 h-8 text-indigo-500 mr-3" />
+                    <h2 className={`text-3xl font-extrabold ${textColor}`}>Liste des Élèves Inscrits</h2>
                 </div>
-                </div>
-
+                <p className={`text-xl font-semibold mt-4 sm:mt-0 px-4 py-2 rounded-full ${isDark ? 'bg-indigo-700 text-white' : 'bg-indigo-100 text-indigo-700'}`}>
+                    Total: <b className="text-lg">{filteredEleves.length}</b>** élèves
+                </p>
             </div>
-        </div>
 
-        {/* TABLEAU DESKTOP */}
-        <div className="hidden md:block bg-default rounded-xl shadow-lg ring-1 ring-gray-200 overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200 table-fixed">
-                <thead className="bg-indigo-600 text-white sticky top-0">
-                <tr>
-                    <th className="px-4 py-2 text-center font-semibold w-24">N° Matricule</th>
-                    <th className="px-4 py-2 text-center font-semibold w-24">N° Inscription</th>
-                    <th className="px-4 py-2 text-center font-semibold w-75">Noms & Prénoms</th>
-                    <th className="px-4 py-2 text-center font-semibold w-40">Date de Naissance</th>
-                    <th className="px-4 py-2 text-center font-semibold w-20">Sexe</th>
-                    <th className="px-4 py-2 text-center font-semibold w-60">Adresse Actuelle</th>
-                    <th className="px-4 py-2 text-center font-semibold w-20">Photo d'Identité</th>
-                    <th className="px-4 py-2 text-center font-semibold w-24">CIN</th>
-                    <th className="px-4 py-2 text-center font-semibold w-75">Nom du Père</th>
-                    <th className="px-4 py-2 text-center font-semibold w-75">Nom du Mère</th>
-                    <th className="px-4 py-2 text-center font-semibold w-75">Phone Parent</th>
-                    <th className="px-4 py-2 text-center font-semibold w-75">Nom du Tuteur</th>
-                    <th className="px-4 py-2 text-center font-semibold w-28">Phone Tuteur</th>
-                    <th className="px-4 py-2 text-center font-semibold w-75">Adresse Parent</th>
-                    <th className="px-4 py-2 text-center font-semibold w-60">Adresse Tuteur</th>
-                    <th className="px-4 py-2 text-center font-semibold w-40">Date Inscription</th>
-                    <th className="px-4 py-2 text-center font-semibold w-28">Année Scolaire</th>
-                    <th className="px-4 py-2 text-center font-semibold w-40">Type d'inscription</th>
-                    <th className="px-4 py-2 text-center font-semibold w-40">Nom de Classe</th>
-                    <th className="px-4 py-2 text-center font-semibold w-40">Actions</th>
-                </tr>
-                </thead>
-                <tbody>
-                    {niveaux.length > 0 ? (
-                        niveaux.map((liste, idx) => (
-                            <tr key={idx} className="hover:bg-indigo-50 transition duration-100">
-                            <td className="px-2 py-2 text-center">{liste.inscription?.personne?.matricule}</td>
-                            <td className="px-2 py-2 text-center">{liste.no_inscrit}</td>
-                            <td className="px-2 py-2 text-center font-medium"><b>{liste.inscription?.personne?.nom}</b> {liste.inscription?.personne?.prenom}</td>
-                            <td className="px-2 py-2 text-center">{liste.inscription?.personne?.naiss} à {liste.inscription?.personne?.lieunaiss}</td>
-                            <td className="px-2 py-2 text-center">{liste.inscription?.personne?.sexe}</td>
-                            <td className="px-2 py-2 text-center">{liste.inscription?.personne?.adresse}</td>
-                            <td className="px-2 py-2 text-center">
-                                {liste.inscription?.personne?.photo ? (
-                                <img
-                                    src={`http://localhost:8000/storage/${liste.inscription?.personne?.photo}`}
-                                    alt="photo"
-                                    className="w-10 h-10 rounded-full mx-auto cursor-pointer border-2 border-indigo-500 object-cover"
-                                    onClick={() => setSelectedImage(`http://localhost:8000/storage/${liste.inscription?.personne?.photo}`)}
-                                />
-                                ) : <span className="text-gray-400 text-sm">Aucune</span>}
-                            </td>
-                            <td className="px-2 py-2 text-center">{liste.inscription?.personne?.cin}</td>
-                            <td className="px-2 py-2 text-center">{liste.inscription?.personne?.nompere}</td>
-                            <td className="px-2 py-2 text-center">{liste.inscription?.personne?.nommere}</td>
-                            <td className="px-2 py-2 text-center">{liste.inscription?.personne?.phoneparent}</td>
-                            <td className="px-2 py-2 text-center">{liste.inscription?.personne?.nomtuteur}</td>
-                            <td className="px-2 py-2 text-center">{liste.inscription?.personne?.phonetuteur}</td>
-                            <td className="px-2 py-2 text-center">{liste.inscription?.personne?.adressparent}</td>
-                            <td className="px-2 py-2 text-center">{liste.inscription?.personne?.adresstuteur}</td>
-                            <td className="px-2 py-2 text-center">{liste.inscription?.dateinscrit}</td>
-                            <td className="px-2 py-2 text-center">{liste.inscription?.anneesco}</td>
-                            <td className="px-2 py-2 text-center">{liste.type_inscrit}</td>
-                            <td className="px-2 py-2 text-center">{liste.niveau?.nomniveau || "---"}</td>
-                            <td className="px-2 py-2 text-center flex justify-center gap-1">
-                                <button className="flex items-center text-white bg-indigo-600 text-white p-1 rounded" onClick={() => openModalUpdate(liste)}><FaEdit  className="mx-1 w-4 h-4"/> Modifier</button>
-                                <button className="flex items-center text-white bg-red-600 text-white p-1 rounded" onClick={() => handleDelete(liste)} ><FaTrash className="mx-1 w-4 h-4"/> Supprimer</button>
-                            </td>
-                            </tr>
-                        ))
-                    ) : (
-                    <tr>
-                        <td colSpan={20} className="px-4 py-8 text-center text-gray-500">
-                            <FaBookOpen className="mx-auto mb-2" size={24} />
-                            <p>Aucune donnée trouvée</p>
-                        </td>
-                    </tr>
-                    )}
-                </tbody>
-            </table>
-        </div>
+            <div className={`${cardColor} shadow-xl rounded-xl p-6 mb-8 border transition duration-300`}>
+                
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 items-end mb-6">
+                    
+                    <div className="relative lg:col-span-1">
+                        <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${lightTextColor}`} />
+                        <input 
+                            type="text"  
+                            placeholder="Nom, Matricule, CIN, N° Insc..." 
+                            value={searchQuery} 
+                            onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
+                            className={`w-full pl-10 pr-4 py-3 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 ${inputBg}`}
+                        />
+                    </div>
 
-        <div className="md:hidden flex flex-col gap-4">
-            {niveaux.length > 0 ? niveaux.map((liste, idx) => (
-            <div key={idx} className="bg-white rounded-xl shadow p-4 flex flex-col gap-2">
-                <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                    {liste.inscription?.personne?.photo && (
-                    <img
-                        src={`http://localhost:8000/storage/${liste.inscription?.personne?.photo}`}
-                        alt="photo"
-                        className="w-12 h-12 rounded-full object-cover border-2 border-indigo-500"
-                        onClick={() => setSelectedImage(`http://localhost:8000/storage/${liste.inscription?.personne?.photo}`)}
-                    />
-                    )}
-                    <div>
-                    <p className="font-bold">{liste.inscription?.personne?.nom} {liste.inscription?.personne?.prenom}</p>
-                    <p className="text-sm text-gray-500">{liste.parcours?.[0]?.nomformation || "---"}</p>
+                    {/* 2. Filtres par Date (API) */}
+                    <div className="lg:col-span-2 flex flex-col sm:flex-row items-stretch gap-3">
+                        <div className="flex items-center gap-2">
+                            <Calendar className={`w-5 h-5 ${lightTextColor}`} />
+                            <label className={`text-sm font-medium ${lightTextColor}`}>Du:</label>
+                            <input type="date" value={dateDebut}
+                                onChange={(e) => setDateDebut(e.target.value)}
+                                className={`w-full border rounded-lg p-2 focus:ring-indigo-500 focus:border-indigo-500 ${inputBg}`}
+                            />
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                            <label className={`text-sm font-medium ${lightTextColor}`}>Au:</label>
+                            <input type="date" value={dateFin}
+                                onChange={(e) => setDateFin(e.target.value)}
+                                className={`w-full border rounded-lg p-2 focus:ring-indigo-500 focus:border-indigo-500 ${inputBg}`}
+                            />
+                        </div>
+                    </div>
+                    
+                    {/* 3. Boutons Date & Réinitialisation */}
+                    <div className="lg:col-span-1 flex gap-3">
+                        <button onClick={handleSearchByDate} disabled={loading} 
+                            className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 text-white rounded-lg shadow font-semibold transition duration-200 ${loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'}`}>
+                            {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <FaSearch className="w-4 h-4" />}
+                            {loading ? 'Chargement...' : 'Chercher Date'}
+                        </button>
+                        
+                        <button onClick={resetFilters} 
+                            className="px-4 py-2 bg-red-500 text-white rounded-lg shadow font-semibold hover:bg-red-600 transition">
+                            <XCircle className="w-5 h-5" />
+                        </button>
                     </div>
                 </div>
-                <div className="flex gap-2">
-                    <button className="bg-indigo-600 text-white p-2 rounded" onClick={() => openModalUpdate(liste)}><FaEdit /></button>
-                    <button className="bg-red-600 text-white p-2 rounded"><FaTrash /></button>
-                </div>
-                </div>
-                <div className="grid grid-cols-2 gap-2 text-sm text-gray-600">
-                <div>Matricule: {liste.matricule}</div>
-                <div>Inscription: {liste.no_inscrit}</div>
-                <div>Date Inscription: {liste.dateinscrit}</div>
-                <div>Année: {liste.anneesco}</div>
-                <div>Sexe: {liste.inscription?.personne?.sexe}</div>
-                <div>Adresse: {liste.inscription?.personne?.adresse}</div>
-                <div>CIN: {liste.inscription?.personne?.cin}</div>
-                <div>Durée: {liste.inscriptionformation?.duree || 0}</div>
+
+                <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-gray-100/50">
+                    {/* Filtres Classes */}
+                    <div className="flex flex-wrap gap-2">
+                        <FaSchool className={`w-5 h-5 mr-1 text-indigo-600 ${lightTextColor}`} />
+                        <span className={`font-semibold ${lightTextColor} mr-3 hidden sm:inline`}>Filtre par Classe:</span>
+                        {categories.map(key => (
+                            <button key={key} onClick={() => handleSearchClass(key)} 
+                                className={`px-3 py-1.5 rounded-full text-md font-bold transition duration-150 ${
+                                    activeCategory === key ? 'bg-indigo-500 text-white shadow-md' : 
+                                    isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 
+                                    'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                }`}>
+                                {key}
+                            </button>
+                        ))}
+                    </div>
+                    
+                    <div className="flex items-stretch gap-2 w-full sm:w-auto">
+                        <input type="text" placeholder="Rechercher par Matricule (Autofill)" value={searchMat} 
+                            onChange={(e) => setSearchMat(e.target.value)}
+                            className={`flex-grow sm:min-w-[250px] pl-4 pr-4 py-2 rounded-lg focus:ring-green-500 focus:border-green-500 ${inputBg}`}/>
+                        <button onClick={handleSearchMat} disabled={loading} 
+                            className={`px-4 py-2 text-white rounded-lg shadow font-semibold transition ${
+                                loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'
+                            }`}>
+                            <FaSearch className="w-5 h-5" />
+                        </button>
+                    </div>
                 </div>
             </div>
-            )) : (
-            <div className="text-center text-gray-500 py-8">
-                <FaBookOpen className="mx-auto mb-2" size={24} />
-                <p>Aucune donnée trouvée</p>
+
+            <div className={`hidden md:block ${cardColor} shadow-xl rounded-xl ring-1 ring-gray-200/50 overflow-x-auto transition duration-300`}>
+                <div className="max-h-[60vh] overflow-y-auto">
+                    <table className="min-w-full divide-y divide-gray-200 table-fixed">
+                        <thead className="bg-indigo-600 text-white sticky top-0">
+                            <tr>
+                                <th className="px-4 py-2 text-center font-semibold w-30">Matricule</th>
+                                <th className="px-4 py-2 text-center font-semibold w-50">Noms & Prénom(s)</th>
+                                <th className="px-4 py-2 text-center font-semibold w-50">Date et Lieu de Naissance</th>
+                                <th className="px-4 py-2 text-center font-semibold w-20">Photo</th>
+                                <th className="px-4 py-2 text-center font-semibold w-24">CIN</th>
+                                <th className="px-4 py-2 text-center font-semibold w-40">Classe</th>
+                                <th className="px-4 py-2 text-center font-semibold w-40">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {currentData.length > 0 ? (
+                                currentData.map((liste, idx) => (
+                                    <tr key={idx} className="hover:bg-indigo-50 transition duration-100">
+                                        <td className="px-2 py-2 text-center text-sm">{liste.inscription?.personne?.matricule}</td>
+                                        <td className="px-2 py-2 text-center font-medium"><b>{liste.inscription?.personne?.nom}</b> {liste.inscription?.personne?.prenom}</td>
+                                        <td className="px-2 py-2 text-center text-sm">{liste.inscription?.personne?.naiss} à {liste.inscription?.personne?.lieunaiss}</td>
+                                        <td>
+                                            {liste.inscription?.personne?.photo ? (
+                                                <img
+                                                    src={`http://localhost:8000/storage/${liste.inscription.personne.photo}`}
+                                                    alt="photo"
+                                                    className="w-10 h-10 rounded-full mx-auto cursor-pointer border-2 border-indigo-500 object-cover"
+                                                    onClick={() => setSelectedImage(`http://localhost:8000/storage/${liste.inscription.personne.photo}`)}
+                                                />
+                                            ) : <span className="text-gray-400 text-sm">Aucune</span>}
+                                        </td>
+                                        <td className="px-2 py-2 text-center text-sm">{liste.inscription?.personne?.cin}</td>
+                                        <td className="px-2 py-2 text-center text-sm font-semibold text-indigo-600">
+                                            {liste.niveau?.nomniveau || "---"}
+                                        </td>
+                                        <td className="px-2 py-2 text-center flex justify-center gap-1">
+                                            <button onClick={() => openDetailsModal(liste)} className="flex items-center h-8 text-white bg-green-600 p-1 rounded text-xs">
+                                                <FaEye className="mx-1 w-3 h-3"/> Détails
+                                            </button>
+                                            <button onClick={() => openModalUpdate(liste)} className="flex items-center h-8 text-white bg-indigo-600 p-1 rounded text-xs">
+                                                <FaEdit className="mx-1 w-3 h-3"/> Modifier
+                                            </button>
+                                            <button onClick={() => handleDelete(liste)} className="flex items-center h-8 text-white bg-red-600 p-1 rounded text-xs">
+                                                <FaTrash className="mx-1 w-3 h-3"/> Supprimer
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan={7} className="px-4 py-8 text-center">
+                                        <FaBookOpen className="mx-auto mb-2" size={24} />
+                                        <p>Aucune donnée trouvée</p>
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
             </div>
+
+            {/* --- CARDS (Mobile) --- */}
+            <div className="md:hidden flex flex-col gap-4 mt-6">
+                {currentData.length > 0 ? currentData.map((liste, idx) => (
+                    <div key={idx} className={`${cardColor} rounded-xl shadow-lg p-4 flex flex-col gap-3 border transition duration-300`}>
+                        
+                        {/* Header Mobile: Nom + Actions */}
+                        <div className="flex items-center justify-between border-b pb-3 border-gray-200/50">
+                            <div className="flex items-center gap-3">
+                                {liste.inscription?.personne?.photo && (
+                                    <img
+                                        src={`http://localhost:8000/storage/${liste.inscription.personne.photo}`}
+                                        alt="photo"
+                                        className="w-12 h-12 rounded-full object-cover border-2 border-indigo-500"
+                                        onClick={() => setSelectedImage(`http://localhost:8000/storage/${liste.inscription.personne.photo}`)}
+                                    />
+                                )}
+                                <div>
+                                    <p className={`font-bold ${textColor}`}>{liste.inscription?.personne?.nom} {liste.inscription?.personne?.prenom}</p>
+                                    <p className={`text-sm font-medium text-indigo-500`}>{liste.niveau?.nomniveau || "---"}</p>
+                                </div>
+                            </div>
+                            <div className="flex gap-2">
+                                <button onClick={() => openDetailsModal(liste)} title="Détails"
+                                    className="p-2 bg-blue-500 hover:bg-blue-600 text-white rounded-full transition">
+                                    <FaEye className="w-4 h-4"/>
+                                </button>
+                                <button onClick={() => openModalUpdate(liste)} title="Modifier"
+                                    className="p-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-full transition">
+                                    <FaEdit className="w-4 h-4"/>
+                                </button>
+                                <button onClick={() => handleDelete(liste)} title="Supprimer"
+                                    className="p-2 bg-red-600 hover:bg-red-700 text-white rounded-full transition">
+                                    <FaTrash className="w-4 h-4"/>
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Détails Mobile */}
+                        <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                            <DetailMobile label="Matricule" value={liste.inscription?.personne?.matricule} />
+                            <DetailMobile label="CIN" value={liste.inscription?.personne?.cin} />
+                            <DetailMobile label="Date Naiss." value={liste.inscription?.personne?.naiss} />
+                            <DetailMobile label="Lieu Naiss." value={liste.inscription?.personne?.lieunaiss} />
+                            <DetailMobile label="Classe" value={liste.niveau?.nomniveau} isBold={true} />
+                            <DetailMobile label="Type" value={liste.type_inscrit} />
+                        </div>
+                    </div>
+                )) : (
+                    <div className={`text-center py-8 ${lightTextColor}`}>
+                        <FaBookOpen className="mx-auto mb-3 w-6 h-6" />
+                        <p>Aucun élève trouvé avec les filtres actuels.</p>
+                    </div>
+                )}
+            </div>
+
+            {/* --- PAGINATION --- */}
+            {totalPages > 1 && (
+                <div className={`flex justify-between items-center px-4 py-3 ${cardColor} border-t mt-6 rounded-xl shadow-lg`}>
+                    <button onClick={() => goToPage(currentPage - 1)} disabled={currentPage === 1}
+                        className={`flex items-center gap-2 px-3 py-1 font-bold rounded-lg transition duration-200 disabled:opacity-50 ${isDark ? 'bg-indigo-700 text-white hover:bg-indigo-600' : 'bg-indigo-600 text-white hover:bg-indigo-700'}`}>
+                        Précédent
+                    </button>
+                    <span className={`text-sm ${lightTextColor}`}>Page **{currentPage}** sur **{totalPages}**</span>
+                    <button onClick={() => goToPage(currentPage + 1)} disabled={currentPage === totalPages}
+                        className={`flex items-center gap-2 px-3 py-1 font-bold rounded-lg transition duration-200 disabled:opacity-50 ${isDark ? 'bg-indigo-700 text-white hover:bg-indigo-600' : 'bg-indigo-600 text-white hover:bg-indigo-700'}`}>
+                        Suivant
+                    </button>
+                </div>
             )}
-        </div>
 
-        {/* PAGINATION */}
-        {totalPages > 1 && (
-            <div className="flex justify-between items-center px-4 py-3 bg-gray-50 border-t mt-4">
-            <button onClick={() => goToPage(currentPage - 1)} disabled={currentPage === 1}
-                className="flex items-center gap-2 px-3 py-1 bg-indigo-800 text-white fw-bold border rounded-lg text-gray-700 hover:bg-blue-100 disabled:opacity-50">
-                Précédent
-            </button>
-            <span className="text-sm text-gray-600">Page {currentPage} sur {totalPages}</span>
-            <button  onClick={() => goToPage(currentPage + 1)} disabled={currentPage === totalPages}
-                className="flex items-center gap-2 px-3 py-1 bg-indigo-800 text-white fw-bold border rounded-lg text-gray-700 hover:bg-blue-100 disabled:opacity-50">
-                Suivant
-            </button>
-            </div>
-        )}
+            {/* MODALES */}
+            {selectedImage && (
+                <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[100]"
+                    onClick={() => setSelectedImage(null)}>
+                    <div className="bg-white p-6 rounded-xl shadow-2xl max-w-lg mx-4" onClick={(e) => e.stopPropagation()}>
+                        <img src={selectedImage} alt="Zoom Photo d'identité" className="rounded-lg w-full h-auto object-cover max-h-[80vh]" />
+                        <p className="text-center text-gray-600 mt-3 font-medium">Photo d'identité (Cliquez en dehors pour fermer)</p>
+                    </div>
+                </div>
+            )}
 
-        {/* MODALE IMAGE */}
-        {selectedImage && (
-            <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50"
-            onClick={() => setSelectedImage(null)}>
-            <div className="bg-white p-4 rounded-lg shadow-lg max-w-2xl mx-auto">
-                <img src={selectedImage} alt="Zoom" className="rounded-lg w-full h-auto" />
-                <p className="text-center text-gray-600 mt-2">Cliquez en dehors pour fermer</p>
-            </div>
-            </div>
-        )}
-        
-        <ModificationAcademique show={modelUpdate} handleClose={closeModalUpdate} selectedPersonne={selectedPersonne}/>
-        <NouvelleInscription show={showInscription} handleClose={closeIncription} searchEleve={searchPersonne} />
+            {/* Modal Détails Professionnel pour Élève */}
+            {modalDetails && selectedPersonne && (
+                <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/50 backdrop-blur-sm transition-all duration-300"
+                    onClick={closeDetailsModal}>
+                    <div className={`${cardColor} rounded-xl shadow-2xl max-w-6xl w-full max-h-[95vh] overflow-hidden flex flex-col`} onClick={(e) => e.stopPropagation()}>
+                        
+                        {/* En-tête du modal */}
+                        <div className="flex justify-between items-center p-6 border-b border-gray-200/50 bg-gradient-to-r from-indigo-600 to-purple-600 text-white">
+                            <div className="flex items-center gap-3">
+                                <FaUser className="w-6 h-6" />
+                                <div>
+                                    <h3 className="text-lg font-bold text-center">Information complète détaillée</h3>
+                                </div>
+                            </div>
+                            <button onClick={closeDetailsModal} className="text-white hover:text-gray-200 text-2xl transition">
+                                <FaTimes className="w-6 h-6" />
+                            </button>
+                        </div>
+
+                        {/* Contenu du modal avec scroll */}
+                        <div className="flex-1 overflow-y-auto">
+                            <div className="p-6">
+                                {/* Section Photo et Informations Principales */}
+                                <div className="flex flex-col lg:flex-row gap-6 mb-8">
+                                    
+                                    {/* Photo de profil */}
+                                    <div className="flex-shrink-0">
+                                        <div className="relative group">
+                                            <div className="m-5 w-32 h-32 rounded-full border-4 border-indigo-500 overflow-hidden bg-gray-200 flex items-center justify-center">
+                                                {selectedPersonne.inscription?.personne?.photo ? (
+                                                    <img
+                                                        src={`http://localhost:8000/storage/${selectedPersonne.inscription.personne.photo}`}
+                                                        alt="Photo de profil"
+                                                        className="w-full h-full object-cover cursor-pointer"
+                                                        onClick={() => setSelectedImage(`http://localhost:8000/storage/${selectedPersonne.inscription.personne.photo}`)}
+                                                    />
+                                                ) : (
+                                                    <FaUser className="w-16 h-16 text-gray-400" />
+                                                )}
+                                            </div>
+                                            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 rounded-full transition-all duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100">
+                                                <FaCamera className="text-white text-xl" />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Informations Principales */}
+                                    <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <InfoRow 
+                                            icon={<FaIdCard className="text-indigo-600" />}
+                                            label="Matricule"
+                                            value={selectedPersonne.inscription?.personne?.matricule}
+                                        />
+
+                                        <InfoRow 
+                                            icon={<FaIdCard className="text-purple-500" />}
+                                            label="N° Inscription"
+                                            value={selectedPersonne.no_inscrit}
+                                        />
+                                        <InfoRow 
+                                            icon={<FaUser className="text-green-600" />}
+                                            label="Nom Complet"
+                                            value={`${selectedPersonne.inscription?.personne?.nom} ${selectedPersonne.inscription?.personne?.prenom}`}
+                                        />
+
+                                        <InfoRow 
+                                            icon={<FaVenusMars className="text-pink-500" />}
+                                            label="Sexe"
+                                            value={selectedPersonne.inscription?.personne?.sexe}
+                                        />
+                                        <InfoRow 
+                                            icon={<FaHome className="text-green-500" />}
+                                            label="Adresse Actuelle"
+                                            value={selectedPersonne.inscription?.personne?.adresse}
+                                        />
+                                        <InfoRow 
+                                            icon={<FaChalkboardTeacher className="text-purple-600" />}
+                                            label="Classe"
+                                            value={
+                                                <div className="bg-gradient-to-r w-60 from-indigo-500 to-purple-600 text-white px-5 py-3 rounded-lg flex items-center gap-3 shadow-lg">
+                                                    <span className="font-semibold">{selectedPersonne.niveau?.nomniveau}</span>
+                                                </div>
+                                            }
+                                        />
+                                        
+                                    </div>
+                                </div>
+
+                                {/* Grille des informations détaillées */}
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                    
+                                    {/* Colonne 1: Informations Personnelles */}
+                                    <div className="space-y-6">
+                                        <SectionTitle icon={<FaUser className="text-indigo-500" />} title={
+                                            <span className="bg-gradient-to-r text-center text-lg from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                                                Informations Personnelles
+                                            </span>
+                                        }/>
+                                        
+                                        <InfoRow 
+                                            icon={<FaBirthdayCake className="text-purple-500" />}
+                                            label="Date de Naissance"
+                                            value={selectedPersonne.inscription?.personne?.naiss}
+                                        />
+                                        <InfoRow 
+                                            icon={<FaMapMarkerAlt className="text-red-500" />}
+                                            label="Lieu de Naissance"
+                                            value={selectedPersonne.inscription?.personne?.lieunaiss}
+                                        />
+                                        <InfoRow 
+                                            icon={<FaVenusMars className="text-pink-500" />}
+                                            label="CIN"
+                                            value={selectedPersonne.inscription?.personne?.cin}
+                                        />
+                                        <InfoRow 
+                                            icon={<FaBirthdayCake className="text-pink-500" />}
+                                            label="Délivré le"
+                                            value={selectedPersonne.inscription?.personne?.datedel}
+                                        />
+                                        <InfoRow 
+                                            icon={<FaMapMarkerAlt className="text-pink-500" />}
+                                            label="à"
+                                            value={selectedPersonne.inscription?.personne?.lieucin}
+                                        />
+                                    </div>
+
+                                    {/* Colonne 2: Informations Familiales */}
+                                    <div className="space-y-6">
+                                        <SectionTitle icon={<FaUserFriends className="text-indigo-500" />} title={
+                                            <span className="bg-gradient-to-r text-center text-lg from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                                                Informations Familiales
+                                            </span>
+                                        }/>
+                                        
+                                        <InfoRow 
+                                            icon={<FaUserTie className="text-blue-500" />}
+                                            label="Nom du Père"
+                                            value={selectedPersonne.inscription?.personne?.nompere}
+                                        />
+                                        <InfoRow 
+                                            icon={<FaUserFriends className="text-pink-500" />}
+                                            label="Nom de la Mère"
+                                            value={selectedPersonne.inscription?.personne?.nommere}
+                                        />
+                                        <InfoRow 
+                                            icon={<FaPhone className="text-green-500" />}
+                                            label="Téléphone Parent"
+                                            value={selectedPersonne.inscription?.personne?.phoneparent}
+                                        />
+                                        <InfoRow 
+                                            icon={<FaUserTie className="text-orange-500" />}
+                                            label="Nom du Tuteur"
+                                            value={selectedPersonne.inscription?.personne?.nomtuteur}
+                                        />
+                                        <InfoRow 
+                                            icon={<FaPhone className="text-red-500" />}
+                                            label="Téléphone Tuteur"
+                                            value={selectedPersonne.inscription?.personne?.phonetuteur}
+                                        />
+                                    </div>
+
+                                    {/* Colonne 3: Adresses Familiales */}
+                                    <div className="space-y-6">
+                                        <SectionTitle icon={<FaHome className="text-indigo-500" />} title={
+                                            <span className="bg-gradient-to-r text-center text-lg from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                                                Adresses Familiales
+                                            </span>
+                                        }/>
+                                        
+                                        <InfoRow 
+                                            icon={<FaHome className="text-blue-500" />}
+                                            label="Adresse Parent"
+                                            value={selectedPersonne.inscription?.personne?.adressparent}
+                                        />
+                                        <InfoRow 
+                                            icon={<FaHome className="text-green-500" />}
+                                            label="Adresse Tuteur"
+                                            value={selectedPersonne.inscription?.personne?.adresstuteur}
+                                        />
+                                    </div>
+
+                                    {/* Colonne 4: Informations Scolaires */}
+                                    <div className="space-y-6">
+                                        <SectionTitle 
+                                            icon={<FaGraduationCap className="text-indigo-500" />} 
+                                            title={
+                                                <span className="bg-gradient-to-r text-center text-lg from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                                                    Informations Scolaires
+                                                </span>
+                                            }
+                                        />
+                                        <InfoRow 
+                                            icon={<FaCalendarAlt className="text-blue-500" />}
+                                            label="Date d'Inscription"
+                                            value={selectedPersonne.inscription?.dateinscrit}
+                                        />
+                                        <InfoRow 
+                                            icon={<FaGraduationCap className="text-green-500" />}
+                                            label="Année Scolaire"
+                                            value={selectedPersonne.inscription?.anneesco}
+                                        />
+                                        <InfoRow 
+                                            icon={<FaSchool className="text-orange-500" />}
+                                            label="Type d'Inscription"
+                                            value={selectedPersonne.type_inscrit}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Pied du modal */}
+                        <div className="flex justify-end gap-3 p-6 border-t border-gray-200/50 bg-gray-50">
+                            <button onClick={() => openModalUpdate(selectedPersonne)}
+                                className="px-6 py-2 bg-yellow-500 text-white rounded-lg hover:bg-indigo-600 transition font-semibold flex items-center gap-2">
+                                <FaEdit className="w-4 h-4" />
+                                Modifier
+                            </button>
+                            <button onClick={closeDetailsModal}
+                                className="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition font-semibold">
+                                Fermer
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            <ModificationAcademique show={modelUpdate} handleClose={closeModalUpdate} selectedPersonne={selectedPersonne}/>
+            <NouvelleInscription show={showInscription} handleClose={closeIncription} searchEleve={searchPersonne} refreshList={fetchNiveaux} />
         </div>
     );
 }
 
+// Composant utilitaire pour les détails mobiles
+const DetailMobile = ({ label, value, isBold = false, className = '' }) => (
+    <div className={className}>
+        <span className="font-medium text-gray-500">{label}: </span>
+        <span className={isBold ? 'font-bold text-gray-900' : 'text-gray-700'}>{value}</span>
+    </div>
+);
+
+// Composants pour le modal professionnel
+const SectionTitle = ({ icon, title }) => (
+    <div className="flex items-center gap-3 mb-4 pb-2 border-b border-gray-200">
+        <div className="p-2 bg-indigo-100 rounded-lg">
+            {icon}
+        </div>
+        <h4 className="text-xl font-bold text-gray-800">{title}</h4>
+    </div>
+);
+
+const InfoRow = ({ icon, label, value }) => (
+    <div className="flex items-start gap-4 py-2">
+        <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center bg-gray-100 rounded-lg">
+            {icon}
+        </div>
+        <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-gray-500 mb-1">{label}</p>
+            <p className="text-gray-900 font-semibold">{value || 'Non renseigné'}</p>
+        </div>
+    </div>
+);
 export default AffichageEleve;
